@@ -1,0 +1,39 @@
+import express from 'express';
+import {
+  getAllProjects,
+  getProjectById,
+  createProject,
+  updateProject,
+  deleteProject,
+  toggleProjectStatus,
+  updateProjectModules,
+  getProjectStats,
+} from '../controllers/projectController';
+
+const router = express.Router();
+
+// Get all projects with optional filtering
+router.get('/', getAllProjects);
+
+// Get project statistics
+router.get('/stats', getProjectStats);
+
+// Get single project by ID
+router.get('/:id', getProjectById);
+
+// Create new project
+router.post('/', createProject);
+
+// Update project
+router.put('/:id', updateProject);
+
+// Delete project
+router.delete('/:id', deleteProject);
+
+// Toggle project status
+router.patch('/:id/toggle-status', toggleProjectStatus);
+
+// Update project modules
+router.patch('/:id/modules', updateProjectModules);
+
+export default router;

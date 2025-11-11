@@ -1,0 +1,1950 @@
+import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import DashboardLayout from './DashboardLayout';
+
+interface Role {
+  _id: string;
+  name: string;
+  code: string;
+}
+
+interface Project {
+  _id: string;
+  name: string;
+  code: string;
+}
+
+interface User {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  mobile?: string;
+  employeeCode?: string;
+  hrmsId?: number;
+  role: Role | null;
+  department?: string;
+  designation?: string;
+  joiningDate?: string;
+  reportingManager?: User;
+  projects?: Project[];
+  isActive: boolean;
+  createdAt: string;
+}
+
+interface HRMSEmployee {
+  id: number;
+  attributes: {
+    Group_Employee_Code: string;
+    First_Name: string;
+    Last_Name: string;
+    Official_Email_ID?: string;
+    Personal_Email_ID?: string;
+    Mobile?: string;
+    Centre_Code?: string;
+    Full_Name?: string;
+    Date_of_Joining?: string;
+    Group_Date_of_Joining?: string;
+  };
+}
+
+const UserManagement: React.FC = () => {
+  const { i18n } = useTranslation();
+  
+  // State management
+  const [users, setUsers] = useState<User[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterRole, setFilterRole] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
+  
+  // Modal states
+  const [showUserModal, setShowUserModal] = useState(false);
+  const [showHRMSModal, setShowHRMSModal] = useState(false);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [showCredentialsModal, setShowCredentialsModal] = useState(false);
+  const [selectedUserForCredentials, setSelectedUserForCredentials] = useState<User | null>(null);
+  
+  // Form data
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    mobile: '',
+    password: '',
+    employeeCode: '',
+    hrmsId: '',
+    role: '',
+    department: '',
+    designation: '',
+    joiningDate: '',
+    reportingManager: '',
+    projects: [] as string[],
+  });
+  
+  // HRMS data for bulk selection
+  const [hrmsEmployees, setHrmsEmployees] = useState<HRMSEmployee[]>([]);
+  const [hrmsEmployeeCodes, setHrmsEmployeeCodes] = useState(''); // For initial employee code input
+  const [hrmsSearchQuery, setHrmsSearchQuery] = useState(''); // For filtering loaded employees
+  const [hrmsLoading, setHrmsLoading] = useState(false);
+  const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]); // Array of employee IDs
+  const [selectedRole, setSelectedRole] = useState('');
+  const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
+  
+  const [saving, setSaving] = useState(false);
+
+  // Fetch users
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      const params = new URLSearchParams();
+      if (searchQuery) params.append('search', searchQuery);
+      if (filterRole) params.append('role', filterRole);
+      if (filterStatus) params.append('isActive', filterStatus);
+      
+      const response = await fetch(`http://localhost:3003/api/users?${params}`, {
+        credentials: 'include',
+      });
+      const data = await response.json();
+      
+      if (data.success) {
+        setUsers(data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      alert('Failed to fetch users');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch roles and projects
+  const fetchRolesAndProjects = async () => {
+    try {
+      const [rolesRes, projectsRes] = await Promise.all([
+        fetch('http://localhost:3003/api/roles', { credentials: 'include' }),
+        fetch('http://localhost:3003/api/projects', { credentials: 'include' }),
+      ]);
+      
+      const rolesData = await rolesRes.json();
+      const projectsData = await projectsRes.json();
+      
+      if (rolesData.success && Array.isArray(rolesData.data)) {
+        setRoles(rolesData.data);
+      }
+      if (projectsData.success && projectsData.data && Array.isArray(projectsData.data.projects)) {
+        setProjects(projectsData.data.projects);
+      }
+    } catch (error) {
+      console.error('Error fetching roles/projects:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+    fetchRolesAndProjects();
+  }, [searchQuery, filterRole, filterStatus]);
+
+  // Handle create user
+  const handleOpenCreateModal = () => {
+    setEditingUser(null);
+    setFormData({
+      firstName: '',
+      lastName: '',
+      email: '',
+      mobile: '',
+      password: '',
+      employeeCode: '',
+      hrmsId: '',
+      role: '',
+      department: '',
+      designation: '',
+      joiningDate: '',
+      reportingManager: '',
+      projects: [],
+    });
+    setShowUserModal(true);
+  };
+
+  // Handle edit user
+  const handleEditUser = (user: User) => {
+    setEditingUser(user);
+    setFormData({
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      mobile: user.mobile || '',
+      password: '',
+      employeeCode: user.employeeCode || '',
+      hrmsId: user.hrmsId?.toString() || '',
+      role: user.role?._id || '',
+      department: user.department || '',
+      designation: user.designation || '',
+      joiningDate: user.joiningDate ? user.joiningDate.split('T')[0] : '',
+      reportingManager: user.reportingManager?._id || '',
+      projects: user.projects?.map(p => p._id) || [],
+    });
+    setShowUserModal(true);
+  };
+
+  // Handle view credentials
+  const handleViewCredentials = (user: User) => {
+    setSelectedUserForCredentials(user);
+    setShowCredentialsModal(true);
+  };
+
+  // Handle save user
+  const handleSaveUser = async () => {
+    if (!formData.firstName || !formData.lastName || !formData.email || !formData.role) {
+      alert(i18n.language === 'en' ? 'Please fill all required fields' : 'कृपया सर्व आवश्यक फील्ड भरा');
+      return;
+    }
+
+    if (!editingUser && !formData.password) {
+      alert(i18n.language === 'en' ? 'Password is required for new users' : 'नवीन वापरकर्त्यांसाठी पासवर्ड आवश्यक आहे');
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const url = editingUser
+        ? `http://localhost:3003/api/users/${editingUser._id}`
+        : 'http://localhost:3003/api/users';
+      
+      const method = editingUser ? 'PUT' : 'POST';
+      
+      const payload: any = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        mobile: formData.mobile,
+        role: formData.role,
+        employeeCode: formData.employeeCode,
+        hrmsId: formData.hrmsId ? parseInt(formData.hrmsId) : undefined,
+        department: formData.department,
+        designation: formData.designation,
+        joiningDate: formData.joiningDate || undefined,
+        reportingManager: formData.reportingManager || undefined,
+        projects: formData.projects,
+      };
+      
+      if (!editingUser && formData.password) {
+        payload.password = formData.password;
+      }
+      
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(payload),
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        alert(editingUser 
+          ? (i18n.language === 'en' ? 'User updated successfully' : 'वापरकर्ता यशस्वीरित्या अद्यतनित केला')
+          : (i18n.language === 'en' ? 'User created successfully' : 'वापरकर्ता यशस्वीरित्या तयार केला')
+        );
+        setShowUserModal(false);
+        fetchUsers();
+      } else {
+        // Show detailed error message from backend
+        const errorMessage = data.error || 'Failed to save user';
+        alert(i18n.language === 'en' 
+          ? `Error: ${errorMessage}` 
+          : `त्रुटी: ${errorMessage}`
+        );
+      }
+    } catch (error) {
+      console.error('Error saving user:', error);
+      alert(i18n.language === 'en' 
+        ? 'Failed to save user. Please check your input and try again.' 
+        : 'वापरकर्ता जतन करण्यात अयशस्वी. कृपया तुमचा इनपुट तपासा आणि पुन्हा प्रयत्न करा.'
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Handle HRMS fetch - Load all employees
+  const handleFetchFromHRMS = async () => {
+    try {
+      setHrmsLoading(true);
+      
+      // Build query based on employee codes input
+      let queryParam = '';
+      if (hrmsEmployeeCodes.trim()) {
+        // Split by comma and trim each code
+        const codes = hrmsEmployeeCodes.split(',').map(c => c.trim()).filter(c => c);
+        if (codes.length > 0) {
+          // Use first code as search query (HRMS API searches across all fields)
+          queryParam = codes[0];
+        }
+      }
+      
+      const response = await fetch(`http://localhost:3003/api/users/hrms/search?query=${encodeURIComponent(queryParam)}`, {
+        credentials: 'include',
+      });
+      
+      const data = await response.json();
+      
+      if (data.success && data.data) {
+        // If user entered specific codes, filter results
+        if (hrmsEmployeeCodes.trim()) {
+          const codes = hrmsEmployeeCodes.split(',').map(c => c.trim().toUpperCase()).filter(c => c);
+          if (codes.length > 0) {
+            const filtered = data.data.filter((emp: HRMSEmployee) => 
+              codes.some(code => emp.attributes.Group_Employee_Code?.toUpperCase().includes(code))
+            );
+            setHrmsEmployees(filtered);
+            
+            if (filtered.length === 0) {
+              alert(i18n.language === 'en' 
+                ? `No employees found with code(s): ${codes.join(', ')}` 
+                : `कोड(स): ${codes.join(', ')} सह कोणतेही कर्मचारी आढळले नाहीत`);
+            }
+          } else {
+            setHrmsEmployees(data.data);
+          }
+        } else {
+          setHrmsEmployees(data.data);
+        }
+        
+        // Clear the employee codes input after loading
+        setHrmsEmployeeCodes('');
+      } else {
+        alert(data.error || 'Failed to fetch employees from HRMS');
+        setHrmsEmployees([]);
+      }
+    } catch (error) {
+      console.error('Error fetching from HRMS:', error);
+      alert('Failed to fetch from HRMS');
+      setHrmsEmployees([]);
+    } finally {
+      setHrmsLoading(false);
+    }
+  };
+
+  // Handle HRMS confirm - Add selected employees
+  const handleConfirmHRMS = async () => {
+    if (selectedEmployees.length === 0) {
+      alert(i18n.language === 'en' ? 'Please select at least one employee' : 'कृपया किमान एक कर्मचारी निवडा');
+      return;
+    }
+
+    if (!selectedRole) {
+      alert(i18n.language === 'en' ? 'Please select a role' : 'कृपया रोल निवडा');
+      return;
+    }
+
+    try {
+      setSaving(true);
+      let successCount = 0;
+      let failCount = 0;
+
+      // Add each selected employee
+      for (const employeeId of selectedEmployees) {
+        const employee = hrmsEmployees.find(emp => emp.id.toString() === employeeId);
+        if (!employee) continue;
+
+        try {
+          const response = await fetch('http://localhost:3003/api/users', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+              employeeCode: employee.attributes.Group_Employee_Code,
+              role: selectedRole,
+              projects: selectedProjects,
+              syncFromHRMS: true,
+            }),
+          });
+          
+          const data = await response.json();
+          
+          if (data.success) {
+            successCount++;
+          } else {
+            failCount++;
+            console.error(`Failed to add ${employee.attributes.Group_Employee_Code}:`, data.error);
+          }
+        } catch (error) {
+          failCount++;
+          console.error(`Error adding ${employee.attributes.Group_Employee_Code}:`, error);
+        }
+      }
+
+      const message = i18n.language === 'en' 
+        ? `Added ${successCount} user(s) successfully${failCount > 0 ? `, ${failCount} failed` : ''}`
+        : `${successCount} वापरकर्ते यशस्वीरित्या जोडले${failCount > 0 ? `, ${failCount} अयशस्वी` : ''}`;
+      
+      alert(message);
+      
+      setShowHRMSModal(false);
+      setHrmsEmployees([]);
+      setSelectedEmployees([]);
+      setSelectedRole('');
+      setSelectedProjects([]);
+      fetchUsers();
+    } catch (error) {
+      console.error('Error adding users from HRMS:', error);
+      alert('Failed to add users');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Handle delete user
+  const handleDeleteUser = async (userId: string) => {
+    if (!confirm(i18n.language === 'en' ? 'Are you sure you want to delete this user?' : 'तुम्हाला खात्री आहे की तुम्ही हा वापरकर्ता हटवू इच्छिता?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:3003/api/users/${userId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        alert(i18n.language === 'en' ? 'User deleted successfully' : 'वापरकर्ता यशस्वीरित्या हटवला');
+        fetchUsers();
+      } else {
+        alert(data.error || 'Failed to delete user');
+      }
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      alert('Failed to delete user');
+    }
+  };
+
+  // Handle toggle status
+  const handleToggleStatus = async (userId: string) => {
+    try {
+      const response = await fetch(`http://localhost:3003/api/users/${userId}/toggle-status`, {
+        method: 'PATCH',
+        credentials: 'include',
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        fetchUsers();
+      } else {
+        alert(data.error || 'Failed to toggle status');
+      }
+    } catch (error) {
+      console.error('Error toggling status:', error);
+      alert('Failed to toggle status');
+    }
+  };
+
+  const handleAssignRole = async (userId: string, roleId: string) => {
+    if (!roleId) return;
+    
+    try {
+      const response = await fetch(`http://localhost:3003/api/users/${userId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ role: roleId }),
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        fetchUsers();
+        alert(i18n.language === 'en' ? 'Role assigned successfully!' : 'भूमिका यशस्वीरित्या नियुक्त केली!');
+      } else {
+        alert(data.error || 'Failed to assign role');
+      }
+    } catch (error) {
+      console.error('Error assigning role:', error);
+      alert('Failed to assign role');
+    }
+  };
+
+  const filteredUsers = users;
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div style={{ 
+          padding: '80px 40px', 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          minHeight: '400px',
+          background: '#F9FAFB',
+        }}>
+          <div style={{ 
+            textAlign: 'center',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '16px',
+          }}>
+            <div style={{
+              width: '48px',
+              height: '48px',
+              border: '3px solid #E5E7EB',
+              borderTop: '3px solid #2563EB',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite',
+            }}></div>
+            <p style={{ 
+              color: '#6B7280', 
+              fontSize: '14px',
+              margin: 0,
+              fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
+            }}>
+              {i18n.language === 'en' ? 'Loading users...' : 'वापरकर्ते लोड करत आहे...'}
+            </p>
+          </div>
+        </div>
+        <style>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+      </DashboardLayout>
+    );
+  }
+
+  return (
+    <DashboardLayout>
+      <div style={{ 
+        padding: '32px 24px', 
+        maxWidth: '1440px', 
+        margin: '0 auto',
+        background: '#F9FAFB',
+        minHeight: '100vh',
+        fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
+      }}>
+        {/* Header */}
+        <div style={{ marginBottom: '24px' }}>
+          <h1 style={{ 
+            margin: '0 0 8px 0',
+            fontSize: '28px', 
+            fontWeight: 700, 
+            color: '#111827',
+            letterSpacing: '-0.02em',
+            fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
+          }}>
+            {i18n.language === 'en' ? 'User Management' : 'वापरकर्ता व्यवस्थापन'}
+          </h1>
+          <p style={{ 
+            margin: 0,
+            fontSize: '14px', 
+            color: '#6B7280',
+            fontWeight: 400,
+            fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
+          }}>
+            {i18n.language === 'en' ? 'Manage system users and their access' : 'सिस्टम वापरकर्ते आणि त्यांचा प्रवेश व्यवस्थापित करा'}
+          </p>
+        </div>
+
+        {/* Actions Bar */}
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center', 
+          marginBottom: '24px', 
+          gap: '16px', 
+          flexWrap: 'wrap' 
+        }}>
+          <div style={{ display: 'flex', gap: '12px', flex: 1, flexWrap: 'wrap', alignItems: 'center' }}>
+            {/* Search */}
+            <div style={{ position: 'relative', flex: '1', minWidth: '250px', maxWidth: '400px' }}>
+              <svg 
+                width="18" 
+                height="18" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="#6B7280" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+                style={{
+                  position: 'absolute',
+                  left: '14px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  pointerEvents: 'none',
+                }}
+              >
+                <circle cx="11" cy="11" r="8"/>
+                <path d="m21 21-4.35-4.35"/>
+              </svg>
+              <input
+                type="text"
+                placeholder={i18n.language === 'en' ? 'Search users...' : 'वापरकर्ते शोधा...'}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{ 
+                  width: '100%', 
+                  padding: '10px 16px 10px 44px', 
+                  border: '1.5px solid #E5E7EB', 
+                  borderRadius: '8px', 
+                  fontSize: '14px', 
+                  outline: 'none',
+                  transition: 'all 0.2s ease',
+                  fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
+                  background: 'white',
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#2563EB';
+                  e.target.style.boxShadow = '0 0 0 3px rgba(37, 99, 235, 0.1)';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = '#E5E7EB';
+                  e.target.style.boxShadow = 'none';
+                }}
+              />
+            </div>
+
+            {/* Role Filter */}
+            <select
+              value={filterRole}
+              onChange={(e) => setFilterRole(e.target.value)}
+              style={{ 
+                padding: '10px 16px', 
+                border: '1.5px solid #E5E7EB', 
+                borderRadius: '8px', 
+                fontSize: '14px', 
+                outline: 'none', 
+                backgroundColor: 'white',
+                fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+              }}
+              onFocus={(e) => {
+                e.target.style.borderColor = '#2563EB';
+                e.target.style.boxShadow = '0 0 0 3px rgba(37, 99, 235, 0.1)';
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = '#E5E7EB';
+                e.target.style.boxShadow = 'none';
+              }}
+            >
+              <option value="">{i18n.language === 'en' ? 'All Roles' : 'सर्व रोल'}</option>
+              {roles.map(role => (
+                <option key={role._id} value={role._id}>{role.name}</option>
+              ))}
+            </select>
+
+            {/* Status Filter */}
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              style={{ 
+                padding: '10px 16px', 
+                border: '1.5px solid #E5E7EB', 
+                borderRadius: '8px', 
+                fontSize: '14px', 
+                outline: 'none', 
+                backgroundColor: 'white',
+                fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+              }}
+              onFocus={(e) => {
+                e.target.style.borderColor = '#2563EB';
+                e.target.style.boxShadow = '0 0 0 3px rgba(37, 99, 235, 0.1)';
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = '#E5E7EB';
+                e.target.style.boxShadow = 'none';
+              }}
+            >
+              <option value="">{i18n.language === 'en' ? 'All Status' : 'सर्व स्थिती'}</option>
+              <option value="true">{i18n.language === 'en' ? 'Active' : 'सक्रिय'}</option>
+              <option value="false">{i18n.language === 'en' ? 'Inactive' : 'निष्क्रिय'}</option>
+            </select>
+          </div>
+
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <button
+              onClick={() => setShowHRMSModal(true)}
+              style={{ 
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '10px 16px',
+                background: '#10b981',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '14px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                boxShadow: '0 2px 6px rgba(16, 185, 129, 0.24)',
+                transition: 'all 0.2s ease',
+                fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
+                outline: 'none',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = '#059669';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.32)';
+                e.currentTarget.style.transform = 'translateY(-1px)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = '#10b981';
+                e.currentTarget.style.boxShadow = '0 2px 6px rgba(16, 185, 129, 0.24)';
+                e.currentTarget.style.transform = 'translateY(0)';
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              {i18n.language === 'en' ? 'Add from HRMS' : 'HRMS मधून जोडा'}
+            </button>
+            <button
+              onClick={handleOpenCreateModal}
+              style={{ 
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '10px 16px',
+                background: '#2563EB',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '14px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                boxShadow: '0 2px 6px rgba(37, 99, 235, 0.24)',
+                transition: 'all 0.2s ease',
+                fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
+                outline: 'none',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = '#1d4ed8';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(37, 99, 235, 0.32)';
+                e.currentTarget.style.transform = 'translateY(-1px)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = '#2563EB';
+                e.currentTarget.style.boxShadow = '0 2px 6px rgba(37, 99, 235, 0.24)';
+                e.currentTarget.style.transform = 'translateY(0)';
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              {i18n.language === 'en' ? 'Create User' : 'वापरकर्ता तयार करा'}
+            </button>
+          </div>
+        </div>
+
+        {/* Users Table */}
+        <div style={{
+          background: 'white',
+          borderRadius: '12px',
+          border: '1px solid #E5E7EB',
+          overflow: 'hidden',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06)',
+        }}>
+          {filteredUsers.length === 0 ? (
+            <div style={{
+              padding: '80px 40px',
+              textAlign: 'center',
+            }}>
+              <div style={{
+                width: '96px',
+                height: '96px',
+                margin: '0 auto 24px',
+                background: 'linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%)',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                  <circle cx="9" cy="7" r="4"/>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+              </div>
+              <h3 style={{ 
+                margin: '0 0 12px 0', 
+                fontSize: '20px', 
+                fontWeight: 700,
+                color: '#111827',
+                fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
+              }}>
+                {i18n.language === 'en' ? 'No Users Found' : 'वापरकर्ते आढळले नाहीत'}
+              </h3>
+              <p style={{ 
+                margin: '0', 
+                color: '#6B7280', 
+                fontSize: '14px',
+                maxWidth: '420px',
+                marginLeft: 'auto',
+                marginRight: 'auto',
+                lineHeight: '1.6',
+                fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
+              }}>
+                {i18n.language === 'en' 
+                  ? 'Get started by adding users to your system' 
+                  : 'तुमच्या सिस्टममध्ये वापरकर्ते जोडून प्रारंभ करा'}
+              </p>
+            </div>
+          ) : (
+            <table style={{ 
+              width: '100%', 
+              borderCollapse: 'collapse',
+              fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
+            }}>
+              <thead>
+                <tr style={{ background: '#F9FAFB', borderBottom: '1px solid #E5E7EB' }}>
+                  <th style={{ 
+                    padding: '12px 24px', 
+                    textAlign: 'left', 
+                    fontSize: '12px', 
+                    fontWeight: 600, 
+                    color: '#6B7280', 
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
+                  }}>
+                    {i18n.language === 'en' ? 'Name' : 'नाव'}
+                  </th>
+                  <th style={{ 
+                    padding: '12px 24px', 
+                    textAlign: 'left', 
+                    fontSize: '12px', 
+                    fontWeight: 600, 
+                    color: '#6B7280', 
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
+                  }}>
+                    {i18n.language === 'en' ? 'Email' : 'ईमेल'}
+                  </th>
+                  <th style={{ 
+                    padding: '12px 24px', 
+                    textAlign: 'left', 
+                    fontSize: '12px', 
+                    fontWeight: 600, 
+                    color: '#6B7280', 
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
+                  }}>
+                    {i18n.language === 'en' ? 'Employee Code' : 'कर्मचारी कोड'}
+                  </th>
+                  <th style={{ 
+                    padding: '12px 24px', 
+                    textAlign: 'left', 
+                    fontSize: '12px', 
+                    fontWeight: 600, 
+                    color: '#6B7280', 
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
+                  }}>
+                    {i18n.language === 'en' ? 'Role' : 'रोल'}
+                  </th>
+                  <th style={{ 
+                    padding: '12px 24px', 
+                    textAlign: 'left', 
+                    fontSize: '12px', 
+                    fontWeight: 600, 
+                    color: '#6B7280', 
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
+                  }}>
+                    {i18n.language === 'en' ? 'Projects' : 'प्रकल्प'}
+                  </th>
+                  <th style={{ 
+                    padding: '12px 24px', 
+                    textAlign: 'left', 
+                    fontSize: '12px', 
+                    fontWeight: 600, 
+                    color: '#6B7280', 
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
+                  }}>
+                    {i18n.language === 'en' ? 'Status' : 'स्थिती'}
+                  </th>
+                  <th style={{ 
+                    padding: '12px 24px', 
+                    textAlign: 'left', 
+                    fontSize: '12px', 
+                    fontWeight: 600, 
+                    color: '#6B7280', 
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
+                  }}>
+                    {i18n.language === 'en' ? 'Actions' : 'कृती'}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredUsers.map((user, index) => (
+                  <tr 
+                    key={user._id} 
+                    style={{ 
+                      borderBottom: index < filteredUsers.length - 1 ? '1px solid #E5E7EB' : 'none',
+                      background: 'white',
+                      transition: 'background 0.15s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = '#F9FAFB';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'white';
+                    }}
+                  >
+                    <td style={{ padding: '16px 24px' }}>
+                      <div>
+                        <div style={{ 
+                          fontWeight: 600, 
+                          color: '#111827',
+                          fontSize: '14px',
+                          fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
+                        }}>
+                          {user.firstName} {user.lastName}
+                        </div>
+                        {user.mobile && (
+                          <div style={{ 
+                            fontSize: '12px', 
+                            color: '#6B7280', 
+                            marginTop: '4px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
+                          }}>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
+                              <line x1="12" y1="18" x2="12.01" y2="18"/>
+                            </svg>
+                            {user.mobile}
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td style={{ 
+                      padding: '16px 24px', 
+                      fontSize: '14px', 
+                      color: '#6B7280',
+                      fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
+                    }}>
+                      {user.email}
+                    </td>
+                    <td style={{ padding: '16px 24px' }}>
+                      {user.employeeCode ? (
+                        <span style={{ 
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          padding: '4px 10px', 
+                          backgroundColor: '#EFF6FF', 
+                          color: '#1d4ed8', 
+                          borderRadius: '6px', 
+                          fontSize: '12px', 
+                          fontWeight: 600,
+                          fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
+                        }}>
+                          {user.employeeCode}
+                        </span>
+                      ) : (
+                        <span style={{ color: '#9ca3af', fontSize: '14px' }}>-</span>
+                      )}
+                    </td>
+                    <td style={{ padding: '16px 24px' }}>
+                      {user.role ? (
+                        <span style={{ 
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          padding: '4px 10px', 
+                          backgroundColor: '#F3E8FF', 
+                          color: '#7e22ce', 
+                          borderRadius: '6px', 
+                          fontSize: '12px', 
+                          fontWeight: 600,
+                          fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
+                        }}>
+                          {user.role.name}
+                        </span>
+                      ) : (
+                        <span style={{ 
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          padding: '4px 10px', 
+                          backgroundColor: '#FEF2F2', 
+                          color: '#dc2626', 
+                          borderRadius: '6px', 
+                          fontSize: '12px', 
+                          fontWeight: 600,
+                          fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
+                        }}>
+                          {i18n.language === 'en' ? 'No Role' : 'भूमिका नाही'}
+                        </span>
+                      )}
+                    </td>
+                    <td style={{ padding: '16px 24px' }}>
+                      {user.projects && user.projects.length > 0 ? (
+                        <div style={{ 
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          padding: '4px 10px',
+                          background: '#F0FDF4',
+                          borderRadius: '6px',
+                        }}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                            <polyline points="9 22 9 12 15 12 15 22"/>
+                          </svg>
+                          <span style={{ 
+                            fontSize: '12px', 
+                            fontWeight: 600, 
+                            color: '#16a34a',
+                            fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
+                          }}>
+                            {user.projects.length}
+                          </span>
+                        </div>
+                      ) : (
+                        <span style={{ color: '#9ca3af', fontSize: '14px' }}>-</span>
+                      )}
+                    </td>
+                    <td style={{ padding: '16px 24px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <label style={{ 
+                          position: 'relative', 
+                          display: 'inline-block', 
+                          width: '44px', 
+                          height: '24px',
+                          cursor: user.role?.code === 'SUPER_ADMIN' ? 'not-allowed' : 'pointer',
+                        }}>
+                          <input
+                            type="checkbox"
+                            checked={user.isActive}
+                            onChange={() => handleToggleStatus(user._id)}
+                            disabled={user.role?.code === 'SUPER_ADMIN'}
+                            style={{ 
+                              opacity: 0, 
+                              width: 0, 
+                              height: 0,
+                              position: 'absolute',
+                            }}
+                          />
+                          <span style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            backgroundColor: user.isActive ? '#10B981' : '#D1D5DB',
+                            borderRadius: '24px',
+                            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                            opacity: user.role?.code === 'SUPER_ADMIN' ? 0.5 : 1,
+                          }}>
+                            <span style={{
+                              position: 'absolute',
+                              height: '18px',
+                              width: '18px',
+                              left: user.isActive ? '23px' : '3px',
+                              bottom: '3px',
+                              backgroundColor: 'white',
+                              borderRadius: '50%',
+                              transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                            }}></span>
+                          </span>
+                        </label>
+                        <span style={{
+                          backgroundColor: user.isActive ? '#DCFCE7' : '#F3F4F6',
+                          color: user.isActive ? '#047857' : '#6B7280',
+                          padding: '4px 10px',
+                          borderRadius: '6px',
+                          fontSize: '12px',
+                          fontWeight: 600,
+                          fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
+                        }}>
+                          {user.isActive 
+                            ? (i18n.language === 'en' ? 'Active' : 'सक्रिय')
+                            : (i18n.language === 'en' ? 'Inactive' : 'निष्क्रिय')}
+                        </span>
+                      </div>
+                    </td>
+                    <td style={{ padding: '16px 24px' }}>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button
+                          onClick={() => handleEditUser(user)}
+                          style={{
+                            padding: '8px',
+                            width: '36px',
+                            height: '36px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            background: 'white',
+                            border: '1.5px solid #E5E7EB',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            transition: 'all 0.15s ease',
+                            outline: 'none',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = '#EFF6FF';
+                            e.currentTarget.style.borderColor = '#2563EB';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = 'white';
+                            e.currentTarget.style.borderColor = '#E5E7EB';
+                          }}
+                          title={i18n.language === 'en' ? 'Edit' : 'संपादित करा'}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => handleViewCredentials(user)}
+                          style={{
+                            padding: '8px',
+                            width: '36px',
+                            height: '36px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            background: 'white',
+                            border: '1.5px solid #E5E7EB',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            transition: 'all 0.15s ease',
+                            outline: 'none',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = '#F0FDF4';
+                            e.currentTarget.style.borderColor = '#10B981';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = 'white';
+                            e.currentTarget.style.borderColor = '#E5E7EB';
+                          }}
+                          title={i18n.language === 'en' ? 'View Credentials' : 'क्रेडेन्शियल पहा'}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                          </svg>
+                        </button>
+                        {user.role?.code !== 'SUPER_ADMIN' && (
+                          <button
+                            onClick={() => handleDeleteUser(user._id)}
+                            style={{
+                              padding: '8px',
+                              width: '36px',
+                              height: '36px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              background: 'white',
+                              border: '1.5px solid #E5E7EB',
+                              borderRadius: '8px',
+                              cursor: 'pointer',
+                              transition: 'all 0.15s ease',
+                              outline: 'none',
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = '#FEF2F2';
+                              e.currentTarget.style.borderColor = '#DC2626';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = 'white';
+                              e.currentTarget.style.borderColor = '#E5E7EB';
+                            }}
+                            title={i18n.language === 'en' ? 'Delete' : 'हटवा'}
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M3 6h18"/>
+                              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                            </svg>
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+
+        {/* Create/Edit User Modal */}
+        {showUserModal && (
+          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}>
+            <div style={{ backgroundColor: 'white', borderRadius: '12px', maxWidth: '700px', width: '100%', maxHeight: '90vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ padding: '24px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h2 style={{ fontSize: '20px', fontWeight: '600', color: '#1f2937', margin: 0 }}>
+                  {editingUser 
+                    ? (i18n.language === 'en' ? 'Edit User' : 'वापरकर्ता संपादित करा')
+                    : (i18n.language === 'en' ? 'Create User' : 'वापरकर्ता तयार करा')}
+                </h2>
+                <button onClick={() => setShowUserModal(false)} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#6b7280' }}>✕</button>
+              </div>
+              
+              <div style={{ padding: '24px', overflowY: 'auto', flex: 1 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
+                      {i18n.language === 'en' ? 'First Name' : 'पहिले नाव'} <span style={{ color: '#ef4444' }}>*</span>
+                    </label>
+                    <input type="text" value={formData.firstName} onChange={(e) => setFormData({ ...formData, firstName: e.target.value })} style={{ width: '100%', padding: '12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
+                      {i18n.language === 'en' ? 'Last Name' : 'आडनाव'} <span style={{ color: '#ef4444' }}>*</span>
+                    </label>
+                    <input type="text" value={formData.lastName} onChange={(e) => setFormData({ ...formData, lastName: e.target.value })} style={{ width: '100%', padding: '12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+                  </div>
+                </div>
+
+                <div style={{ marginTop: '16px' }}>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
+                    {i18n.language === 'en' ? 'Email' : 'ईमेल'} <span style={{ color: '#ef4444' }}>*</span>
+                  </label>
+                  <input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} style={{ width: '100%', padding: '12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '16px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
+                      {i18n.language === 'en' ? 'Mobile' : 'मोबाईल'}
+                    </label>
+                    <input 
+                      type="tel" 
+                      value={formData.mobile} 
+                      onChange={(e) => setFormData({ ...formData, mobile: e.target.value })} 
+                      placeholder={i18n.language === 'en' ? '10-digit number (starts with 6-9)' : '10-अंकी क्रमांक (6-9 ने सुरू)'} 
+                      pattern="[6-9][0-9]{9}"
+                      maxLength={10}
+                      style={{ width: '100%', padding: '12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} 
+                    />
+                    <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
+                      {i18n.language === 'en' ? 'Example: 9876543210' : 'उदाहरण: 9876543210'}
+                    </p>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
+                      {i18n.language === 'en' ? 'Employee Code' : 'कर्मचारी कोड'}
+                    </label>
+                    <input type="text" value={formData.employeeCode} onChange={(e) => setFormData({ ...formData, employeeCode: e.target.value })} style={{ width: '100%', padding: '12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '16px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
+                      {i18n.language === 'en' ? 'HRMS ID' : 'HRMS ID'}
+                    </label>
+                    <input type="number" value={formData.hrmsId} onChange={(e) => setFormData({ ...formData, hrmsId: e.target.value })} placeholder="PeopleStrong Employee ID" style={{ width: '100%', padding: '12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
+                      {i18n.language === 'en' ? 'Joining Date' : 'सामील होण्याचा दिनांक'}
+                    </label>
+                    <input type="date" value={formData.joiningDate} onChange={(e) => setFormData({ ...formData, joiningDate: e.target.value })} style={{ width: '100%', padding: '12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+                  </div>
+                </div>
+
+                {!editingUser && (
+                  <div style={{ marginTop: '16px' }}>
+                    <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
+                      {i18n.language === 'en' ? 'Password' : 'पासवर्ड'} <span style={{ color: '#ef4444' }}>*</span>
+                    </label>
+                    <input 
+                      type="password" 
+                      value={formData.password} 
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value })} 
+                      placeholder={i18n.language === 'en' ? 'Minimum 8 characters' : 'किमान 8 वर्ण'}
+                      minLength={8}
+                      style={{ width: '100%', padding: '12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} 
+                    />
+                    <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
+                      {i18n.language === 'en' ? 'Must be at least 8 characters long' : 'किमान 8 वर्ण लांब असणे आवश्यक आहे'}
+                    </p>
+                  </div>
+                )}
+
+                <div style={{ marginTop: '16px' }}>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
+                    {i18n.language === 'en' ? 'Role' : 'रोल'} <span style={{ color: '#ef4444' }}>*</span>
+                  </label>
+                  <select value={formData.role} onChange={(e) => setFormData({ ...formData, role: e.target.value })} style={{ width: '100%', padding: '12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }}>
+                    <option value="">{i18n.language === 'en' ? 'Select Role' : 'रोल निवडा'}</option>
+                    {roles.map(role => (
+                      <option key={role._id} value={role._id}>{role.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '16px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
+                      {i18n.language === 'en' ? 'Department' : 'विभाग'}
+                    </label>
+                    <input type="text" value={formData.department} onChange={(e) => setFormData({ ...formData, department: e.target.value })} style={{ width: '100%', padding: '12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
+                      {i18n.language === 'en' ? 'Designation' : 'पदनाम'}
+                    </label>
+                    <input type="text" value={formData.designation} onChange={(e) => setFormData({ ...formData, designation: e.target.value })} style={{ width: '100%', padding: '12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+                  </div>
+                </div>
+
+                <div style={{ marginTop: '16px' }}>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
+                    {i18n.language === 'en' ? 'Reporting Manager' : 'रिपोर्टिंग मॅनेजर'}
+                  </label>
+                  <select value={formData.reportingManager} onChange={(e) => setFormData({ ...formData, reportingManager: e.target.value })} style={{ width: '100%', padding: '12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }}>
+                    <option value="">{i18n.language === 'en' ? 'Select Reporting Manager' : 'रिपोर्टिंग मॅनेजर निवडा'}</option>
+                    {users
+                      .filter(u => u.isActive && (!editingUser || u._id !== editingUser._id))
+                      .map(user => (
+                        <option key={user._id} value={user._id}>
+                          {user.firstName} {user.lastName} ({user.email})
+                        </option>
+                      ))}
+                  </select>
+                </div>
+
+                <div style={{ marginTop: '16px' }}>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '10px' }}>
+                    {i18n.language === 'en' ? 'Assigned Projects' : 'नियुक्त प्रकल्प'}
+                  </label>
+                  <div style={{ 
+                    border: '1px solid #d1d5db', 
+                    borderRadius: '6px', 
+                    padding: '12px',
+                    maxHeight: '150px',
+                    overflowY: 'auto',
+                    backgroundColor: '#f9fafb'
+                  }}>
+                    {projects && projects.length > 0 ? (
+                      projects.map(project => (
+                        <label 
+                          key={project._id} 
+                          style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            padding: '8px',
+                            cursor: 'pointer',
+                            borderRadius: '4px',
+                            transition: 'background-color 0.2s',
+                            marginBottom: '4px'
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#e5e7eb'}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                        >
+                          <input
+                            type="checkbox"
+                            value={project._id}
+                            checked={formData.projects.includes(project._id)}
+                            onChange={(e) => {
+                              const projectId = e.target.value;
+                              const isChecked = e.target.checked;
+                              setFormData({
+                                ...formData,
+                                projects: isChecked
+                                  ? [...formData.projects, projectId]
+                                  : formData.projects.filter(id => id !== projectId)
+                              });
+                            }}
+                            style={{
+                              width: '16px',
+                              height: '16px',
+                              marginRight: '8px',
+                              cursor: 'pointer',
+                              accentColor: '#7c3aed'
+                            }}
+                          />
+                          <span style={{ fontSize: '14px', color: '#374151' }}>
+                            {project.name}
+                          </span>
+                        </label>
+                      ))
+                    ) : (
+                      <p style={{ fontSize: '14px', color: '#6b7280', textAlign: 'center', padding: '12px' }}>
+                        {i18n.language === 'en' ? 'No projects available' : 'कोणतेही प्रकल्प उपलब्ध नाहीत'}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ padding: '16px 24px', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+                <button onClick={() => setShowUserModal(false)} disabled={saving} style={{ padding: '10px 20px', border: '1px solid #d1d5db', borderRadius: '6px', backgroundColor: 'white', color: '#374151', fontSize: '14px', fontWeight: '500', cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.5 : 1 }}>
+                  {i18n.language === 'en' ? 'Cancel' : 'रद्द करा'}
+                </button>
+                <button onClick={handleSaveUser} disabled={saving || !formData.firstName || !formData.lastName || !formData.email || !formData.role} style={{ padding: '10px 20px', border: 'none', borderRadius: '6px', backgroundColor: (!formData.firstName || !formData.lastName || !formData.email || !formData.role || saving) ? '#d1d5db' : '#a855f7', color: 'white', fontSize: '14px', fontWeight: '500', cursor: (!formData.firstName || !formData.lastName || !formData.email || !formData.role || saving) ? 'not-allowed' : 'pointer' }}>
+                  {saving ? (i18n.language === 'en' ? 'Saving...' : 'जतन करत आहे...') : (editingUser ? (i18n.language === 'en' ? 'Update User' : 'वापरकर्ता अद्यतनित करा') : (i18n.language === 'en' ? 'Create User' : 'वापरकर्ता तयार करा'))}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Add from HRMS Modal */}
+        {showHRMSModal && (
+          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}>
+            <div style={{ backgroundColor: 'white', borderRadius: '12px', maxWidth: '900px', width: '100%', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ padding: '24px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h2 style={{ fontSize: '20px', fontWeight: '600', color: '#1f2937', margin: 0 }}>
+                  {i18n.language === 'en' ? 'Add Users from HRMS' : 'HRMS मधून वापरकर्ते जोडा'}
+                </h2>
+                <button onClick={() => { setShowHRMSModal(false); setHrmsEmployees([]); setSelectedEmployees([]); setSelectedRole(''); setSelectedProjects([]); setHrmsEmployeeCodes(''); setHrmsSearchQuery(''); }} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#6b7280' }}>✕</button>
+              </div>
+
+              {hrmsEmployees.length === 0 ? (
+                <div style={{ padding: '32px' }}>
+                  <p style={{ fontSize: '14px', color: '#6b7280', marginBottom: '20px', textAlign: 'center' }}>
+                    {i18n.language === 'en' 
+                      ? 'Enter employee code(s) or load all employees from HRMS (PeopleStrong)' 
+                      : 'कर्मचारी कोड प्रविष्ट करा किंवा HRMS (PeopleStrong) मधून सर्व कर्मचारी लोड करा'}
+                  </p>
+                  
+                  <div style={{ maxWidth: '600px', margin: '0 auto' }}>
+                    {/* Employee Code Input */}
+                    <div style={{ marginBottom: '20px' }}>
+                      <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>
+                        {i18n.language === 'en' ? 'Employee Code(s)' : 'कर्मचारी कोड'}
+                      </label>
+                      <input
+                        type="text"
+                        placeholder={i18n.language === 'en' ? 'Enter employee codes separated by comma (e.g., EMP001, EMP002)' : 'कर्मचारी कोड स्वल्पविरामाने विभक्त करा (उदा., EMP001, EMP002)'}
+                        value={hrmsEmployeeCodes}
+                        onChange={(e) => setHrmsEmployeeCodes(e.target.value)}
+                        style={{ width: '100%', padding: '12px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }}
+                      />
+                      <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
+                        {i18n.language === 'en' 
+                          ? '💡 Tip: Enter one or more employee codes, or leave blank to load all' 
+                          : '💡 सूचना: एक किंवा अधिक कर्मचारी कोड प्रविष्ट करा, किंवा सर्व लोड करण्यासाठी रिक्त सोडा'}
+                      </p>
+                    </div>
+
+                    {/* Load Button */}
+                    <div style={{ textAlign: 'center' }}>
+                      <button
+                        onClick={handleFetchFromHRMS}
+                        disabled={hrmsLoading}
+                        style={{ padding: '12px 32px', backgroundColor: '#f97316', color: 'white', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '500', cursor: hrmsLoading ? 'not-allowed' : 'pointer', opacity: hrmsLoading ? 0.5 : 1, display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+                      >
+                        <span>🔍</span>
+                        {hrmsLoading ? (i18n.language === 'en' ? 'Loading...' : 'लोड करत आहे...') : (i18n.language === 'en' ? 'Load Employees from HRMS' : 'HRMS मधून कर्मचारी लोड करा')}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div style={{ padding: '16px 24px', borderBottom: '1px solid #e5e7eb' }}>
+                    {/* Search box */}
+                    <div style={{ position: 'relative', marginBottom: '16px' }}>
+                      <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', fontSize: '18px' }}>🔍</span>
+                      <input
+                        type="text"
+                        placeholder={i18n.language === 'en' ? 'Search by name, email, or employee code...' : 'नाव, ईमेल किंवा कर्मचारी कोडद्वारे शोधा...'}
+                        value={hrmsSearchQuery}
+                        onChange={(e) => setHrmsSearchQuery(e.target.value)}
+                        style={{ width: '100%', padding: '12px 12px 12px 40px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }}
+                      />
+                    </div>
+
+                    {/* Selection Controls */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                      <div>
+                        <span style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>
+                          {i18n.language === 'en' ? 'Selected' : 'निवडले'}: <span style={{ color: '#7c3aed', fontWeight: '600' }}>{selectedEmployees.length}</span> / {hrmsEmployees.filter(emp => {
+                            if (!hrmsSearchQuery) return true;
+                            const search = hrmsSearchQuery.toLowerCase();
+                            return (
+                              emp.attributes.Group_Employee_Code?.toLowerCase().includes(search) ||
+                              emp.attributes.First_Name?.toLowerCase().includes(search) ||
+                              emp.attributes.Last_Name?.toLowerCase().includes(search) ||
+                              emp.attributes.Official_Email_ID?.toLowerCase().includes(search) ||
+                              emp.attributes.Personal_Email_ID?.toLowerCase().includes(search)
+                            );
+                          }).length}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => {
+                          const filtered = hrmsEmployees.filter(emp => {
+                            if (!hrmsSearchQuery) return true;
+                            const search = hrmsSearchQuery.toLowerCase();
+                            return (
+                              emp.attributes.Group_Employee_Code?.toLowerCase().includes(search) ||
+                              emp.attributes.First_Name?.toLowerCase().includes(search) ||
+                              emp.attributes.Last_Name?.toLowerCase().includes(search) ||
+                              emp.attributes.Official_Email_ID?.toLowerCase().includes(search) ||
+                              emp.attributes.Personal_Email_ID?.toLowerCase().includes(search)
+                            );
+                          });
+                          if (selectedEmployees.length === filtered.length) {
+                            setSelectedEmployees([]);
+                          } else {
+                            setSelectedEmployees(filtered.map(emp => emp.id.toString()));
+                          }
+                        }}
+                        style={{ padding: '8px 20px', backgroundColor: '#7c3aed', color: 'white', border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: '500', cursor: 'pointer' }}
+                      >
+                        {selectedEmployees.length === hrmsEmployees.filter(emp => {
+                          if (!hrmsSearchQuery) return true;
+                          const search = hrmsSearchQuery.toLowerCase();
+                          return (
+                            emp.attributes.Group_Employee_Code?.toLowerCase().includes(search) ||
+                            emp.attributes.First_Name?.toLowerCase().includes(search) ||
+                            emp.attributes.Last_Name?.toLowerCase().includes(search) ||
+                            emp.attributes.Official_Email_ID?.toLowerCase().includes(search) ||
+                            emp.attributes.Personal_Email_ID?.toLowerCase().includes(search)
+                          );
+                        }).length && selectedEmployees.length > 0 ? (i18n.language === 'en' ? '✓ Deselect All' : '✓ सर्व अनिवडा') : (i18n.language === 'en' ? 'Select All' : 'सर्व निवडा')}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Employee List */}
+                  <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                      <thead>
+                        <tr style={{ backgroundColor: '#f9fafb', borderBottom: '2px solid #e5e7eb' }}>
+                          <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#6b7280', textTransform: 'uppercase', width: '40px' }}></th>
+                          <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#6b7280', textTransform: 'uppercase' }}>
+                            {i18n.language === 'en' ? 'Employee Code' : 'कर्मचारी कोड'}
+                          </th>
+                          <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#6b7280', textTransform: 'uppercase' }}>
+                            {i18n.language === 'en' ? 'Name' : 'नाव'}
+                          </th>
+                          <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#6b7280', textTransform: 'uppercase' }}>
+                            {i18n.language === 'en' ? 'Email' : 'ईमेल'}
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {hrmsEmployees
+                          .filter(emp => {
+                            if (!hrmsSearchQuery) return true;
+                            const search = hrmsSearchQuery.toLowerCase();
+                            return (
+                              emp.attributes.Group_Employee_Code?.toLowerCase().includes(search) ||
+                              emp.attributes.First_Name?.toLowerCase().includes(search) ||
+                              emp.attributes.Last_Name?.toLowerCase().includes(search) ||
+                              emp.attributes.Official_Email_ID?.toLowerCase().includes(search) ||
+                              emp.attributes.Personal_Email_ID?.toLowerCase().includes(search)
+                            );
+                          })
+                          .map(employee => (
+                            <tr 
+                              key={employee.id} 
+                              style={{ 
+                                borderBottom: '1px solid #e5e7eb', 
+                                cursor: 'pointer',
+                                backgroundColor: selectedEmployees.includes(employee.id.toString()) ? '#fef3c7' : 'transparent'
+                              }} 
+                              onClick={() => {
+                                const empId = employee.id.toString();
+                                setSelectedEmployees(prev => 
+                                  prev.includes(empId) ? prev.filter(id => id !== empId) : [...prev, empId]
+                                );
+                              }}
+                            >
+                              <td style={{ padding: '12px 8px' }}>
+                                <input
+                                  type="checkbox"
+                                  checked={selectedEmployees.includes(employee.id.toString())}
+                                  onChange={(e) => {
+                                    e.stopPropagation();
+                                    const empId = employee.id.toString();
+                                    setSelectedEmployees(prev => 
+                                      e.target.checked ? [...prev, empId] : prev.filter(id => id !== empId)
+                                    );
+                                  }}
+                                  style={{ cursor: 'pointer', width: '16px', height: '16px' }}
+                                />
+                              </td>
+                              <td style={{ padding: '12px 8px', fontSize: '14px', color: '#374151', fontWeight: '500' }}>
+                                {employee.attributes.Group_Employee_Code || '-'}
+                              </td>
+                              <td style={{ padding: '12px 8px', fontSize: '14px', color: '#374151' }}>
+                                {employee.attributes.First_Name} {employee.attributes.Last_Name}
+                              </td>
+                              <td style={{ padding: '12px 8px', fontSize: '14px', color: '#6b7280' }}>
+                                {employee.attributes.Official_Email_ID || employee.attributes.Personal_Email_ID || '-'}
+                              </td>
+                            </tr>
+                          ))}
+                      </tbody>
+                    </table>
+                    {hrmsEmployees.filter(emp => {
+                      if (!hrmsSearchQuery) return true;
+                      const search = hrmsSearchQuery.toLowerCase();
+                      return (
+                        emp.attributes.Group_Employee_Code?.toLowerCase().includes(search) ||
+                        emp.attributes.First_Name?.toLowerCase().includes(search) ||
+                        emp.attributes.Last_Name?.toLowerCase().includes(search) ||
+                        emp.attributes.Official_Email_ID?.toLowerCase().includes(search) ||
+                        emp.attributes.Personal_Email_ID?.toLowerCase().includes(search)
+                      );
+                    }).length === 0 && (
+                      <div style={{ textAlign: 'center', padding: '32px', color: '#9ca3af' }}>
+                        {i18n.language === 'en' ? 'No employees found' : 'कर्मचारी आढळले नाहीत'}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Role and Project Assignment */}
+                  {selectedEmployees.length > 0 && (
+                    <div style={{ padding: '16px 24px', borderTop: '1px solid #e5e7eb', backgroundColor: '#fefce8', borderBottom: '1px solid #e5e7eb' }}>
+                      <div style={{ marginBottom: '12px' }}>
+                        <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#854d0e', marginBottom: '6px' }}>
+                          📋 {i18n.language === 'en' ? 'Assign Role to Selected Employees' : 'निवडलेल्या कर्मचाऱ्यांना रोल नियुक्त करा'} <span style={{ color: '#ef4444' }}>*</span>
+                        </label>
+                        <select 
+                          value={selectedRole} 
+                          onChange={(e) => setSelectedRole(e.target.value)} 
+                          style={{ 
+                            width: '100%', 
+                            padding: '10px', 
+                            border: '2px solid #ca8a04', 
+                            borderRadius: '6px', 
+                            fontSize: '14px', 
+                            outline: 'none',
+                            backgroundColor: 'white',
+                            fontWeight: '500'
+                          }}
+                        >
+                          <option value="">{i18n.language === 'en' ? '⚠️ Select Role for All Selected Employees' : '⚠️ सर्व निवडलेल्या कर्मचाऱ्यांसाठी रोल निवडा'}</option>
+                          {roles.map(role => (
+                            <option key={role._id} value={role._id}>{role.name}</option>
+                          ))}
+                        </select>
+                        <p style={{ fontSize: '12px', color: '#92400e', marginTop: '6px', fontStyle: 'italic' }}>
+                          💡 {i18n.language === 'en' 
+                            ? 'Tip: Employees with the same HRMS code (designation) should typically get the same role.' 
+                            : 'टीप: समान HRMS कोड (पदनाम) असलेल्या कर्मचाऱ्यांना सामान्यतः समान रोल मिळावी.'}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Action Buttons */}
+                  <div style={{ padding: '16px 24px', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
+                    <button onClick={() => { setShowHRMSModal(false); setHrmsEmployees([]); setSelectedEmployees([]); setSelectedRole(''); setSelectedProjects([]); setHrmsEmployeeCodes(''); setHrmsSearchQuery(''); }} disabled={saving} style={{ padding: '10px 20px', border: '1px solid #d1d5db', borderRadius: '6px', backgroundColor: 'white', color: '#374151', fontSize: '14px', fontWeight: '500', cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.5 : 1 }}>
+                      {i18n.language === 'en' ? 'Cancel' : 'रद्द करा'}
+                    </button>
+                    <button onClick={handleConfirmHRMS} disabled={saving || selectedEmployees.length === 0 || !selectedRole} style={{ padding: '10px 32px', border: 'none', borderRadius: '6px', backgroundColor: (selectedEmployees.length === 0 || !selectedRole || saving) ? '#d1d5db' : '#f97316', color: 'white', fontSize: '14px', fontWeight: '500', cursor: (selectedEmployees.length === 0 || !selectedRole || saving) ? 'not-allowed' : 'pointer' }}>
+                      {saving ? (i18n.language === 'en' ? 'Adding...' : 'जोडत आहे...') : (i18n.language === 'en' ? `Add ${selectedEmployees.length} User(s)` : `${selectedEmployees.length} वापरकर्ते जोडा`)}
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* View Credentials Modal */}
+        {showCredentialsModal && selectedUserForCredentials && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '20px'
+          }}>
+            <div style={{
+              backgroundColor: 'white',
+              borderRadius: '12px',
+              maxWidth: '500px',
+              width: '100%',
+              maxHeight: '90vh',
+              overflow: 'auto',
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+            }}>
+              {/* Header */}
+              <div style={{
+                padding: '24px',
+                borderBottom: '1px solid #e5e7eb',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{
+                    width: '48px',
+                    height: '48px',
+                    borderRadius: '12px',
+                    background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#111827', margin: 0 }}>
+                      {i18n.language === 'en' ? 'User Login Credentials' : 'वापरकर्ता लॉगिन क्रेडेन्शियल'}
+                    </h2>
+                    <p style={{ fontSize: '14px', color: '#6b7280', margin: '4px 0 0 0' }}>
+                      {selectedUserForCredentials.firstName} {selectedUserForCredentials.lastName}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowCredentialsModal(false);
+                    setSelectedUserForCredentials(null);
+                  }}
+                  style={{
+                    padding: '8px',
+                    border: 'none',
+                    background: 'transparent',
+                    cursor: 'pointer',
+                    borderRadius: '6px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
+              </div>
+
+              {/* Content */}
+              <div style={{ padding: '24px' }}>
+                {/* Project URLs */}
+                {selectedUserForCredentials.projects && selectedUserForCredentials.projects.length > 0 && (
+                  <div style={{ marginBottom: '24px' }}>
+                    <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '12px' }}>
+                      🌐 {i18n.language === 'en' ? 'Project Login URLs' : 'प्रोजेक्ट लॉगिन URLs'}
+                    </label>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {selectedUserForCredentials.projects.map((project) => {
+                        const projectData = projects.find(p => p._id === project._id);
+                        const customPath = (projectData as any)?.branding?.customUrlPath || project.name.toLowerCase().replace(/\s+/g, '');
+                        const loginUrl = `${window.location.origin}/${customPath}`;
+                        
+                        return (
+                          <div key={project._id} style={{
+                            padding: '12px',
+                            backgroundColor: '#f9fafb',
+                            border: '1px solid #e5e7eb',
+                            borderRadius: '8px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            gap: '12px'
+                          }}>
+                            <div style={{ flex: 1 }}>
+                              <div style={{ fontSize: '13px', fontWeight: '600', color: '#111827', marginBottom: '4px' }}>
+                                {project.name}
+                              </div>
+                              <div style={{ fontSize: '12px', color: '#10B981', fontFamily: 'monospace' }}>
+                                {loginUrl}
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(loginUrl);
+                                alert(i18n.language === 'en' ? 'URL copied to clipboard!' : 'URL क्लिपबोर्डवर कॉपी केले!');
+                              }}
+                              style={{
+                                padding: '6px 12px',
+                                border: '1px solid #10B981',
+                                borderRadius: '6px',
+                                backgroundColor: 'white',
+                                color: '#10B981',
+                                fontSize: '12px',
+                                fontWeight: '600',
+                                cursor: 'pointer',
+                                whiteSpace: 'nowrap'
+                              }}
+                            >
+                              {i18n.language === 'en' ? 'Copy' : 'कॉपी'}
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Username */}
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>
+                    👤 {i18n.language === 'en' ? 'Username (Email)' : 'वापरकर्तानाव (ईमेल)'}
+                  </label>
+                  <div style={{
+                    padding: '12px',
+                    backgroundColor: '#f9fafb',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    color: '#111827',
+                    fontFamily: 'monospace',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '12px'
+                  }}>
+                    <span>{selectedUserForCredentials.email}</span>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(selectedUserForCredentials.email);
+                        alert(i18n.language === 'en' ? 'Email copied to clipboard!' : 'ईमेल क्लिपबोर्डवर कॉपी केले!');
+                      }}
+                      style={{
+                        padding: '4px 8px',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '4px',
+                        backgroundColor: 'white',
+                        cursor: 'pointer',
+                        fontSize: '12px'
+                      }}
+                    >
+                      {i18n.language === 'en' ? 'Copy' : 'कॉपी'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Password - Development Phase */}
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>
+                    🔐 {i18n.language === 'en' ? 'Password' : 'पासवर्ड'}
+                  </label>
+                  <div style={{
+                    padding: '12px',
+                    backgroundColor: '#f9fafb',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    color: '#111827',
+                    fontFamily: 'monospace',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '12px'
+                  }}>
+                    <span>Welcome@123</span>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText('Welcome@123');
+                        alert(i18n.language === 'en' ? 'Password copied to clipboard!' : 'पासवर्ड क्लिपबोर्डवर कॉपी केले!');
+                      }}
+                      style={{
+                        padding: '4px 8px',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '4px',
+                        backgroundColor: 'white',
+                        cursor: 'pointer',
+                        fontSize: '12px'
+                      }}
+                    >
+                      {i18n.language === 'en' ? 'Copy' : 'कॉपी'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Dev Phase Notice */}
+                <div style={{
+                  padding: '12px',
+                  backgroundColor: '#DBEAFE',
+                  border: '1px solid #3B82F6',
+                  borderRadius: '8px',
+                  marginBottom: '20px'
+                }}>
+                  <p style={{ fontSize: '12px', color: '#1E40AF', margin: 0, lineHeight: '1.5' }}>
+                    ℹ️ {i18n.language === 'en' 
+                      ? 'Development Phase: Default password is "Welcome@123". Users can change it after first login.'
+                      : 'विकास टप्पा: डीफॉल्ट पासवर्ड "Welcome@123" आहे. वापरकर्ते पहिल्या लॉगिननंतर ते बदलू शकतात.'}
+                  </p>
+                </div>
+
+                {/* Action Buttons */}
+                <div style={{ display: 'flex', gap: '12px' }}>
+                  <button
+                    onClick={() => {
+                      setShowCredentialsModal(false);
+                      setSelectedUserForCredentials(null);
+                    }}
+                    style={{
+                      flex: 1,
+                      padding: '12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '8px',
+                      backgroundColor: 'white',
+                      color: '#374151',
+                      fontSize: '14px',
+                      fontWeight: '600',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {i18n.language === 'en' ? 'Close' : 'बंद करा'}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowCredentialsModal(false);
+                      handleEditUser(selectedUserForCredentials);
+                      setSelectedUserForCredentials(null);
+                    }}
+                    style={{
+                      flex: 1,
+                      padding: '12px',
+                      border: 'none',
+                      borderRadius: '8px',
+                      background: 'linear-gradient(135deg, #2563EB 0%, #1d4ed8 100%)',
+                      color: 'white',
+                      fontSize: '14px',
+                      fontWeight: '600',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {i18n.language === 'en' ? 'Reset Password' : 'पासवर्ड रीसेट करा'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </DashboardLayout>
+  );
+};
+
+export default UserManagement;
