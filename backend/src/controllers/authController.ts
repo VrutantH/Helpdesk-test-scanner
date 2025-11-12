@@ -6,7 +6,7 @@ import { sendOTPEmail } from '../utils/emailService';
 import { User } from '../models/User';
 import { Project } from '../models/Project';
 import EulaAcceptance from '../models/EulaAcceptance';
-import { logLogin, logLogout } from '../utils/activityLogger';
+import { logLogin, logLogout } from '../utils/logger';
 import { AuthRequest } from '../middleware/auth';
 
 // In-memory store for OTPs (in production, use Redis or database)
@@ -65,6 +65,7 @@ export const login = async (req: Request<{}, {}, LoginRequest>, res: Response) =
       
       if (!isAuthorized) {
         console.log('❌ User not authorized for project:', projectId);
+        
         await logLogin(
           user._id.toString(),
           `${user.firstName} ${user.lastName}`,
@@ -94,7 +95,6 @@ export const login = async (req: Request<{}, {}, LoginRequest>, res: Response) =
     if (!isPasswordValid) {
       console.log('❌ Invalid password for:', email);
       
-      // Log failed login attempt
       await logLogin(
         user._id.toString(),
         `${user.firstName} ${user.lastName}`,
@@ -118,7 +118,7 @@ export const login = async (req: Request<{}, {}, LoginRequest>, res: Response) =
     const CURRENT_EULA_VERSION = '1.0';
     const eulaAcceptance = await EulaAcceptance.findOne({
       userId: user._id,
-      eulaVersion: CURRENT_EULA_VERSION
+      version: CURRENT_EULA_VERSION
     }).sort({ acceptedAt: -1 });
 
     const eulaAccepted = !!eulaAcceptance;
@@ -128,7 +128,7 @@ export const login = async (req: Request<{}, {}, LoginRequest>, res: Response) =
     console.log(`   - eulaAccepted value: ${eulaAccepted}`);
     if (eulaAcceptance) {
       console.log(`   - Accepted at: ${eulaAcceptance.acceptedAt}`);
-      console.log(`   - Version: ${eulaAcceptance.eulaVersion}`);
+      console.log(`   - Version: ${eulaAcceptance.version}`);
     }
 
     // Generate JWT token
@@ -204,7 +204,6 @@ export const login = async (req: Request<{}, {}, LoginRequest>, res: Response) =
       console.log('⚠️  Role is null or undefined');
     }
 
-    // Log login activity with project name and role
     await logLogin(
       user._id.toString(),
       `${user.firstName} ${user.lastName}`,
@@ -459,7 +458,6 @@ export const logout = async (req: AuthRequest, res: Response) => {
             }
           }
           
-          // Log logout activity with role
           console.log('Logging logout activity...');
           await logLogout(
             user._id.toString(),

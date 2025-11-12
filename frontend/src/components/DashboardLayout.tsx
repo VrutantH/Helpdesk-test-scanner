@@ -2,6 +2,7 @@ import { ReactNode, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { SkipLink } from './accessible/SkipLink';
+import { LanguageToggle } from './LanguageToggle';
 import { designSystem } from '../styles/designSystem';
 import { 
   MdDashboard, 
@@ -48,7 +49,8 @@ interface MenuItem {
   path?: string;
   icon: ReactNode;
   label: string;
-  labelMr: string;
+  labelHi?: string;
+  labelMr?: string;
   subItems?: MenuItem[];
 }
 
@@ -59,6 +61,20 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState<{ top: number; left: number } | null>(null);
+
+  // Helper function to get label in current language
+  const getLabel = (item: MenuItem): string => {
+    if (i18n.language === 'hi' && item.labelHi) return item.labelHi;
+    if (i18n.language === 'mr' && item.labelMr) return item.labelMr;
+    return item.label; // Default to English
+  };
+
+  // Helper function for common UI text
+  const getText = (en: string, hi: string, mr: string): string => {
+    if (i18n.language === 'hi') return hi;
+    if (i18n.language === 'mr') return mr;
+    return en;
+  };
 
   // Check if user is a project user with limited access
   const moduleAccessStr = localStorage.getItem('moduleAccess');
@@ -196,7 +212,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       {/* Sidebar Navigation */}
       <aside 
         role="navigation"
-        aria-label={i18n.language === 'en' ? 'Main navigation' : 'मुख्य नेव्हिगेशन'}
+        aria-label={getText('Main navigation', 'मुख्य नेविगेशन', 'मुख्य नेव्हिगेशन')}
         style={{
         width: sidebarWidth,
         background: 'var(--background-primary)',
@@ -260,11 +276,21 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 fontSize: '12px', 
                 color: 'var(--text-secondary)'
               }}>
-                {i18n.language === 'en' ? 'Helpdesk' : 'हेल्पडेस्क'}
+                {i18n.language === 'mr' ? 'हेल्पडेस्क' : i18n.language === 'hi' ? 'हेल्पडेस्क' : 'Helpdesk'}
               </div>
             </div>
           )}
         </div>
+
+        {/* Language Toggle */}
+        {!isSidebarCollapsed && (
+          <div style={{ 
+            padding: '12px',
+            borderBottom: '1px solid var(--border-light)'
+          }}>
+            <LanguageToggle />
+          </div>
+        )}
 
         {/* Toggle Button */}
         <div style={{ 
@@ -300,7 +326,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             overflow: 'visible',
             position: 'relative'
           }}
-          aria-label={i18n.language === 'en' ? 'Primary menu' : 'प्राथमिक मेनू'}
+          aria-label={getText('Primary menu', 'प्राथमिक मेनू', 'प्राथमिक मेनू')}
         >
           {menuItems.map((item, index) => {
             const hasSubItems = item.subItems && item.subItems.length > 0;
@@ -347,7 +373,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.25)',
                     pointerEvents: 'none'
                   }}>
-                    {i18n.language === 'en' ? item.label : item.labelMr}
+                    {getLabel(item)}
                     {/* Tooltip arrow */}
                     <div style={{
                       position: 'absolute',
@@ -376,7 +402,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                     }}
                     aria-expanded={isExpanded}
                     aria-controls={`submenu-${index}`}
-                    aria-label={`${i18n.language === 'en' ? item.label : item.labelMr}. ${hasSubItems ? (isExpanded ? 'Expanded' : 'Collapsed') : ''}`}
+                    aria-label={`${getLabel(item)}. ${hasSubItems ? (isExpanded ? 'Expanded' : 'Collapsed') : ''}`}
                     disabled={false}
                     style={{
                       display: 'flex',
@@ -443,7 +469,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                           textOverflow: 'ellipsis',
                           lineHeight: '1.5'
                         }}>
-                          {i18n.language === 'en' ? item.label : item.labelMr}
+                          {getLabel(item)}
                         </span>
                         <span 
                           style={{ 
@@ -465,7 +491,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 ) : (
                   <Link
                     to={item.path!}
-                    aria-label={i18n.language === 'en' ? item.label : item.labelMr}
+                    aria-label={getLabel(item)}
                     aria-current={isActive ? 'page' : undefined}
                     style={{
                       display: 'flex',
@@ -527,7 +553,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                         textOverflow: 'ellipsis',
                         lineHeight: '1.5'
                       }}>
-                        {i18n.language === 'en' ? item.label : item.labelMr}
+                        {getLabel(item)}
                       </span>
                     )}
                   </Link>
@@ -538,7 +564,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                   <div 
                     id={`submenu-${index}`}
                     role="group"
-                    aria-label={`${i18n.language === 'en' ? item.label : item.labelMr} submenu`}
+                    aria-label={`${getLabel(item)} submenu`}
                     style={{ 
                       maxHeight: isExpanded ? `${item.subItems!.length * 40}px` : '0px',
                       overflow: 'hidden',
@@ -556,7 +582,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                         <Link
                           key={subItem.path}
                           to={subItem.path!}
-                          aria-label={i18n.language === 'en' ? subItem.label : subItem.labelMr}
+                          aria-label={getLabel(subItem)}
                           aria-current={isSubActive ? 'page' : undefined}
                           style={{
                             display: 'flex',
@@ -619,7 +645,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                             textOverflow: 'ellipsis',
                             lineHeight: '1.5'
                           }}>
-                            {i18n.language === 'en' ? subItem.label : subItem.labelMr}
+                            {getLabel(subItem)}
                           </span>
                         </Link>
                       );
@@ -683,8 +709,8 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               color: 'var(--text-secondary)',
               borderColor: 'var(--border-default)'
             }}
-            aria-label={i18n.language === 'en' ? 'Logout' : 'लॉगआउट'}
-            title={isSidebarCollapsed ? (i18n.language === 'en' ? 'Logout' : 'लॉगआउट') : ''}
+            aria-label={getText('Logout', 'लॉगआउट', 'लॉगआउट')}
+            title={isSidebarCollapsed ? getText('Logout', 'लॉगआउट', 'लॉगआउट') : ''}
           >
             <span style={{ 
               fontSize: '24px',
@@ -697,7 +723,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               <MdLogout />
             </span>
             {!isSidebarCollapsed && (
-              <span>{i18n.language === 'en' ? 'Logout' : 'लॉगआउट'}</span>
+              <span>{getText('Logout', 'लॉगआउट', 'लॉगआउट')}</span>
             )}
           </button>
         </div>
@@ -707,7 +733,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       <main 
         id="main-content"
         role="main"
-        aria-label={i18n.language === 'en' ? 'Main content' : 'मुख्य सामग्री'}
+        aria-label={getText('Main content', 'मुख्य सामग्री', 'मुख्य सामग्री')}
         tabIndex={-1}
         style={{ 
           marginLeft: sidebarWidth, 
@@ -725,3 +751,5 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 };
 
 export default DashboardLayout;
+
+

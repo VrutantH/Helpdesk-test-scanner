@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import DashboardLayout from './DashboardLayout';
 import AddProjectForm from './AddProjectForm';
+import { getText } from '../utils/language';
+
 
 interface Project {
   _id: string;
@@ -65,7 +67,7 @@ const ProjectManagement = () => {
   };
 
   const deleteProject = async (projectId: string) => {
-    if (confirm(i18n.language === 'en' ? 'Are you sure you want to delete this project?' : 'तुम्हाला हा प्रकल्प हटवायचा आहे का?')) {
+    if (confirm(getText('Are you sure you want to delete this project?', 'तुम्हाला हा प्रकल्प हटवायचा आहे का?', 'तुम्हाला हा प्रकल्प हटवायचा आहे का?'))) {
       try {
         const response = await fetch(`http://localhost:3003/api/projects/${projectId}`, {
           method: 'DELETE',
@@ -102,10 +104,10 @@ const ProjectManagement = () => {
             color: '#1f2937',
             margin: '0 0 8px 0'
           }}>
-            {i18n.language === 'en' ? 'Project Management' : 'प्रकल्प व्यवस्थापन'}
+            {getText('Project Management', 'प्रकल्प व्यवस्थापन', 'प्रकल्प व्यवस्थापन')}
           </h1>
           <p style={{ fontSize: '16px', color: '#6b7280', margin: 0 }}>
-            {i18n.language === 'en' ? 'Create and manage all projects in the system' : 'सिस्टममधील सर्व प्रकल्प तयार आणि व्यवस्थापित करा'}
+            {getText('Create and manage all projects in the system', 'सिस्टममधील सर्व प्रकल्प तयार आणि व्यवस्थापित करा', 'सिस्टममधील सर्व प्रकल्प तयार आणि व्यवस्थापित करा')}
           </p>
         </div>
 
@@ -129,10 +131,10 @@ const ProjectManagement = () => {
             }}>
               <div>
                 <h2 style={{ fontSize: '20px', fontWeight: '600', color: '#1f2937', margin: '0 0 4px 0' }}>
-                  {i18n.language === 'en' ? 'All Projects' : 'सर्व प्रकल्प'}
+                  {getText('All Projects', 'सर्व प्रकल्प', 'सर्व प्रकल्प')}
                 </h2>
                 <p style={{ fontSize: '14px', color: '#6b7280', margin: 0 }}>
-                  {i18n.language === 'en' ? 'View and manage all projects in the system' : 'सिस्टममधील सर्व प्रकल्प पहा आणि व्यवस्थापित करा'}
+                  {getText('View and manage all projects in the system', 'सिस्टममधील सर्व प्रकल्प पहा आणि व्यवस्थापित करा', 'सिस्टममधील सर्व प्रकल्प पहा आणि व्यवस्थापित करा')}
                 </p>
               </div>
               <button
@@ -155,7 +157,7 @@ const ProjectManagement = () => {
                 onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#f97316'}
               >
                 <span style={{ fontSize: '18px' }}>+</span>
-                {i18n.language === 'en' ? 'Add New Project' : 'नवीन प्रकल्प जोडा'}
+                {getText('Add New Project', 'नवीन प्रकल्प जोडा', 'नवीन प्रकल्प जोडा')}
               </button>
             </div>
 
@@ -173,7 +175,7 @@ const ProjectManagement = () => {
               </span>
               <input
                 type="text"
-                placeholder={i18n.language === 'en' ? 'Search projects by name, industry, or ID...' : 'नाव, उद्योग किंवा आयडी द्वारे प्रकल्प शोधा...'}
+                placeholder={getText('Search projects by name, industry, or ID...', 'नाव, उद्योग किंवा आयडी द्वारे प्रकल्प शोधा...', 'नाव, उद्योग किंवा आयडी द्वारे प्रकल्प शोधा...')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyUp={(e) => e.key === 'Enter' && fetchProjects()}
@@ -194,36 +196,36 @@ const ProjectManagement = () => {
           <div style={{ overflowX: 'auto' }}>
             {loading ? (
               <div style={{ padding: '48px', textAlign: 'center', color: '#6b7280' }}>
-                {i18n.language === 'en' ? 'Loading projects...' : 'प्रकल्प लोड करत आहे...'}
+                {getText('Loading projects...', 'प्रकल्प लोड करत आहे...', 'प्रकल्प लोड करत आहे...')}
               </div>
             ) : projects.length === 0 ? (
               <div style={{ padding: '48px', textAlign: 'center', color: '#6b7280' }}>
-                {i18n.language === 'en' ? 'No projects found' : 'कोणताही प्रकल्प सापडला नाही'}
+                {getText('No projects found', 'कोणताही प्रकल्प सापडला नाही', 'कोणताही प्रकल्प सापडला नाही')}
               </div>
             ) : (
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ backgroundColor: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
                     <th style={{ padding: '12px 24px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#6b7280', textTransform: 'uppercase' }}>
-                      {i18n.language === 'en' ? 'Project ID' : 'प्रकल्प आयडी'}
+                      {getText('Project ID', 'प्रकल्प आयडी', 'प्रकल्प आयडी')}
                     </th>
                     <th style={{ padding: '12px 24px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#6b7280', textTransform: 'uppercase' }}>
-                      {i18n.language === 'en' ? 'Name' : 'नाव'}
+                      {getText('Name', 'नाव', 'नाव')}
                     </th>
                     <th style={{ padding: '12px 24px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#6b7280', textTransform: 'uppercase' }}>
-                      {i18n.language === 'en' ? 'Industry' : 'उद्योग'}
+                      {getText('Industry', 'उद्योग', 'उद्योग')}
                     </th>
                     <th style={{ padding: '12px 24px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#6b7280', textTransform: 'uppercase' }}>
-                      {i18n.language === 'en' ? 'Users' : 'वापरकर्ते'}
+                      {getText('Users', 'वापरकर्ते', 'वापरकर्ते')}
                     </th>
                     <th style={{ padding: '12px 24px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#6b7280', textTransform: 'uppercase' }}>
-                      {i18n.language === 'en' ? 'Status' : 'स्थिती'}
+                      {getText('Status', 'स्थिती', 'स्थिती')}
                     </th>
                     <th style={{ padding: '12px 24px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#6b7280', textTransform: 'uppercase' }}>
-                      {i18n.language === 'en' ? 'Created Date' : 'तयार केलेली तारीख'}
+                      {getText('Created Date', 'तयार केलेली तारीख', 'तयार केलेली तारीख')}
                     </th>
                     <th style={{ padding: '12px 24px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#6b7280', textTransform: 'uppercase' }}>
-                      {i18n.language === 'en' ? 'Actions' : 'कृती'}
+                      {getText('Actions', 'कृती', 'कृती')}
                     </th>
                   </tr>
                 </thead>
@@ -283,7 +285,7 @@ const ProjectManagement = () => {
                             fontSize: '12px',
                             fontWeight: '600'
                           }}>
-                            {project.isActive ? (i18n.language === 'en' ? 'active' : 'सक्रिय') : (i18n.language === 'en' ? 'inactive' : 'निष्क्रिय')}
+                            {project.isActive ? (getText('active', 'सक्रिय', 'सक्रिय')) : (getText('inactive', 'निष्क्रिय', 'निष्क्रिय'))}
                           </span>
                         </div>
                       </td>

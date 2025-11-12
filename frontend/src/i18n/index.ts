@@ -114,6 +114,119 @@ const resources = {
       enterOtpPlaceholder: "Enter 6-digit OTP"
     }
   },
+  hi: {
+    translation: {
+      // App Title
+      appTitle: "भारत सरकार",
+      appSubtitle: "डिजिटल इंडिया पहल",
+      
+      // Login Page
+      welcomeTitle: "हेल्पडेस्क में आपका स्वागत है",
+      welcomeSubtitle: "सुपर एडमिन पोर्टल",
+      secureAccess: "सरकारी हेल्पडेस्क सेवाओं तक सुरक्षित पहुंच",
+      
+      // Form Labels
+      emailLabel: "ईमेल पता",
+      passwordLabel: "पासवर्ड",
+      emailPlaceholder: "अपना आधिकारिक ईमेल पता दर्ज करें",
+      passwordPlaceholder: "अपना पासवर्ड दर्ज करें",
+      passwordMinLength: "न्यूनतम 6 वर्ण आवश्यक",
+      
+      // Buttons
+      loginButton: "लॉग इन",
+      signingIn: "साइन इन हो रहा है...",
+      forgotPassword: "अपना पासवर्ड भूल गए?",
+      sendOtp: "OTP भेजें",
+      sendingOtp: "OTP भेजा जा रहा है...",
+      verifyOtp: "OTP सत्यापित करें",
+      verifyingOtp: "सत्यापित हो रहा है...",
+      resetPassword: "पासवर्ड रीसेट करें",
+      resettingPassword: "रीसेट हो रहा है...",
+      backToLogin: "लॉगिन पर वापस जाएं",
+      
+      // Validation Messages
+      required: "यह फ़ील्ड आवश्यक है",
+      emailRequired: "ईमेल पता आवश्यक है",
+      emailInvalid: "कृपया एक मान्य ईमेल पता दर्ज करें",
+      passwordRequired: "पासवर्ड आवश्यक है",
+      passwordMinLengthError: "पासवर्ड कम से कम 6 वर्ण का होना चाहिए",
+      otpRequired: "OTP आवश्यक है",
+      otpInvalid: "कृपया एक मान्य 6-अंकीय OTP दर्ज करें",
+      passwordMismatch: "पासवर्ड मेल नहीं खाते",
+      
+      // Error Messages
+      loginFailed: "अमान्य क्रेडेंशियल। कृपया पुनः प्रयास करें।",
+      networkError: "नेटवर्क त्रुटि। कृपया अपना कनेक्शन जांचें।",
+      emailNotFound: "हमारे रिकॉर्ड में ईमेल पता नहीं मिला।",
+      invalidOtp: "अमान्य या समाप्त OTP। कृपया पुनः प्रयास करें।",
+      passwordResetFailed: "पासवर्ड रीसेट विफल। कृपया पुनः प्रयास करें।",
+      
+      // Success Messages
+      otpSent: "OTP आपके ईमेल पते पर भेजा गया है।",
+      passwordResetSuccess: "पासवर्ड सफलतापूर्वक रीसेट किया गया। कृपया अपने नए पासवर्ड से लॉगिन करें।",
+      
+      // Forgot Password
+      forgotPasswordTitle: "अपना पासवर्ड रीसेट करें",
+      forgotPasswordSubtitle: "OTP प्राप्त करने के लिए अपना ईमेल दर्ज करें",
+      otpVerificationTitle: "OTP सत्यापित करें",
+      otpVerificationSubtitle: "अपने ईमेल पर भेजा गया 6-अंकीय कोड दर्ज करें",
+      newPasswordTitle: "नया पासवर्ड सेट करें",
+      newPasswordSubtitle: "अपने खाते के लिए एक मजबूत पासवर्ड बनाएं",
+      newPasswordLabel: "नया पासवर्ड",
+      confirmPasswordLabel: "पासवर्ड की पुष्टि करें",
+      
+      // Security & Trust
+      sslSecured: "256-बिट SSL एन्क्रिप्शन के साथ सुरक्षित",
+      privacyPolicy: "गोपनीयता नीति",
+      termsOfService: "सेवा की शर्तें",
+      helpSupport: "सहायता और समर्थन",
+      
+      // Footer
+      copyright: "© 2025 भारत सरकार। सर्वाधिकार सुरक्षित।",
+      digitalIndia: "डिजिटल इंडिया पहल के तहत विकसित | संस्करण 1.0.0",
+      
+      // Accessibility
+      requiredField: "आवश्यक फ़ील्ड",
+      showPassword: "पासवर्ड दिखाएं",
+      hidePassword: "पासवर्ड छुपाएं",
+      skipToMain: "मुख्य सामग्री पर जाएं",
+      selectLanguage: "अपनी पसंदीदा भाषा चुनें",
+      governmentEmblem: "भारत सरकार राष्ट्रीय प्रतीक",
+      
+      // Language
+      language: "भाषा",
+      english: "English",
+      hindi: "हिंदी",
+      marathi: "मराठी",
+      
+      // Mobile-based Forgot Password
+      resetPasswordTitle: "पासवर्ड रीसेट करें",
+      mobileNumber: "मोबाइल नंबर",
+      enterMobileDesc: "अपना पंजीकृत मोबाइल नंबर दर्ज करें",
+      sendOtpBtn: "OTP भेजें",
+      sendingOtpBtn: "OTP भेजा जा रहा है...",
+      resendOtpBtn: "OTP फिर से भेजें",
+      resendOtpTimer: "{{seconds}} सेकंड में OTP फिर से भेजें",
+      enterOtpLabel: "OTP दर्ज करें",
+      verifyOtpBtn: "OTP सत्यापित करें",
+      verifyingOtpBtn: "सत्यापित हो रहा है...",
+      changeMobileBtn: "मोबाइल नंबर बदलें",
+      otpSentToMobile: "+91 {{mobile}} पर OTP भेजा गया",
+      createNewPasswordTitle: "नया पासवर्ड बनाएं",
+      newPasswordDesc: "अपने खाते के लिए एक मजबूत पासवर्ड दर्ज करें",
+      confirmNewPasswordLabel: "अपने नए पासवर्ड की पुष्टि करें",
+      resettingPasswordBtn: "रीसेट हो रहा है...",
+      mobileValidationErr: "कृपया एक मान्य 10-अंकीय मोबाइल नंबर दर्ज करें",
+      otpValidationErr: "कृपया 6-अंकीय OTP दर्ज करें",
+      passwordResetSuccessMsg: "पासवर्ड सफलतापूर्वक रीसेट किया गया। अब आप अपने नए पासवर्ड से लॉगिन कर सकते हैं।",
+      invalidMobileErr: "इस मोबाइल नंबर से कोई खाता नहीं मिला",
+      otpExpiredErr: "OTP समाप्त हो गया है। कृपया एक नया अनुरोध करें",
+      invalidOtpErr: "अमान्य OTP। कृपया जांचें और पुनः प्रयास करें",
+      tooManyAttemptsErr: "बहुत अधिक असफल प्रयास। कृपया बाद में प्रयास करें",
+      enterMobilePlaceholder: "10-अंकीय मोबाइल नंबर दर्ज करें",
+      enterOtpPlaceholder: "6-अंकीय OTP दर्ज करें"
+    }
+  },
   mr: {
     translation: {
       // App Title
@@ -232,7 +345,7 @@ i18n
   .use(initReactI18next)
   .init({
     resources,
-    lng: 'en',
+    lng: localStorage.getItem('preferredLanguage') || 'en', // Load saved language or default to English
     fallbackLng: 'en',
     interpolation: {
       escapeValue: false,

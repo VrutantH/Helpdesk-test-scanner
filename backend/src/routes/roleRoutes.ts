@@ -1,25 +1,42 @@
-import express from 'express';
+import { Router } from 'express';
+import { auth } from '../middleware/auth';
+import { checkPermission } from '../middleware/permissions';
 import {
-  getAllRoles,
+  getRoles,
   getRoleById,
   createRole,
   updateRole,
   deleteRole,
-  getAllPermissions,
-  toggleRoleStatus,
 } from '../controllers/roleController';
 
-const router = express.Router();
+const router = Router();
 
-// Role routes
-router.get('/roles', getAllRoles);
+// All role routes require authentication
+router.use(auth);
+
+// @desc    Get all roles
+// @route   GET /api/roles
+// @access  Private
+router.get('/roles', getRoles);
+
+// @desc    Get role by ID
+// @route   GET /api/roles/:id
+// @access  Private
 router.get('/roles/:id', getRoleById);
-router.post('/roles', createRole);
-router.put('/roles/:id', updateRole);
-router.delete('/roles/:id', deleteRole);
-router.patch('/roles/:id/toggle-status', toggleRoleStatus);
 
-// Permission routes
-router.get('/permissions', getAllPermissions);
+// @desc    Create new role
+// @route   POST /api/roles
+// @access  Private (requires permission)
+router.post('/roles', checkPermission('role', 'create'), createRole);
+
+// @desc    Update role
+// @route   PUT /api/roles/:id
+// @access  Private (requires permission)
+router.put('/roles/:id', checkPermission('role', 'update'), updateRole);
+
+// @desc    Delete role
+// @route   DELETE /api/roles/:id
+// @access  Private (requires permission)
+router.delete('/roles/:id', checkPermission('role', 'delete'), deleteRole);
 
 export default router;

@@ -20,10 +20,12 @@ import projectRoutes from './routes/projects';
 import roleRoutes from './routes/roleRoutes';
 import masterDataRoutes from './routes/masterData'; // Old generic routes (kept for backward compatibility)
 import newMasterDataRoutes from './routes/master-data'; // New separate collection routes
-import { ticketFieldRoutes, autoAssignmentRoutes } from './routes/ticket-module'; // Ticket module routes
-import { slaRuleRoutes, escalationPolicyRoutes } from './routes/sla-module'; // SLA module routes
-import activityLogRoutes from './routes/activityLogs'; // Activity logs routes
-import integrationRoutes from './routes/integrations'; // Integration routes
+// import { ticketFieldRoutes, autoAssignmentRoutes } from './routes/ticket-module'; // TODO: Implement
+import slaRuleRoutes from './routes/sla-module/slaRuleRoutes';
+import escalationPolicyRoutes from './routes/sla-module/escalationPolicyRoutes';
+import activityLogRoutes from './routes/activityLogs';
+import accessLogRoutes from './routes/accessLogs';
+// import integrationRoutes from './routes/integrations'; // TODO: Implement
 import { setupSocketHandlers } from './socket/socketHandlers';
 import { initializeDatabase } from './utils/dbInit';
 import { seedRolesAndPermissions } from './utils/seedRolesPermissions';
@@ -35,7 +37,7 @@ const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: process.env.FRONTEND_URL || 'http://localhost:3001',
     methods: ['GET', 'POST'],
   },
 });
@@ -48,7 +50,7 @@ connectDB();
 // Security middleware
 app.use(helmet());
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: process.env.FRONTEND_URL || 'http://localhost:3001',
   credentials: true,
 }));
 
@@ -85,19 +87,20 @@ app.use('/api', roleRoutes);
 app.use('/api/master-data', masterDataRoutes); // Old generic routes (backward compatibility)
 app.use('/api/masters', newMasterDataRoutes); // New separate collection routes
 
-// Ticket Module Routes
-app.use('/api/ticket-fields', ticketFieldRoutes);
-app.use('/api/auto-assignments', autoAssignmentRoutes);
+// Ticket Module Routes (TODO: Implement)
+// app.use('/api/ticket-fields', ticketFieldRoutes);
+// app.use('/api/auto-assignments', autoAssignmentRoutes);
 
 // SLA Module Routes
 app.use('/api/sla-rules', slaRuleRoutes);
 app.use('/api/escalation-policies', escalationPolicyRoutes);
 
-// Activity Logs Routes
+// Audit Logs Routes
 app.use('/api/activity-logs', activityLogRoutes);
+app.use('/api/access-logs', accessLogRoutes);
 
-// Integration Routes
-app.use('/api/integrations', integrationRoutes);
+// Integration Routes (TODO: Implement)
+// app.use('/api/integrations', integrationRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

@@ -7,7 +7,7 @@ import { User } from '../models/User';
  */
 export const getAllProjects = async (req: Request, res: Response) => {
   try {
-    const { search, organizationType, status, page = 1, limit = 10 } = req.query;
+    const { search, status, page = 1, limit = 10 } = req.query;
     
     const query: any = {};
     
@@ -18,10 +18,6 @@ export const getAllProjects = async (req: Request, res: Response) => {
         { code: { $regex: search, $options: 'i' } },
         { projectId: { $regex: search, $options: 'i' } },
       ];
-    }
-    
-    if (organizationType) {
-      query.organizationType = organizationType;
     }
     
     if (status) {
@@ -336,15 +332,6 @@ export const getProjectStats = async (req: Request, res: Response) => {
     const inactiveProjects = await Project.countDocuments({ status: 'inactive' });
     const suspendedProjects = await Project.countDocuments({ status: 'suspended' });
     
-    const projectsByType = await Project.aggregate([
-      {
-        $group: {
-          _id: '$organizationType',
-          count: { $sum: 1 },
-        },
-      },
-    ]);
-    
     return res.json({
       success: true,
       data: {
@@ -352,12 +339,111 @@ export const getProjectStats = async (req: Request, res: Response) => {
         active: activeProjects,
         inactive: inactiveProjects,
         suspended: suspendedProjects,
-        byType: projectsByType,
       },
     });
     
   } catch (error) {
     console.error('Get project stats error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+    });
+  }
+};
+
+/**
+ * Get project branding by custom URL path
+ */
+export const getProjectBranding = async (req: Request, res: Response) => {
+  try {
+    const { urlPath } = req.params;
+    
+    console.log(`🔍 Looking for project with customUrlPath: ${urlPath}`);
+    
+    const project = await Project.findOne({ 'branding.customUrlPath': urlPath });
+    
+    if (!project) {
+      console.log(`❌ Project not found with customUrlPath: ${urlPath}`);
+      return res.status(404).json({
+        success: false,
+        message: 'Project not found',
+        error: 'No project found with this URL path',
+      });
+    }
+    
+    // Return only the necessary branding information
+    const brandingData = {
+      projectId: project._id.toString(),
+      name: project.name,
+      customUrlPath: project.branding?.customUrlPath,
+      primaryColor: project.branding?.colorTheme?.primary || '#2563EB',
+      secondaryColor: project.branding?.colorTheme?.secondary || '#764ba2',
+      logoUrl: project.branding?.logo,
+      welcomeText: project.branding?.headerText,
+      footerText: project.branding?.footerText,
+    };
+    
+    console.log(`✅ Found project branding: ${project.name}`);
+    
+    return res.json({
+      success: true,
+      data: brandingData,
+    });
+    
+  } catch (error) {
+    console.error('Get project branding error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+    });
+  }
+};
+
+/**
+ * Get project ticket submission settings
+ */
+export const getProjectTicketSettings = async (req: Request, res: Response) => {
+  try {
+    const { projectId } = req.params;
+    
+    console.log(`🔍 Looking for ticket settings for project: ${projectId}`);
+    
+    const project = await Project.findById(projectId);
+    
+    if (!project) {
+      return res.status(404).json({
+        success: false,
+        message: 'Project not found',
+      });
+    }
+    
+    // Return ticket submission settings with defaults
+    const settings = {
+      mode: project.configuration?.ticketSubmissionSettings?.mode || 'both',
+      enableOnlineForm: project.configuration?.ticketSubmissionSettings?.enableOnlineForm !== false,
+      enableOfflineCenter: project.configuration?.ticketSubmissionSettings?.enableOfflineCenter !== false,
+      onlineFormFields: project.configuration?.ticketSubmissionSettings?.onlineFormFields || [
+        { fieldName: 'Name', fieldType: 'text', required: true, placeholder: 'Enter your name' },
+        { fieldName: 'Email', fieldType: 'email', required: true, placeholder: 'Enter your email' },
+        { fieldName: 'Phone', fieldType: 'phone', required: true, placeholder: 'Enter your phone number' },
+        { fieldName: 'Subject', fieldType: 'text', required: true, placeholder: 'Enter subject' },
+        { fieldName: 'Description', fieldType: 'textarea', required: true, placeholder: 'Describe your issue' },
+      ],
+      offlineCenters: project.configuration?.ticketSubmissionSettings?.offlineCenters || [],
+      welcomeMessage: project.configuration?.ticketSubmissionSettings?.welcomeMessage || 'Welcome! Submit your ticket below and our team will assist you.',
+      successMessage: project.configuration?.ticketSubmissionSettings?.successMessage || 'Your ticket has been successfully submitted. We will get back to you soon.',
+      announcement: project.configuration?.ticketSubmissionSettings?.announcement || '',
+      allowAttachments: project.configuration?.ticketSubmissionSettings?.allowAttachments !== false,
+      maxAttachmentSize: project.configuration?.ticketSubmissionSettings?.maxAttachmentSize || 10,
+      allowedFileTypes: project.configuration?.ticketSubmissionSettings?.allowedFileTypes || ['.pdf', '.doc', '.docx', '.jpg', '.jpeg', '.png'],
+    };
+    
+    console.log(`✅ Found ticket settings for project: ${project.name}`);
+    
+    return res.json(settings);
+    
+  } catch (error) {
+    console.error('Get project ticket settings error:', error);
     return res.status(500).json({
       success: false,
       message: 'Internal server error',

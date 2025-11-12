@@ -219,15 +219,17 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
     if (syncFromHRMS && employeeCode) {
       try {
         const hrmsData = await hrmsService.syncEmployeeData(employeeCode);
-        userData = {
-          ...userData,
-          ...hrmsData,
-          // Override with provided data if any
-          firstName: firstName || hrmsData.firstName,
-          lastName: lastName || hrmsData.lastName,
-          email: email || hrmsData.email,
-          mobile: mobile || hrmsData.mobile,
-        };
+        if (hrmsData) {
+          userData = {
+            ...userData,
+            ...hrmsData,
+            // Override with provided data if any
+            firstName: firstName || hrmsData.firstName,
+            lastName: lastName || hrmsData.lastName,
+            email: email || hrmsData.email,
+            mobile: mobile || hrmsData.mobile,
+          };
+        }
 
         // Check if email from HRMS already exists
         if (userData.email) {
@@ -641,7 +643,15 @@ export const bulkImportFromHRMS = async (req: Request, res: Response): Promise<v
         // Fetch from HRMS
         const hrmsData = await hrmsService.syncEmployeeData(employeeCode);
 
-        // Create user
+        // Create user - skip if no HRMS data
+        if (!hrmsData) {
+          results.failed.push({
+            employeeCode,
+            reason: 'No HRMS data found',
+          });
+          continue;
+        }
+
         const user = new User({
           ...hrmsData,
           role: roleId,

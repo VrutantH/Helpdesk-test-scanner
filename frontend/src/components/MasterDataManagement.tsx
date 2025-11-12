@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import DashboardLayout from './DashboardLayout';
+import { getText } from '../utils/language';
+
 
 interface MasterDataItem {
   _id: string;
@@ -148,7 +150,7 @@ const MasterDataManagement = () => {
   };
 
   const handleDelete = async (itemId: string) => {
-    if (!confirm(i18n.language === 'en' ? 'Are you sure you want to delete this item?' : 'तुम्हाला हा आयटम हटवायचा आहे का?')) {
+    if (!confirm(getText('Are you sure you want to delete this item?', 'तुम्हाला हा आयटम हटवायचा आहे का?', 'तुम्हाला हा आयटम हटवायचा आहे का?'))) {
       return;
     }
 
@@ -249,12 +251,10 @@ const MasterDataManagement = () => {
         {/* Header */}
         <div style={{ marginBottom: '32px' }}>
           <h1 style={{ fontSize: '32px', fontWeight: '600', color: '#1f2937', marginBottom: '8px' }}>
-            {i18n.language === 'en' ? '⚙️ Master Data Management' : '⚙️ मास्टर डेटा व्यवस्थापन'}
+            {getText('⚙️ Master Data Management', '⚙️ मास्टर डेटा व्यवस्थापन', '⚙️ मास्टर डेटा व्यवस्थापन')}
           </h1>
           <p style={{ fontSize: '16px', color: '#6b7280' }}>
-            {i18n.language === 'en' 
-              ? 'Manage dropdown options and reference data across the system' 
-              : 'सिस्टममध्ये ड्रॉपडाउन पर्याय आणि संदर्भ डेटा व्यवस्थापित करा'}
+            {getText('Manage dropdown options and reference data across the system', 'सिस्टममध्ये ड्रॉपडाउन पर्याय आणि संदर्भ डेटा व्यवस्थापित करा', 'सिस्टममध्ये ड्रॉपडाउन पर्याय आणि संदर्भ डेटा व्यवस्थापित करा')}
           </p>
         </div>
 
@@ -287,7 +287,7 @@ const MasterDataManagement = () => {
               }}
             >
               <span>{cat.icon}</span>
-              {i18n.language === 'en' ? cat.label : cat.labelMr}
+              {i18n.language === 'mr' ? cat.labelMr : cat.label}
             </button>
           ))}
         </div>
@@ -303,7 +303,7 @@ const MasterDataManagement = () => {
           borderRadius: '8px'
         }}>
           <div style={{ fontSize: '14px', color: '#6b7280' }}>
-            {i18n.language === 'en' ? `Total Items: ${items.length}` : `एकूण आयटम: ${items.length}`}
+            {getText(`Total Items: ${items.length}`, `कुल आइटम: ${items.length}`, `एकूण आयटम: ${items.length}`)}
           </div>
           <button
             onClick={handleAddNew}
@@ -325,14 +325,14 @@ const MasterDataManagement = () => {
             onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#f97316'}
           >
             <span style={{ fontSize: '18px' }}>+</span>
-            {i18n.language === 'en' ? 'Add New Item' : 'नवीन आयटम जोडा'}
+            {getText('Add New Item', 'नवीन आयटम जोडा', 'नवीन आयटम जोडा')}
           </button>
         </div>
 
         {/* Data Table */}
         {loading ? (
           <div style={{ textAlign: 'center', padding: '48px', color: '#6b7280' }}>
-            {i18n.language === 'en' ? 'Loading...' : 'लोड करत आहे...'}
+            {getText('Loading...', 'लोड करत आहे...', 'लोड करत आहे...')}
           </div>
         ) : (
           <div style={{
@@ -345,22 +345,22 @@ const MasterDataManagement = () => {
               <thead>
                 <tr style={{ backgroundColor: '#f9fafb', borderBottom: '2px solid #e5e7eb' }}>
                   <th style={{ padding: '16px', textAlign: 'left', fontSize: '14px', fontWeight: '600', color: '#374151' }}>
-                    {i18n.language === 'en' ? 'Key' : 'की'}
+                    {getText('Key', 'की', 'की')}
                   </th>
                   <th style={{ padding: '16px', textAlign: 'left', fontSize: '14px', fontWeight: '600', color: '#374151' }}>
-                    {i18n.language === 'en' ? 'Value' : 'मूल्य'}
+                    {getText('Value', 'मूल्य', 'मूल्य')}
                   </th>
                   <th style={{ padding: '16px', textAlign: 'left', fontSize: '14px', fontWeight: '600', color: '#374151' }}>
-                    {i18n.language === 'en' ? 'Description' : 'वर्णन'}
+                    {getText('Description', 'वर्णन', 'वर्णन')}
                   </th>
                   <th style={{ padding: '16px', textAlign: 'center', fontSize: '14px', fontWeight: '600', color: '#374151' }}>
-                    {i18n.language === 'en' ? 'Order' : 'क्रम'}
+                    {getText('Order', 'क्रम', 'क्रम')}
                   </th>
                   <th style={{ padding: '16px', textAlign: 'center', fontSize: '14px', fontWeight: '600', color: '#374151' }}>
-                    {i18n.language === 'en' ? 'Status' : 'स्थिती'}
+                    {getText('Status', 'स्थिती', 'स्थिती')}
                   </th>
                   <th style={{ padding: '16px', textAlign: 'center', fontSize: '14px', fontWeight: '600', color: '#374151' }}>
-                    {i18n.language === 'en' ? 'Actions' : 'क्रिया'}
+                    {getText('Actions', 'क्रिया', 'क्रिया')}
                   </th>
                 </tr>
               </thead>
@@ -368,7 +368,7 @@ const MasterDataManagement = () => {
                 {items.length === 0 ? (
                   <tr>
                     <td colSpan={6} style={{ padding: '48px', textAlign: 'center', color: '#6b7280' }}>
-                      {i18n.language === 'en' ? 'No items found. Click "Add New Item" to create one.' : 'कोणतेही आयटम आढळले नाहीत. एक तयार करण्यासाठी "नवीन आयटम जोडा" वर क्लिक करा.'}
+                      {getText('No items found. Click "Add New Item" to create one.', 'कोणतेही आयटम आढळले नाहीत. एक तयार करण्यासाठी "नवीन आयटम जोडा" वर क्लिक करा.', 'कोणतेही आयटम आढळले नाहीत. एक तयार करण्यासाठी "नवीन आयटम जोडा" वर क्लिक करा.')}
                     </td>
                   </tr>
                 ) : (
@@ -437,7 +437,7 @@ const MasterDataManagement = () => {
                             onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#eff6ff'}
                             onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'white'}
                           >
-                            ✏️ {i18n.language === 'en' ? 'Edit' : 'संपादित करा'}
+                            ✏️ {getText('Edit', 'संपादित करा', 'संपादित करा')}
                           </button>
                           <button
                             onClick={() => handleDelete(item._id)}
@@ -463,7 +463,7 @@ const MasterDataManagement = () => {
                               e.currentTarget.style.backgroundColor = 'white';
                               e.currentTarget.style.borderColor = '#E5E7EB';
                             }}
-                            title={i18n.language === 'en' ? 'Delete' : 'हटवा'}
+                            title={getText('Delete', 'हटवा', 'हटवा')}
                           >
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                               <path d="M3 6h18"/>
@@ -516,8 +516,8 @@ const MasterDataManagement = () => {
               }}>
                 <h2 style={{ fontSize: '24px', fontWeight: '600', color: '#1f2937', margin: 0 }}>
                   {editingItem 
-                    ? (i18n.language === 'en' ? 'Edit Item' : 'आयटम संपादित करा')
-                    : (i18n.language === 'en' ? 'Add New Item' : 'नवीन आयटम जोडा')}
+                    ? (getText('Edit Item', 'आयटम संपादित करा', 'आयटम संपादित करा'))
+                    : (getText('Add New Item', 'नवीन आयटम जोडा', 'नवीन आयटम जोडा'))}
                 </h2>
                 <button
                   onClick={() => setShowModal(false)}
@@ -538,14 +538,14 @@ const MasterDataManagement = () => {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                   <div>
                     <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                      {i18n.language === 'en' ? 'Key' : 'की'} *
+                      {getText('Key', 'की', 'की')} *
                     </label>
                     <input
                       type="text"
                       required
                       value={formData.key}
                       onChange={(e) => setFormData({ ...formData, key: e.target.value })}
-                      placeholder={i18n.language === 'en' ? 'e.g., new-item-key' : 'उदा., new-item-key'}
+                      placeholder={getText('e.g., new-item-key', 'उदा., new-item-key', 'उदा., new-item-key')}
                       disabled={!!editingItem}
                       style={{
                         width: '100%',
@@ -559,22 +559,20 @@ const MasterDataManagement = () => {
                       }}
                     />
                     <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
-                      {i18n.language === 'en' 
-                        ? 'Lowercase, use hyphens for spaces' 
-                        : 'लोअरकेस, रिक्त स्थानांसाठी हायफन वापरा'}
+                      {getText('Lowercase, use hyphens for spaces', 'लोअरकेस, रिक्त स्थानांसाठी हायफन वापरा', 'लोअरकेस, रिक्त स्थानांसाठी हायफन वापरा')}
                     </p>
                   </div>
 
                   <div>
                     <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                      {i18n.language === 'en' ? 'Display Value' : 'प्रदर्शन मूल्य'} *
+                      {getText('Display Value', 'प्रदर्शन मूल्य', 'प्रदर्शन मूल्य')} *
                     </label>
                     <input
                       type="text"
                       required
                       value={formData.value}
                       onChange={(e) => setFormData({ ...formData, value: e.target.value })}
-                      placeholder={i18n.language === 'en' ? 'Enter display value' : 'प्रदर्शन मूल्य प्रविष्ट करा'}
+                      placeholder={getText('Enter display value', 'प्रदर्शन मूल्य प्रविष्ट करा', 'प्रदर्शन मूल्य प्रविष्ट करा')}
                       style={{
                         width: '100%',
                         padding: '12px',
@@ -589,12 +587,12 @@ const MasterDataManagement = () => {
 
                   <div>
                     <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                      {i18n.language === 'en' ? 'Description' : 'वर्णन'}
+                      {getText('Description', 'वर्णन', 'वर्णन')}
                     </label>
                     <textarea
                       value={formData.description}
                       onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      placeholder={i18n.language === 'en' ? 'Enter description (optional)' : 'वर्णन प्रविष्ट करा (पर्यायी)'}
+                      placeholder={getText('Enter description (optional)', 'वर्णन प्रविष्ट करा (पर्यायी)', 'वर्णन प्रविष्ट करा (पर्यायी)')}
                       rows={3}
                       style={{
                         width: '100%',
@@ -611,7 +609,7 @@ const MasterDataManagement = () => {
 
                   <div>
                     <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                      {i18n.language === 'en' ? 'Display Order' : 'प्रदर्शन क्रम'} *
+                      {getText('Display Order', 'प्रदर्शन क्रम', 'प्रदर्शन क्रम')} *
                     </label>
                     <input
                       type="number"
@@ -635,7 +633,7 @@ const MasterDataManagement = () => {
                   {activeCategory === 'city' && (
                     <div>
                       <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                        {i18n.language === 'en' ? 'State *' : 'राज्य *'}
+                        {getText('State *', 'राज्य *', 'राज्य *')}
                       </label>
                       <select
                         required
@@ -651,7 +649,7 @@ const MasterDataManagement = () => {
                           boxSizing: 'border-box'
                         }}
                       >
-                        <option value="">{i18n.language === 'en' ? 'Select State' : 'राज्य निवडा'}</option>
+                        <option value="">{getText('Select State', 'राज्य निवडा', 'राज्य निवडा')}</option>
                         {states.map((state) => (
                           <option key={state._id} value={state.key}>
                             {state.value}
@@ -665,7 +663,7 @@ const MasterDataManagement = () => {
                     <>
                       <div>
                         <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                          {i18n.language === 'en' ? 'Address *' : 'पत्ता *'}
+                          {getText('Address *', 'पत्ता *', 'पत्ता *')}
                         </label>
                         <textarea
                           required
@@ -688,7 +686,7 @@ const MasterDataManagement = () => {
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                         <div>
                           <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                            {i18n.language === 'en' ? 'State *' : 'राज्य *'}
+                            {getText('State *', 'राज्य *', 'राज्य *')}
                           </label>
                           <select
                             required
@@ -704,7 +702,7 @@ const MasterDataManagement = () => {
                               boxSizing: 'border-box'
                             }}
                           >
-                            <option value="">{i18n.language === 'en' ? 'Select State' : 'राज्य निवडा'}</option>
+                            <option value="">{getText('Select State', 'राज्य निवडा', 'राज्य निवडा')}</option>
                             {states.map((state) => (
                               <option key={state._id} value={state.key}>
                                 {state.value}
@@ -715,7 +713,7 @@ const MasterDataManagement = () => {
 
                         <div>
                           <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                            {i18n.language === 'en' ? 'City *' : 'शहर *'}
+                            {getText('City *', 'शहर *', 'शहर *')}
                           </label>
                           <select
                             required
@@ -733,7 +731,7 @@ const MasterDataManagement = () => {
                               opacity: !formData.state ? '0.5' : '1'
                             }}
                           >
-                            <option value="">{i18n.language === 'en' ? 'Select City' : 'शहर निवडा'}</option>
+                            <option value="">{getText('Select City', 'शहर निवडा', 'शहर निवडा')}</option>
                             {cities
                               .filter((city) => city.metadata?.state === formData.state)
                               .map((city) => (
@@ -748,7 +746,7 @@ const MasterDataManagement = () => {
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                         <div>
                           <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                            {i18n.language === 'en' ? 'Zipcode *' : 'पिनकोड *'}
+                            {getText('Zipcode *', 'पिनकोड *', 'पिनकोड *')}
                           </label>
                           <input
                             type="text"
@@ -769,7 +767,7 @@ const MasterDataManagement = () => {
 
                         <div>
                           <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                            {i18n.language === 'en' ? 'Phone' : 'फोन'}
+                            {getText('Phone', 'फोन', 'फोन')}
                           </label>
                           <input
                             type="tel"
@@ -790,7 +788,7 @@ const MasterDataManagement = () => {
 
                       <div>
                         <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                          {i18n.language === 'en' ? 'Email' : 'ईमेल'}
+                          {getText('Email', 'ईमेल', 'ईमेल')}
                         </label>
                         <input
                           type="email"
@@ -810,7 +808,7 @@ const MasterDataManagement = () => {
 
                       <div>
                         <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                          {i18n.language === 'en' ? 'Timing *' : 'वेळ *'}
+                          {getText('Timing *', 'वेळ *', 'वेळ *')}
                         </label>
                         <input
                           type="text"
@@ -832,7 +830,7 @@ const MasterDataManagement = () => {
 
                       <div>
                         <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                          {i18n.language === 'en' ? 'Google Map Link' : 'गूगल मॅप लिंक'}
+                          {getText('Google Map Link', 'गूगल मॅप लिंक', 'गूगल मॅप लिंक')}
                         </label>
                         <input
                           type="url"
@@ -857,7 +855,7 @@ const MasterDataManagement = () => {
                   {activeCategory !== 'city' && activeCategory !== 'center' && (
                     <div>
                       <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                        {i18n.language === 'en' ? 'Metadata (JSON)' : 'मेटाडेटा (JSON)'}
+                        {getText('Metadata (JSON)', 'मेटाडेटा (JSON)', 'मेटाडेटा (JSON)')}
                       </label>
                       <textarea
                         value={formData.metadata}
@@ -888,7 +886,7 @@ const MasterDataManagement = () => {
                       style={{ width: '18px', height: '18px', cursor: 'pointer' }}
                     />
                     <label htmlFor="isActive" style={{ fontSize: '14px', fontWeight: '500', color: '#374151', cursor: 'pointer' }}>
-                      {i18n.language === 'en' ? 'Active' : 'सक्रिय'}
+                      {getText('Active', 'सक्रिय', 'सक्रिय')}
                     </label>
                   </div>
                 </div>
@@ -919,7 +917,7 @@ const MasterDataManagement = () => {
                     onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
                     onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'white'}
                   >
-                    {i18n.language === 'en' ? 'Cancel' : 'रद्द करा'}
+                    {getText('Cancel', 'रद्द करा', 'रद्द करा')}
                   </button>
                   <button
                     type="submit"
@@ -937,7 +935,7 @@ const MasterDataManagement = () => {
                     onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#ea580c'}
                     onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#f97316'}
                   >
-                    {i18n.language === 'en' ? 'Save' : 'जतन करा'}
+                    {getText('Save', 'जतन करा', 'जतन करा')}
                   </button>
                 </div>
               </form>

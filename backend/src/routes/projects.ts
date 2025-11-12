@@ -8,6 +8,8 @@ import {
   toggleProjectStatus,
   updateProjectModules,
   getProjectStats,
+  getProjectBranding,
+  getProjectTicketSettings,
 } from '../controllers/projectController';
 
 const router = express.Router();
@@ -17,6 +19,12 @@ router.get('/', getAllProjects);
 
 // Get project statistics
 router.get('/stats', getProjectStats);
+
+// Get project branding by custom URL path (must be before /:id to avoid conflicts)
+router.get('/branding/:urlPath', getProjectBranding);
+
+// Get project ticket submission settings
+router.get('/:projectId/ticket-settings', getProjectTicketSettings);
 
 // Get single project by ID
 router.get('/:id', getProjectById);

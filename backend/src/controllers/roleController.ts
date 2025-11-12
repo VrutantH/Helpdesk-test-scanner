@@ -1,302 +1,212 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
+import { AuthRequest } from '../middleware/auth';
 import { Role } from '../models/Role';
-import { Permission } from '../models/Permission';
-import mongoose from 'mongoose';
 
-// Get all roles
-export const getAllRoles = async (req: Request, res: Response) => {
+// @desc    Get all roles
+// @route   GET /api/roles
+// @access  Private
+export const getRoles = async (req: AuthRequest, res: Response) => {
   try {
-    const { projectId, type, search } = req.query;
-
-    const filter: any = {};
-
-    if (projectId) {
-      filter.$or = [
-        { projectId: projectId },
-        { type: 'system' }
-      ];
-    }
-
-    if (type) {
-      filter.type = type;
-    }
-
-    if (search) {
-      filter.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } }
-      ];
-    }
-
-    const roles = await Role.find(filter)
-      .populate('permissions')
-      .sort({ type: -1, name: 1 });
-
+    const roles = await Role.find().populate('permissions');
     res.json({
       success: true,
       data: roles,
     });
   } catch (error: any) {
-    console.error('Get roles error:', error);
     res.status(500).json({
       success: false,
-      message: error.message || 'Failed to fetch roles',
+      error: error.message || 'Failed to fetch roles',
     });
   }
 };
 
-// Get role by ID
-export const getRoleById = async (req: Request, res: Response): Promise<void> => {
+// @desc    Get role by ID
+// @route   GET /api/roles/:id
+// @access  Private
+export const getRoleById = async (req: AuthRequest, res: Response) => {
   try {
-    const { id } = req.params;
-
-    const role = await Role.findById(id).populate('permissions');
-
+    const role = await Role.findById(req.params.id).populate('permissions');
     if (!role) {
       res.status(404).json({
         success: false,
-        message: 'Role not found',
+        error: 'Role not found',
       });
       return;
     }
-
     res.json({
       success: true,
       data: role,
     });
   } catch (error: any) {
-    console.error('Get role error:', error);
     res.status(500).json({
       success: false,
-      message: error.message || 'Failed to fetch role',
+      error: error.message || 'Failed to fetch role',
     });
   }
 };
 
-// Create new role
-export const createRole = async (req: Request, res: Response): Promise<void> => {
+// @desc    Create new role
+// @route   POST /api/roles
+// @access  Private
+export const createRole = async (req: AuthRequest, res: Response) => {
   try {
-    const { name, code, description, projectId, permissions } = req.body;
+    const { name, code, description, permissions, type, projects, projectId } = req.body;
 
-    // Check if role code already exists for this project
-    const existingRole = await Role.findOne({ 
-      code: code.toUpperCase(),
-      projectId: projectId || null 
-    });
-
+    // Check if role with same code already exists
+    const existingRole = await Role.findOne({ code: code?.toUpperCase() });
     if (existingRole) {
       res.status(400).json({
         success: false,
-        message: 'Role with this code already exists for this project',
+        error: 'Role with this code already exists',
       });
       return;
     }
 
-    const role = new Role({
+    // Prepare role data
+    const roleData: any = {
       name,
-      code: code.toUpperCase(),
+      code: code?.toUpperCase(),
       description,
-      projectId: projectId || null,
       permissions: permissions || [],
-      type: 'custom',
-    });
+      type: type || 'custom',
+    };
 
-    await role.save();
+    // Handle project mapping
+    // If projects array provided, use it
+    // If single projectId provided (backward compatibility), convert to array
+    if (projects && Array.isArray(projects) && projects.length > 0) {
+      roleData.projects = projects;
+      roleData.projectId = projects[0]; // Set first project as projectId for backward compatibility
+    } else if (projectId) {
+      roleData.projectId = projectId;
+      roleData.projects = [projectId];
+    }
+
+    // System roles (like SuperAdmin) should not have project mapping
+    if (type === 'system') {
+      delete roleData.projects;
+      delete roleData.projectId;
+    }
+
+    const role = await Role.create(roleData);
 
     const populatedRole = await Role.findById(role._id).populate('permissions');
 
     res.status(201).json({
       success: true,
-      message: 'Role created successfully',
       data: populatedRole,
     });
   } catch (error: any) {
-    console.error('Create role error:', error);
     res.status(500).json({
       success: false,
-      message: error.message || 'Failed to create role',
+      error: error.message || 'Failed to create role',
     });
   }
 };
 
-// Update role
-export const updateRole = async (req: Request, res: Response): Promise<void> => {
+// @desc    Update role
+// @route   PUT /api/roles/:id
+// @access  Private
+export const updateRole = async (req: AuthRequest, res: Response) => {
   try {
-    const { id } = req.params;
-    const { name, description, permissions } = req.body;
+    const { name, code, description, permissions, projects, projectId } = req.body;
 
-    const role = await Role.findById(id);
-
+    const role = await Role.findById(req.params.id);
     if (!role) {
       res.status(404).json({
         success: false,
-        message: 'Role not found',
+        error: 'Role not found',
       });
       return;
     }
 
-    // Prevent modification of system roles
-    if (role.type === 'system') {
-      res.status(403).json({
+    // Prevent updating system roles' project mapping
+    if (role.type === 'system' && (projects || projectId)) {
+      res.status(400).json({
         success: false,
-        message: 'System roles cannot be modified',
+        error: 'Cannot modify project mapping for system roles',
       });
       return;
+    }
+
+    // Check if code is being changed and if it conflicts
+    if (code && code.toUpperCase() !== role.code) {
+      const existingRole = await Role.findOne({ code: code.toUpperCase() });
+      if (existingRole) {
+        res.status(400).json({
+          success: false,
+          error: 'Role with this code already exists',
+        });
+        return;
+      }
     }
 
     role.name = name || role.name;
-    role.description = description !== undefined ? description : role.description;
-    role.permissions = permissions || role.permissions;
+    role.code = code?.toUpperCase() || role.code;
+    role.description = description || role.description;
+    
+    if (permissions !== undefined) {
+      role.permissions = permissions;
+    }
+
+    // Update project mapping
+    if (projects && Array.isArray(projects)) {
+      role.projects = projects;
+      role.projectId = projects.length > 0 ? projects[0] : undefined;
+    } else if (projectId) {
+      role.projectId = projectId;
+      role.projects = [projectId];
+    }
 
     await role.save();
 
-    const updatedRole = await Role.findById(role._id).populate('permissions');
+    const populatedRole = await Role.findById(role._id).populate('permissions');
 
     res.json({
       success: true,
-      message: 'Role updated successfully',
-      data: updatedRole,
+      data: populatedRole,
     });
   } catch (error: any) {
-    console.error('Update role error:', error);
     res.status(500).json({
       success: false,
-      message: error.message || 'Failed to update role',
+      error: error.message || 'Failed to update role',
     });
   }
 };
 
-// Delete role
-export const deleteRole = async (req: Request, res: Response): Promise<void> => {
+// @desc    Delete role
+// @route   DELETE /api/roles/:id
+// @access  Private
+export const deleteRole = async (req: AuthRequest, res: Response) => {
   try {
-    const { id } = req.params;
-
-    const role = await Role.findById(id);
-
+    const role = await Role.findById(req.params.id);
     if (!role) {
       res.status(404).json({
         success: false,
-        message: 'Role not found',
+        error: 'Role not found',
       });
       return;
     }
 
     // Prevent deletion of system roles
-    if (role.type === 'system') {
-      res.status(403).json({
-        success: false,
-        message: 'System roles cannot be deleted',
-      });
-      return;
-    }
-
-    // Check if any users are assigned this role
-    if (role.agentCount > 0) {
+    if (role.isSystem) {
       res.status(400).json({
         success: false,
-        message: `Cannot delete role. ${role.agentCount} agent(s) are currently assigned to this role`,
+        error: 'Cannot delete system roles',
       });
       return;
     }
 
-    await Role.findByIdAndDelete(id);
+    await role.deleteOne();
 
     res.json({
       success: true,
       message: 'Role deleted successfully',
     });
   } catch (error: any) {
-    console.error('Delete role error:', error);
     res.status(500).json({
       success: false,
-      message: error.message || 'Failed to delete role',
-    });
-  }
-};
-
-// Get all permissions
-export const getAllPermissions = async (req: Request, res: Response) => {
-  try {
-    const { category, search } = req.query;
-
-    const filter: any = { isActive: true };
-
-    if (category) {
-      filter.category = category;
-    }
-
-    if (search) {
-      filter.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
-        { module: { $regex: search, $options: 'i' } }
-      ];
-    }
-
-    const permissions = await Permission.find(filter).sort({ category: 1, module: 1, name: 1 });
-
-    // Group permissions by category
-    const groupedPermissions = permissions.reduce((acc: any, perm) => {
-      if (!acc[perm.category]) {
-        acc[perm.category] = [];
-      }
-      acc[perm.category].push(perm);
-      return acc;
-    }, {});
-
-    res.json({
-      success: true,
-      data: {
-        all: permissions,
-        grouped: groupedPermissions,
-      },
-    });
-  } catch (error: any) {
-    console.error('Get permissions error:', error);
-    res.status(500).json({
-      success: false,
-      message: error.message || 'Failed to fetch permissions',
-    });
-  }
-};
-
-// Toggle role status
-export const toggleRoleStatus = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { id } = req.params;
-
-    const role = await Role.findById(id);
-
-    if (!role) {
-      res.status(404).json({
-        success: false,
-        message: 'Role not found',
-      });
-      return;
-    }
-
-    // Prevent deactivation of system roles
-    if (role.type === 'system') {
-      res.status(403).json({
-        success: false,
-        message: 'System roles cannot be deactivated',
-      });
-      return;
-    }
-
-    role.isActive = !role.isActive;
-    await role.save();
-
-    res.json({
-      success: true,
-      message: `Role ${role.isActive ? 'activated' : 'deactivated'} successfully`,
-      data: role,
-    });
-  } catch (error: any) {
-    console.error('Toggle role status error:', error);
-    res.status(500).json({
-      success: false,
-      message: error.message || 'Failed to toggle role status',
+      error: error.message || 'Failed to delete role',
     });
   }
 };

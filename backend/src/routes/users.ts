@@ -1,31 +1,35 @@
 import { Router } from 'express';
+import { auth } from '../middleware/auth';
 import {
   getAllUsers,
   getUserById,
-  createUser,
   updateUser,
   deleteUser,
-  toggleUserStatus,
-  searchHRMSEmployees,
-  validateEmployeeCode,
-  bulkImportFromHRMS,
-  resetUserPassword,
 } from '../controllers/userController';
 
 const router = Router();
 
-// HRMS integration routes (must come before /:id routes)
-router.get('/hrms/search', searchHRMSEmployees);
-router.get('/hrms/validate/:employeeCode', validateEmployeeCode);
-router.post('/hrms/bulk-import', bulkImportFromHRMS);
+// All user routes require authentication
+router.use(auth);
 
-// User CRUD routes
+// @desc    Get all users
+// @route   GET /api/users
+// @access  Private
 router.get('/', getAllUsers);
+
+// @desc    Get user by ID
+// @route   GET /api/users/:id
+// @access  Private
 router.get('/:id', getUserById);
-router.post('/', createUser);
+
+// @desc    Update user
+// @route   PUT /api/users/:id
+// @access  Private
 router.put('/:id', updateUser);
+
+// @desc    Delete user
+// @route   DELETE /api/users/:id
+// @access  Private
 router.delete('/:id', deleteUser);
-router.patch('/:id/toggle-status', toggleUserStatus);
-router.post('/:id/reset-password', resetUserPassword);
 
 export default router;

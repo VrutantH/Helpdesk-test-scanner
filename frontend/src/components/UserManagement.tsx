@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import DashboardLayout from './DashboardLayout';
+import { getText } from '../utils/language';
+
 
 interface Role {
   _id: string;
@@ -12,6 +14,7 @@ interface Project {
   _id: string;
   name: string;
   code: string;
+  status?: string;
 }
 
 interface User {
@@ -33,19 +36,13 @@ interface User {
 }
 
 interface HRMSEmployee {
-  id: number;
-  attributes: {
-    Group_Employee_Code: string;
-    First_Name: string;
-    Last_Name: string;
-    Official_Email_ID?: string;
-    Personal_Email_ID?: string;
-    Mobile?: string;
-    Centre_Code?: string;
-    Full_Name?: string;
-    Date_of_Joining?: string;
-    Group_Date_of_Joining?: string;
-  };
+  employeeCode: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  mobile: string;
+  department: string;
+  designation: string;
 }
 
 const UserManagement: React.FC = () => {
@@ -104,7 +101,11 @@ const UserManagement: React.FC = () => {
       if (filterRole) params.append('role', filterRole);
       if (filterStatus) params.append('isActive', filterStatus);
       
+      const token = localStorage.getItem('authToken');
       const response = await fetch(`http://localhost:3003/api/users?${params}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
         credentials: 'include',
       });
       const data = await response.json();
@@ -198,12 +199,12 @@ const UserManagement: React.FC = () => {
   // Handle save user
   const handleSaveUser = async () => {
     if (!formData.firstName || !formData.lastName || !formData.email || !formData.role) {
-      alert(i18n.language === 'en' ? 'Please fill all required fields' : 'कृपया सर्व आवश्यक फील्ड भरा');
+      alert(getText('Please fill all required fields', 'कृपया सर्व आवश्यक फील्ड भरा', 'कृपया सर्व आवश्यक फील्ड भरा'));
       return;
     }
 
     if (!editingUser && !formData.password) {
-      alert(i18n.language === 'en' ? 'Password is required for new users' : 'नवीन वापरकर्त्यांसाठी पासवर्ड आवश्यक आहे');
+      alert(getText('Password is required for new users', 'नवीन वापरकर्त्यांसाठी पासवर्ड आवश्यक आहे', 'नवीन वापरकर्त्यांसाठी पासवर्ड आवश्यक आहे'));
       return;
     }
 
@@ -245,24 +246,20 @@ const UserManagement: React.FC = () => {
       
       if (data.success) {
         alert(editingUser 
-          ? (i18n.language === 'en' ? 'User updated successfully' : 'वापरकर्ता यशस्वीरित्या अद्यतनित केला')
-          : (i18n.language === 'en' ? 'User created successfully' : 'वापरकर्ता यशस्वीरित्या तयार केला')
+          ? (getText('User updated successfully', 'वापरकर्ता यशस्वीरित्या अद्यतनित केला', 'वापरकर्ता यशस्वीरित्या अद्यतनित केला'))
+          : (getText('User created successfully', 'वापरकर्ता यशस्वीरित्या तयार केला', 'वापरकर्ता यशस्वीरित्या तयार केला'))
         );
         setShowUserModal(false);
         fetchUsers();
       } else {
         // Show detailed error message from backend
         const errorMessage = data.error || 'Failed to save user';
-        alert(i18n.language === 'en' 
-          ? `Error: ${errorMessage}` 
-          : `त्रुटी: ${errorMessage}`
+        alert(getText(`Error: ${errorMessage}`, `त्रुटी: ${errorMessage}`, `त्रुटी: ${errorMessage}`)
         );
       }
     } catch (error) {
       console.error('Error saving user:', error);
-      alert(i18n.language === 'en' 
-        ? 'Failed to save user. Please check your input and try again.' 
-        : 'वापरकर्ता जतन करण्यात अयशस्वी. कृपया तुमचा इनपुट तपासा आणि पुन्हा प्रयत्न करा.'
+      alert(getText('Failed to save user. Please check your input and try again.', 'वापरकर्ता जतन करण्यात अयशस्वी. कृपया तुमचा इनपुट तपासा आणि पुन्हा प्रयत्न करा.', 'वापरकर्ता जतन करण्यात अयशस्वी. कृपया तुमचा इनपुट तपासा आणि पुन्हा प्रयत्न करा.')
       );
     } finally {
       setSaving(false);
@@ -283,6 +280,9 @@ const UserManagement: React.FC = () => {
           // Use first code as search query (HRMS API searches across all fields)
           queryParam = codes[0];
         }
+      } else {
+        // If no codes provided, use 'emp' to get all employees (matches all employeeCodes)
+        queryParam = 'emp';
       }
       
       const response = await fetch(`http://localhost:3003/api/users/hrms/search?query=${encodeURIComponent(queryParam)}`, {
@@ -292,25 +292,17 @@ const UserManagement: React.FC = () => {
       const data = await response.json();
       
       if (data.success && data.data) {
-        // If user entered specific codes, filter results
-        if (hrmsEmployeeCodes.trim()) {
-          const codes = hrmsEmployeeCodes.split(',').map(c => c.trim().toUpperCase()).filter(c => c);
-          if (codes.length > 0) {
-            const filtered = data.data.filter((emp: HRMSEmployee) => 
-              codes.some(code => emp.attributes.Group_Employee_Code?.toUpperCase().includes(code))
-            );
-            setHrmsEmployees(filtered);
-            
-            if (filtered.length === 0) {
-              alert(i18n.language === 'en' 
-                ? `No employees found with code(s): ${codes.join(', ')}` 
-                : `कोड(स): ${codes.join(', ')} सह कोणतेही कर्मचारी आढळले नाहीत`);
-            }
-          } else {
-            setHrmsEmployees(data.data);
-          }
-        } else {
-          setHrmsEmployees(data.data);
+        // API already searches across all fields, just use the results
+        setHrmsEmployees(data.data);
+        
+        // Show message if no results found
+        if (data.data.length === 0) {
+          const searchTerm = hrmsEmployeeCodes.trim() || 'employees';
+          alert(getText(
+            `No employees found for: ${searchTerm}`, 
+            `${searchTerm} साठी कर्मचारी आढळले नाहीत`, 
+            `${searchTerm} साठी कर्मचारी आढळले नाहीत`
+          ));
         }
         
         // Clear the employee codes input after loading
@@ -331,12 +323,12 @@ const UserManagement: React.FC = () => {
   // Handle HRMS confirm - Add selected employees
   const handleConfirmHRMS = async () => {
     if (selectedEmployees.length === 0) {
-      alert(i18n.language === 'en' ? 'Please select at least one employee' : 'कृपया किमान एक कर्मचारी निवडा');
+      alert(getText('Please select at least one employee', 'कृपया किमान एक कर्मचारी निवडा', 'कृपया किमान एक कर्मचारी निवडा'));
       return;
     }
 
     if (!selectedRole) {
-      alert(i18n.language === 'en' ? 'Please select a role' : 'कृपया रोल निवडा');
+      alert(getText('Please select a role', 'कृपया रोल निवडा', 'कृपया रोल निवडा'));
       return;
     }
 
@@ -347,7 +339,7 @@ const UserManagement: React.FC = () => {
 
       // Add each selected employee
       for (const employeeId of selectedEmployees) {
-        const employee = hrmsEmployees.find(emp => emp.id.toString() === employeeId);
+        const employee = hrmsEmployees.find(emp => emp.employeeCode === employeeId);
         if (!employee) continue;
 
         try {
@@ -356,7 +348,7 @@ const UserManagement: React.FC = () => {
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
             body: JSON.stringify({
-              employeeCode: employee.attributes.Group_Employee_Code,
+              employeeCode: employee.employeeCode,
               role: selectedRole,
               projects: selectedProjects,
               syncFromHRMS: true,
@@ -369,17 +361,19 @@ const UserManagement: React.FC = () => {
             successCount++;
           } else {
             failCount++;
-            console.error(`Failed to add ${employee.attributes.Group_Employee_Code}:`, data.error);
+            console.error(`Failed to add ${employee.employeeCode}:`, data.error);
           }
         } catch (error) {
           failCount++;
-          console.error(`Error adding ${employee.attributes.Group_Employee_Code}:`, error);
+          console.error(`Error adding ${employee.employeeCode}:`, error);
         }
       }
 
-      const message = i18n.language === 'en' 
-        ? `Added ${successCount} user(s) successfully${failCount > 0 ? `, ${failCount} failed` : ''}`
-        : `${successCount} वापरकर्ते यशस्वीरित्या जोडले${failCount > 0 ? `, ${failCount} अयशस्वी` : ''}`;
+      const message = getText(
+        `Added ${successCount} user(s) successfully${failCount > 0 ? `, ${failCount} failed` : ''}`,
+        `${successCount} वापरकर्ते यशस्वीरित्या जोडले${failCount > 0 ? `, ${failCount} अयशस्वी` : ''}`,
+        `${successCount} वापरकर्ते यशस्वीरित्या जोडले${failCount > 0 ? `, ${failCount} अयशस्वी` : ''}`
+      );
       
       alert(message);
       
@@ -399,7 +393,7 @@ const UserManagement: React.FC = () => {
 
   // Handle delete user
   const handleDeleteUser = async (userId: string) => {
-    if (!confirm(i18n.language === 'en' ? 'Are you sure you want to delete this user?' : 'तुम्हाला खात्री आहे की तुम्ही हा वापरकर्ता हटवू इच्छिता?')) {
+    if (!confirm(getText('Are you sure you want to delete this user?', 'तुम्हाला खात्री आहे की तुम्ही हा वापरकर्ता हटवू इच्छिता?', 'तुम्हाला खात्री आहे की तुम्ही हा वापरकर्ता हटवू इच्छिता?'))) {
       return;
     }
 
@@ -412,7 +406,7 @@ const UserManagement: React.FC = () => {
       const data = await response.json();
       
       if (data.success) {
-        alert(i18n.language === 'en' ? 'User deleted successfully' : 'वापरकर्ता यशस्वीरित्या हटवला');
+        alert(getText('User deleted successfully', 'वापरकर्ता यशस्वीरित्या हटवला', 'वापरकर्ता यशस्वीरित्या हटवला'));
         fetchUsers();
       } else {
         alert(data.error || 'Failed to delete user');
@@ -461,7 +455,7 @@ const UserManagement: React.FC = () => {
       
       if (data.success) {
         fetchUsers();
-        alert(i18n.language === 'en' ? 'Role assigned successfully!' : 'भूमिका यशस्वीरित्या नियुक्त केली!');
+        alert(getText('Role assigned successfully!', 'भूमिका यशस्वीरित्या नियुक्त केली!', 'भूमिका यशस्वीरित्या नियुक्त केली!'));
       } else {
         alert(data.error || 'Failed to assign role');
       }
@@ -505,7 +499,7 @@ const UserManagement: React.FC = () => {
               margin: 0,
               fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
             }}>
-              {i18n.language === 'en' ? 'Loading users...' : 'वापरकर्ते लोड करत आहे...'}
+              {getText('Loading users...', 'वापरकर्ते लोड करत आहे...', 'वापरकर्ते लोड करत आहे...')}
             </p>
           </div>
         </div>
@@ -539,7 +533,7 @@ const UserManagement: React.FC = () => {
             letterSpacing: '-0.02em',
             fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
           }}>
-            {i18n.language === 'en' ? 'User Management' : 'वापरकर्ता व्यवस्थापन'}
+            {getText('User Management', 'वापरकर्ता व्यवस्थापन', 'वापरकर्ता व्यवस्थापन')}
           </h1>
           <p style={{ 
             margin: 0,
@@ -548,7 +542,7 @@ const UserManagement: React.FC = () => {
             fontWeight: 400,
             fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
           }}>
-            {i18n.language === 'en' ? 'Manage system users and their access' : 'सिस्टम वापरकर्ते आणि त्यांचा प्रवेश व्यवस्थापित करा'}
+            {getText('Manage system users and their access', 'सिस्टम वापरकर्ते आणि त्यांचा प्रवेश व्यवस्थापित करा', 'सिस्टम वापरकर्ते आणि त्यांचा प्रवेश व्यवस्थापित करा')}
           </p>
         </div>
 
@@ -586,7 +580,7 @@ const UserManagement: React.FC = () => {
               </svg>
               <input
                 type="text"
-                placeholder={i18n.language === 'en' ? 'Search users...' : 'वापरकर्ते शोधा...'}
+                placeholder={getText('Search users...', 'वापरकर्ते शोधा...', 'वापरकर्ते शोधा...')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 style={{ 
@@ -635,7 +629,7 @@ const UserManagement: React.FC = () => {
                 e.target.style.boxShadow = 'none';
               }}
             >
-              <option value="">{i18n.language === 'en' ? 'All Roles' : 'सर्व रोल'}</option>
+              <option value="">{getText('All Roles', 'सर्व रोल', 'सर्व रोल')}</option>
               {roles.map(role => (
                 <option key={role._id} value={role._id}>{role.name}</option>
               ))}
@@ -665,9 +659,9 @@ const UserManagement: React.FC = () => {
                 e.target.style.boxShadow = 'none';
               }}
             >
-              <option value="">{i18n.language === 'en' ? 'All Status' : 'सर्व स्थिती'}</option>
-              <option value="true">{i18n.language === 'en' ? 'Active' : 'सक्रिय'}</option>
-              <option value="false">{i18n.language === 'en' ? 'Inactive' : 'निष्क्रिय'}</option>
+              <option value="">{getText('All Status', 'सर्व स्थिती', 'सर्व स्थिती')}</option>
+              <option value="true">{getText('Active', 'सक्रिय', 'सक्रिय')}</option>
+              <option value="false">{getText('Inactive', 'निष्क्रिय', 'निष्क्रिय')}</option>
             </select>
           </div>
 
@@ -707,7 +701,7 @@ const UserManagement: React.FC = () => {
                 <polyline points="7 10 12 15 17 10"/>
                 <line x1="12" y1="15" x2="12" y2="3"/>
               </svg>
-              {i18n.language === 'en' ? 'Add from HRMS' : 'HRMS मधून जोडा'}
+              {getText('Add from HRMS', 'HRMS मधून जोडा', 'HRMS मधून जोडा')}
             </button>
             <button
               onClick={handleOpenCreateModal}
@@ -743,7 +737,7 @@ const UserManagement: React.FC = () => {
                 <line x1="12" y1="5" x2="12" y2="19"/>
                 <line x1="5" y1="12" x2="19" y2="12"/>
               </svg>
-              {i18n.language === 'en' ? 'Create User' : 'वापरकर्ता तयार करा'}
+              {getText('Create User', 'वापरकर्ता तयार करा', 'वापरकर्ता तयार करा')}
             </button>
           </div>
         </div>
@@ -785,7 +779,7 @@ const UserManagement: React.FC = () => {
                 color: '#111827',
                 fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
               }}>
-                {i18n.language === 'en' ? 'No Users Found' : 'वापरकर्ते आढळले नाहीत'}
+                {getText('No Users Found', 'वापरकर्ते आढळले नाहीत', 'वापरकर्ते आढळले नाहीत')}
               </h3>
               <p style={{ 
                 margin: '0', 
@@ -797,9 +791,7 @@ const UserManagement: React.FC = () => {
                 lineHeight: '1.6',
                 fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
               }}>
-                {i18n.language === 'en' 
-                  ? 'Get started by adding users to your system' 
-                  : 'तुमच्या सिस्टममध्ये वापरकर्ते जोडून प्रारंभ करा'}
+                {getText('Get started by adding users to your system', 'तुमच्या सिस्टममध्ये वापरकर्ते जोडून प्रारंभ करा', 'तुमच्या सिस्टममध्ये वापरकर्ते जोडून प्रारंभ करा')}
               </p>
             </div>
           ) : (
@@ -820,7 +812,7 @@ const UserManagement: React.FC = () => {
                     letterSpacing: '0.05em',
                     fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
                   }}>
-                    {i18n.language === 'en' ? 'Name' : 'नाव'}
+                    {getText('Name', 'नाव', 'नाव')}
                   </th>
                   <th style={{ 
                     padding: '12px 24px', 
@@ -832,7 +824,7 @@ const UserManagement: React.FC = () => {
                     letterSpacing: '0.05em',
                     fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
                   }}>
-                    {i18n.language === 'en' ? 'Email' : 'ईमेल'}
+                    {getText('Email', 'ईमेल', 'ईमेल')}
                   </th>
                   <th style={{ 
                     padding: '12px 24px', 
@@ -844,7 +836,7 @@ const UserManagement: React.FC = () => {
                     letterSpacing: '0.05em',
                     fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
                   }}>
-                    {i18n.language === 'en' ? 'Employee Code' : 'कर्मचारी कोड'}
+                    {getText('Employee Code', 'कर्मचारी कोड', 'कर्मचारी कोड')}
                   </th>
                   <th style={{ 
                     padding: '12px 24px', 
@@ -856,7 +848,7 @@ const UserManagement: React.FC = () => {
                     letterSpacing: '0.05em',
                     fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
                   }}>
-                    {i18n.language === 'en' ? 'Role' : 'रोल'}
+                    {getText('Role', 'रोल', 'रोल')}
                   </th>
                   <th style={{ 
                     padding: '12px 24px', 
@@ -868,7 +860,7 @@ const UserManagement: React.FC = () => {
                     letterSpacing: '0.05em',
                     fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
                   }}>
-                    {i18n.language === 'en' ? 'Projects' : 'प्रकल्प'}
+                    {getText('Projects', 'प्रकल्प', 'प्रकल्प')}
                   </th>
                   <th style={{ 
                     padding: '12px 24px', 
@@ -880,7 +872,7 @@ const UserManagement: React.FC = () => {
                     letterSpacing: '0.05em',
                     fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
                   }}>
-                    {i18n.language === 'en' ? 'Status' : 'स्थिती'}
+                    {getText('Status', 'स्थिती', 'स्थिती')}
                   </th>
                   <th style={{ 
                     padding: '12px 24px', 
@@ -892,7 +884,7 @@ const UserManagement: React.FC = () => {
                     letterSpacing: '0.05em',
                     fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
                   }}>
-                    {i18n.language === 'en' ? 'Actions' : 'कृती'}
+                    {getText('Actions', 'कृती', 'कृती')}
                   </th>
                 </tr>
               </thead>
@@ -995,7 +987,7 @@ const UserManagement: React.FC = () => {
                           fontWeight: 600,
                           fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
                         }}>
-                          {i18n.language === 'en' ? 'No Role' : 'भूमिका नाही'}
+                          {getText('No Role', 'भूमिका नाही', 'भूमिका नाही')}
                         </span>
                       )}
                     </td>
@@ -1081,8 +1073,8 @@ const UserManagement: React.FC = () => {
                           fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
                         }}>
                           {user.isActive 
-                            ? (i18n.language === 'en' ? 'Active' : 'सक्रिय')
-                            : (i18n.language === 'en' ? 'Inactive' : 'निष्क्रिय')}
+                            ? (getText('Active', 'सक्रिय', 'सक्रिय'))
+                            : (getText('Inactive', 'निष्क्रिय', 'निष्क्रिय'))}
                         </span>
                       </div>
                     </td>
@@ -1112,7 +1104,7 @@ const UserManagement: React.FC = () => {
                             e.currentTarget.style.background = 'white';
                             e.currentTarget.style.borderColor = '#E5E7EB';
                           }}
-                          title={i18n.language === 'en' ? 'Edit' : 'संपादित करा'}
+                          title={getText('Edit', 'संपादित करा', 'संपादित करा')}
                         >
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
@@ -1143,7 +1135,7 @@ const UserManagement: React.FC = () => {
                             e.currentTarget.style.background = 'white';
                             e.currentTarget.style.borderColor = '#E5E7EB';
                           }}
-                          title={i18n.language === 'en' ? 'View Credentials' : 'क्रेडेन्शियल पहा'}
+                          title={getText('View Credentials', 'क्रेडेन्शियल पहा', 'क्रेडेन्शियल पहा')}
                         >
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
@@ -1175,7 +1167,7 @@ const UserManagement: React.FC = () => {
                               e.currentTarget.style.background = 'white';
                               e.currentTarget.style.borderColor = '#E5E7EB';
                             }}
-                            title={i18n.language === 'en' ? 'Delete' : 'हटवा'}
+                            title={getText('Delete', 'हटवा', 'हटवा')}
                           >
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                               <path d="M3 6h18"/>
@@ -1200,8 +1192,8 @@ const UserManagement: React.FC = () => {
               <div style={{ padding: '24px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h2 style={{ fontSize: '20px', fontWeight: '600', color: '#1f2937', margin: 0 }}>
                   {editingUser 
-                    ? (i18n.language === 'en' ? 'Edit User' : 'वापरकर्ता संपादित करा')
-                    : (i18n.language === 'en' ? 'Create User' : 'वापरकर्ता तयार करा')}
+                    ? (getText('Edit User', 'वापरकर्ता संपादित करा', 'वापरकर्ता संपादित करा'))
+                    : (getText('Create User', 'वापरकर्ता तयार करा', 'वापरकर्ता तयार करा'))}
                 </h2>
                 <button onClick={() => setShowUserModal(false)} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#6b7280' }}>✕</button>
               </div>
@@ -1210,13 +1202,13 @@ const UserManagement: React.FC = () => {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                   <div>
                     <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                      {i18n.language === 'en' ? 'First Name' : 'पहिले नाव'} <span style={{ color: '#ef4444' }}>*</span>
+                      {getText('First Name', 'पहिले नाव', 'पहिले नाव')} <span style={{ color: '#ef4444' }}>*</span>
                     </label>
                     <input type="text" value={formData.firstName} onChange={(e) => setFormData({ ...formData, firstName: e.target.value })} style={{ width: '100%', padding: '12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
                   </div>
                   <div>
                     <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                      {i18n.language === 'en' ? 'Last Name' : 'आडनाव'} <span style={{ color: '#ef4444' }}>*</span>
+                      {getText('Last Name', 'आडनाव', 'आडनाव')} <span style={{ color: '#ef4444' }}>*</span>
                     </label>
                     <input type="text" value={formData.lastName} onChange={(e) => setFormData({ ...formData, lastName: e.target.value })} style={{ width: '100%', padding: '12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
                   </div>
@@ -1224,7 +1216,7 @@ const UserManagement: React.FC = () => {
 
                 <div style={{ marginTop: '16px' }}>
                   <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                    {i18n.language === 'en' ? 'Email' : 'ईमेल'} <span style={{ color: '#ef4444' }}>*</span>
+                    {getText('Email', 'ईमेल', 'ईमेल')} <span style={{ color: '#ef4444' }}>*</span>
                   </label>
                   <input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} style={{ width: '100%', padding: '12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
                 </div>
@@ -1232,24 +1224,24 @@ const UserManagement: React.FC = () => {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '16px' }}>
                   <div>
                     <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                      {i18n.language === 'en' ? 'Mobile' : 'मोबाईल'}
+                      {getText('Mobile', 'मोबाईल', 'मोबाईल')}
                     </label>
                     <input 
                       type="tel" 
                       value={formData.mobile} 
                       onChange={(e) => setFormData({ ...formData, mobile: e.target.value })} 
-                      placeholder={i18n.language === 'en' ? '10-digit number (starts with 6-9)' : '10-अंकी क्रमांक (6-9 ने सुरू)'} 
+                      placeholder={getText('10-digit number (starts with 6-9)', '10-अंकी क्रमांक (6-9 ने सुरू)', '10-अंकी क्रमांक (6-9 ने सुरू)')} 
                       pattern="[6-9][0-9]{9}"
                       maxLength={10}
                       style={{ width: '100%', padding: '12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} 
                     />
                     <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
-                      {i18n.language === 'en' ? 'Example: 9876543210' : 'उदाहरण: 9876543210'}
+                      {getText('Example: 9876543210', 'उदाहरण: 9876543210', 'उदाहरण: 9876543210')}
                     </p>
                   </div>
                   <div>
                     <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                      {i18n.language === 'en' ? 'Employee Code' : 'कर्मचारी कोड'}
+                      {getText('Employee Code', 'कर्मचारी कोड', 'कर्मचारी कोड')}
                     </label>
                     <input type="text" value={formData.employeeCode} onChange={(e) => setFormData({ ...formData, employeeCode: e.target.value })} style={{ width: '100%', padding: '12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
                   </div>
@@ -1258,13 +1250,13 @@ const UserManagement: React.FC = () => {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '16px' }}>
                   <div>
                     <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                      {i18n.language === 'en' ? 'HRMS ID' : 'HRMS ID'}
+                      {getText('HRMS ID', 'HRMS ID', 'HRMS ID')}
                     </label>
                     <input type="number" value={formData.hrmsId} onChange={(e) => setFormData({ ...formData, hrmsId: e.target.value })} placeholder="PeopleStrong Employee ID" style={{ width: '100%', padding: '12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
                   </div>
                   <div>
                     <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                      {i18n.language === 'en' ? 'Joining Date' : 'सामील होण्याचा दिनांक'}
+                      {getText('Joining Date', 'सामील होण्याचा दिनांक', 'सामील होण्याचा दिनांक')}
                     </label>
                     <input type="date" value={formData.joiningDate} onChange={(e) => setFormData({ ...formData, joiningDate: e.target.value })} style={{ width: '100%', padding: '12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
                   </div>
@@ -1273,28 +1265,28 @@ const UserManagement: React.FC = () => {
                 {!editingUser && (
                   <div style={{ marginTop: '16px' }}>
                     <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                      {i18n.language === 'en' ? 'Password' : 'पासवर्ड'} <span style={{ color: '#ef4444' }}>*</span>
+                      {getText('Password', 'पासवर्ड', 'पासवर्ड')} <span style={{ color: '#ef4444' }}>*</span>
                     </label>
                     <input 
                       type="password" 
                       value={formData.password} 
                       onChange={(e) => setFormData({ ...formData, password: e.target.value })} 
-                      placeholder={i18n.language === 'en' ? 'Minimum 8 characters' : 'किमान 8 वर्ण'}
+                      placeholder={getText('Minimum 8 characters', 'किमान 8 वर्ण', 'किमान 8 वर्ण')}
                       minLength={8}
                       style={{ width: '100%', padding: '12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} 
                     />
                     <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
-                      {i18n.language === 'en' ? 'Must be at least 8 characters long' : 'किमान 8 वर्ण लांब असणे आवश्यक आहे'}
+                      {getText('Must be at least 8 characters long', 'किमान 8 वर्ण लांब असणे आवश्यक आहे', 'किमान 8 वर्ण लांब असणे आवश्यक आहे')}
                     </p>
                   </div>
                 )}
 
                 <div style={{ marginTop: '16px' }}>
                   <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                    {i18n.language === 'en' ? 'Role' : 'रोल'} <span style={{ color: '#ef4444' }}>*</span>
+                    {getText('Role', 'रोल', 'रोल')} <span style={{ color: '#ef4444' }}>*</span>
                   </label>
                   <select value={formData.role} onChange={(e) => setFormData({ ...formData, role: e.target.value })} style={{ width: '100%', padding: '12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }}>
-                    <option value="">{i18n.language === 'en' ? 'Select Role' : 'रोल निवडा'}</option>
+                    <option value="">{getText('Select Role', 'रोल निवडा', 'रोल निवडा')}</option>
                     {roles.map(role => (
                       <option key={role._id} value={role._id}>{role.name}</option>
                     ))}
@@ -1304,13 +1296,13 @@ const UserManagement: React.FC = () => {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '16px' }}>
                   <div>
                     <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                      {i18n.language === 'en' ? 'Department' : 'विभाग'}
+                      {getText('Department', 'विभाग', 'विभाग')}
                     </label>
                     <input type="text" value={formData.department} onChange={(e) => setFormData({ ...formData, department: e.target.value })} style={{ width: '100%', padding: '12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
                   </div>
                   <div>
                     <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                      {i18n.language === 'en' ? 'Designation' : 'पदनाम'}
+                      {getText('Designation', 'पदनाम', 'पदनाम')}
                     </label>
                     <input type="text" value={formData.designation} onChange={(e) => setFormData({ ...formData, designation: e.target.value })} style={{ width: '100%', padding: '12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
                   </div>
@@ -1318,10 +1310,10 @@ const UserManagement: React.FC = () => {
 
                 <div style={{ marginTop: '16px' }}>
                   <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                    {i18n.language === 'en' ? 'Reporting Manager' : 'रिपोर्टिंग मॅनेजर'}
+                    {getText('Reporting Manager', 'रिपोर्टिंग मॅनेजर', 'रिपोर्टिंग मॅनेजर')}
                   </label>
                   <select value={formData.reportingManager} onChange={(e) => setFormData({ ...formData, reportingManager: e.target.value })} style={{ width: '100%', padding: '12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }}>
-                    <option value="">{i18n.language === 'en' ? 'Select Reporting Manager' : 'रिपोर्टिंग मॅनेजर निवडा'}</option>
+                    <option value="">{getText('Select Reporting Manager', 'रिपोर्टिंग मॅनेजर निवडा', 'रिपोर्टिंग मॅनेजर निवडा')}</option>
                     {users
                       .filter(u => u.isActive && (!editingUser || u._id !== editingUser._id))
                       .map(user => (
@@ -1334,7 +1326,7 @@ const UserManagement: React.FC = () => {
 
                 <div style={{ marginTop: '16px' }}>
                   <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '10px' }}>
-                    {i18n.language === 'en' ? 'Assigned Projects' : 'नियुक्त प्रकल्प'}
+                    {getText('Assigned Projects', 'नियुक्त प्रकल्प', 'नियुक्त प्रकल्प')}
                   </label>
                   <div style={{ 
                     border: '1px solid #d1d5db', 
@@ -1389,7 +1381,7 @@ const UserManagement: React.FC = () => {
                       ))
                     ) : (
                       <p style={{ fontSize: '14px', color: '#6b7280', textAlign: 'center', padding: '12px' }}>
-                        {i18n.language === 'en' ? 'No projects available' : 'कोणतेही प्रकल्प उपलब्ध नाहीत'}
+                        {getText('No projects available', 'कोणतेही प्रकल्प उपलब्ध नाहीत', 'कोणतेही प्रकल्प उपलब्ध नाहीत')}
                       </p>
                     )}
                   </div>
@@ -1398,10 +1390,10 @@ const UserManagement: React.FC = () => {
 
               <div style={{ padding: '16px 24px', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
                 <button onClick={() => setShowUserModal(false)} disabled={saving} style={{ padding: '10px 20px', border: '1px solid #d1d5db', borderRadius: '6px', backgroundColor: 'white', color: '#374151', fontSize: '14px', fontWeight: '500', cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.5 : 1 }}>
-                  {i18n.language === 'en' ? 'Cancel' : 'रद्द करा'}
+                  {getText('Cancel', 'रद्द करा', 'रद्द करा')}
                 </button>
                 <button onClick={handleSaveUser} disabled={saving || !formData.firstName || !formData.lastName || !formData.email || !formData.role} style={{ padding: '10px 20px', border: 'none', borderRadius: '6px', backgroundColor: (!formData.firstName || !formData.lastName || !formData.email || !formData.role || saving) ? '#d1d5db' : '#a855f7', color: 'white', fontSize: '14px', fontWeight: '500', cursor: (!formData.firstName || !formData.lastName || !formData.email || !formData.role || saving) ? 'not-allowed' : 'pointer' }}>
-                  {saving ? (i18n.language === 'en' ? 'Saving...' : 'जतन करत आहे...') : (editingUser ? (i18n.language === 'en' ? 'Update User' : 'वापरकर्ता अद्यतनित करा') : (i18n.language === 'en' ? 'Create User' : 'वापरकर्ता तयार करा'))}
+                  {saving ? (getText('Saving...', 'जतन करत आहे...', 'जतन करत आहे...')) : (editingUser ? (getText('Update User', 'वापरकर्ता अद्यतनित करा', 'वापरकर्ता अद्यतनित करा')) : (getText('Create User', 'वापरकर्ता तयार करा', 'वापरकर्ता तयार करा')))}
                 </button>
               </div>
             </div>
@@ -1411,10 +1403,10 @@ const UserManagement: React.FC = () => {
         {/* Add from HRMS Modal */}
         {showHRMSModal && (
           <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}>
-            <div style={{ backgroundColor: 'white', borderRadius: '12px', maxWidth: '900px', width: '100%', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}>
-              <div style={{ padding: '24px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ backgroundColor: 'white', borderRadius: '12px', maxWidth: '1000px', width: '100%', height: '85vh', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ padding: '24px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
                 <h2 style={{ fontSize: '20px', fontWeight: '600', color: '#1f2937', margin: 0 }}>
-                  {i18n.language === 'en' ? 'Add Users from HRMS' : 'HRMS मधून वापरकर्ते जोडा'}
+                  {getText('Add Users from HRMS', 'HRMS मधून वापरकर्ते जोडा', 'HRMS मधून वापरकर्ते जोडा')}
                 </h2>
                 <button onClick={() => { setShowHRMSModal(false); setHrmsEmployees([]); setSelectedEmployees([]); setSelectedRole(''); setSelectedProjects([]); setHrmsEmployeeCodes(''); setHrmsSearchQuery(''); }} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#6b7280' }}>✕</button>
               </div>
@@ -1422,28 +1414,24 @@ const UserManagement: React.FC = () => {
               {hrmsEmployees.length === 0 ? (
                 <div style={{ padding: '32px' }}>
                   <p style={{ fontSize: '14px', color: '#6b7280', marginBottom: '20px', textAlign: 'center' }}>
-                    {i18n.language === 'en' 
-                      ? 'Enter employee code(s) or load all employees from HRMS (PeopleStrong)' 
-                      : 'कर्मचारी कोड प्रविष्ट करा किंवा HRMS (PeopleStrong) मधून सर्व कर्मचारी लोड करा'}
+                    {getText('Enter employee code(s) or load all employees from HRMS (PeopleStrong)', 'कर्मचारी कोड प्रविष्ट करा किंवा HRMS (PeopleStrong) मधून सर्व कर्मचारी लोड करा', 'कर्मचारी कोड प्रविष्ट करा किंवा HRMS (PeopleStrong) मधून सर्व कर्मचारी लोड करा')}
                   </p>
                   
                   <div style={{ maxWidth: '600px', margin: '0 auto' }}>
                     {/* Employee Code Input */}
                     <div style={{ marginBottom: '20px' }}>
                       <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>
-                        {i18n.language === 'en' ? 'Employee Code(s)' : 'कर्मचारी कोड'}
+                        {getText('Search Employees', 'कर्मचारी शोधा', 'कर्मचारी शोधा')}
                       </label>
                       <input
                         type="text"
-                        placeholder={i18n.language === 'en' ? 'Enter employee codes separated by comma (e.g., EMP001, EMP002)' : 'कर्मचारी कोड स्वल्पविरामाने विभक्त करा (उदा., EMP001, EMP002)'}
+                        placeholder={getText('Search by name, code, designation, or department', 'नाव, कोड, पदनाम किंवा विभागाद्वारे शोधा', 'नाव, कोड, पदनाम किंवा विभागाद्वारे शोधा')}
                         value={hrmsEmployeeCodes}
                         onChange={(e) => setHrmsEmployeeCodes(e.target.value)}
                         style={{ width: '100%', padding: '12px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }}
                       />
                       <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
-                        {i18n.language === 'en' 
-                          ? '💡 Tip: Enter one or more employee codes, or leave blank to load all' 
-                          : '💡 सूचना: एक किंवा अधिक कर्मचारी कोड प्रविष्ट करा, किंवा सर्व लोड करण्यासाठी रिक्त सोडा'}
+                        {getText('💡 Tip: Enter search term (e.g., "District Coordinator", "EMP001", "ICT") or leave blank to load all', '💡 सूचना: शोध शब्द प्रविष्ट करा (उदा., "District Coordinator", "EMP001", "ICT") किंवा सर्व लोड करण्यासाठी रिक्त सोडा', '💡 सूचना: शोध शब्द प्रविष्ट करा (उदा., "District Coordinator", "EMP001", "ICT") किंवा सर्व लोड करण्यासाठी रिक्त सोडा')}
                       </p>
                     </div>
 
@@ -1455,20 +1443,21 @@ const UserManagement: React.FC = () => {
                         style={{ padding: '12px 32px', backgroundColor: '#f97316', color: 'white', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '500', cursor: hrmsLoading ? 'not-allowed' : 'pointer', opacity: hrmsLoading ? 0.5 : 1, display: 'inline-flex', alignItems: 'center', gap: '8px' }}
                       >
                         <span>🔍</span>
-                        {hrmsLoading ? (i18n.language === 'en' ? 'Loading...' : 'लोड करत आहे...') : (i18n.language === 'en' ? 'Load Employees from HRMS' : 'HRMS मधून कर्मचारी लोड करा')}
+                        {hrmsLoading ? (getText('Loading...', 'लोड करत आहे...', 'लोड करत आहे...')) : (getText('Load Employees from HRMS', 'HRMS मधून कर्मचारी लोड करा', 'HRMS मधून कर्मचारी लोड करा'))}
                       </button>
                     </div>
                   </div>
                 </div>
               ) : (
                 <>
-                  <div style={{ padding: '16px 24px', borderBottom: '1px solid #e5e7eb' }}>
+                  {/* Search and Selection Controls - Fixed Header */}
+                  <div style={{ padding: '16px 24px', borderBottom: '1px solid #e5e7eb', flexShrink: 0 }}>
                     {/* Search box */}
                     <div style={{ position: 'relative', marginBottom: '16px' }}>
                       <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', fontSize: '18px' }}>🔍</span>
                       <input
                         type="text"
-                        placeholder={i18n.language === 'en' ? 'Search by name, email, or employee code...' : 'नाव, ईमेल किंवा कर्मचारी कोडद्वारे शोधा...'}
+                        placeholder={getText('Search by name, email, or employee code...', 'नाव, ईमेल किंवा कर्मचारी कोडद्वारे शोधा...', 'नाव, ईमेल किंवा कर्मचारी कोडद्वारे शोधा...')}
                         value={hrmsSearchQuery}
                         onChange={(e) => setHrmsSearchQuery(e.target.value)}
                         style={{ width: '100%', padding: '12px 12px 12px 40px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }}
@@ -1479,15 +1468,15 @@ const UserManagement: React.FC = () => {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                       <div>
                         <span style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>
-                          {i18n.language === 'en' ? 'Selected' : 'निवडले'}: <span style={{ color: '#7c3aed', fontWeight: '600' }}>{selectedEmployees.length}</span> / {hrmsEmployees.filter(emp => {
+                          {getText('Selected', 'निवडले', 'निवडले')}: <span style={{ color: '#7c3aed', fontWeight: '600' }}>{selectedEmployees.length}</span> / {hrmsEmployees.filter(emp => {
                             if (!hrmsSearchQuery) return true;
                             const search = hrmsSearchQuery.toLowerCase();
                             return (
-                              emp.attributes.Group_Employee_Code?.toLowerCase().includes(search) ||
-                              emp.attributes.First_Name?.toLowerCase().includes(search) ||
-                              emp.attributes.Last_Name?.toLowerCase().includes(search) ||
-                              emp.attributes.Official_Email_ID?.toLowerCase().includes(search) ||
-                              emp.attributes.Personal_Email_ID?.toLowerCase().includes(search)
+                              emp.employeeCode?.toLowerCase().includes(search) ||
+                              emp.firstName?.toLowerCase().includes(search) ||
+                              emp.lastName?.toLowerCase().includes(search) ||
+                              emp.email?.toLowerCase().includes(search) ||
+                              emp.designation?.toLowerCase().includes(search)
                             );
                           }).length}
                         </span>
@@ -1498,17 +1487,17 @@ const UserManagement: React.FC = () => {
                             if (!hrmsSearchQuery) return true;
                             const search = hrmsSearchQuery.toLowerCase();
                             return (
-                              emp.attributes.Group_Employee_Code?.toLowerCase().includes(search) ||
-                              emp.attributes.First_Name?.toLowerCase().includes(search) ||
-                              emp.attributes.Last_Name?.toLowerCase().includes(search) ||
-                              emp.attributes.Official_Email_ID?.toLowerCase().includes(search) ||
-                              emp.attributes.Personal_Email_ID?.toLowerCase().includes(search)
+                              emp.employeeCode?.toLowerCase().includes(search) ||
+                              emp.firstName?.toLowerCase().includes(search) ||
+                              emp.lastName?.toLowerCase().includes(search) ||
+                              emp.email?.toLowerCase().includes(search) ||
+                              emp.designation?.toLowerCase().includes(search)
                             );
                           });
                           if (selectedEmployees.length === filtered.length) {
                             setSelectedEmployees([]);
                           } else {
-                            setSelectedEmployees(filtered.map(emp => emp.id.toString()));
+                            setSelectedEmployees(filtered.map(emp => emp.employeeCode));
                           }
                         }}
                         style={{ padding: '8px 20px', backgroundColor: '#7c3aed', color: 'white', border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: '500', cursor: 'pointer' }}
@@ -1517,31 +1506,31 @@ const UserManagement: React.FC = () => {
                           if (!hrmsSearchQuery) return true;
                           const search = hrmsSearchQuery.toLowerCase();
                           return (
-                            emp.attributes.Group_Employee_Code?.toLowerCase().includes(search) ||
-                            emp.attributes.First_Name?.toLowerCase().includes(search) ||
-                            emp.attributes.Last_Name?.toLowerCase().includes(search) ||
-                            emp.attributes.Official_Email_ID?.toLowerCase().includes(search) ||
-                            emp.attributes.Personal_Email_ID?.toLowerCase().includes(search)
+                            emp.employeeCode?.toLowerCase().includes(search) ||
+                            emp.firstName?.toLowerCase().includes(search) ||
+                            emp.lastName?.toLowerCase().includes(search) ||
+                            emp.email?.toLowerCase().includes(search) ||
+                            emp.designation?.toLowerCase().includes(search)
                           );
-                        }).length && selectedEmployees.length > 0 ? (i18n.language === 'en' ? '✓ Deselect All' : '✓ सर्व अनिवडा') : (i18n.language === 'en' ? 'Select All' : 'सर्व निवडा')}
+                        }).length && selectedEmployees.length > 0 ? (getText('✓ Deselect All', '✓ सर्व अनिवडा', '✓ सर्व अनिवडा')) : (getText('Select All', 'सर्व निवडा', 'सर्व निवडा'))}
                       </button>
                     </div>
                   </div>
 
-                  {/* Employee List */}
-                  <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  {/* Employee List - Scrollable Area */}
+                  <div style={{ flex: '1 1 auto', overflowY: 'auto', padding: '0', minHeight: '200px', backgroundColor: '#f9fafb' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', backgroundColor: 'white' }}>
                       <thead>
                         <tr style={{ backgroundColor: '#f9fafb', borderBottom: '2px solid #e5e7eb' }}>
                           <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#6b7280', textTransform: 'uppercase', width: '40px' }}></th>
                           <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#6b7280', textTransform: 'uppercase' }}>
-                            {i18n.language === 'en' ? 'Employee Code' : 'कर्मचारी कोड'}
+                            {getText('Employee Code', 'कर्मचारी कोड', 'कर्मचारी कोड')}
                           </th>
                           <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#6b7280', textTransform: 'uppercase' }}>
-                            {i18n.language === 'en' ? 'Name' : 'नाव'}
+                            {getText('Name', 'नाव', 'नाव')}
                           </th>
                           <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#6b7280', textTransform: 'uppercase' }}>
-                            {i18n.language === 'en' ? 'Email' : 'ईमेल'}
+                            {getText('Email', 'ईमेल', 'ईमेल')}
                           </th>
                         </tr>
                       </thead>
@@ -1551,23 +1540,23 @@ const UserManagement: React.FC = () => {
                             if (!hrmsSearchQuery) return true;
                             const search = hrmsSearchQuery.toLowerCase();
                             return (
-                              emp.attributes.Group_Employee_Code?.toLowerCase().includes(search) ||
-                              emp.attributes.First_Name?.toLowerCase().includes(search) ||
-                              emp.attributes.Last_Name?.toLowerCase().includes(search) ||
-                              emp.attributes.Official_Email_ID?.toLowerCase().includes(search) ||
-                              emp.attributes.Personal_Email_ID?.toLowerCase().includes(search)
+                              emp.employeeCode?.toLowerCase().includes(search) ||
+                              emp.firstName?.toLowerCase().includes(search) ||
+                              emp.lastName?.toLowerCase().includes(search) ||
+                              emp.email?.toLowerCase().includes(search) ||
+                              emp.designation?.toLowerCase().includes(search)
                             );
                           })
                           .map(employee => (
                             <tr 
-                              key={employee.id} 
+                              key={employee.employeeCode} 
                               style={{ 
                                 borderBottom: '1px solid #e5e7eb', 
                                 cursor: 'pointer',
-                                backgroundColor: selectedEmployees.includes(employee.id.toString()) ? '#fef3c7' : 'transparent'
+                                backgroundColor: selectedEmployees.includes(employee.employeeCode) ? '#fef3c7' : 'transparent'
                               }} 
                               onClick={() => {
-                                const empId = employee.id.toString();
+                                const empId = employee.employeeCode;
                                 setSelectedEmployees(prev => 
                                   prev.includes(empId) ? prev.filter(id => id !== empId) : [...prev, empId]
                                 );
@@ -1576,10 +1565,10 @@ const UserManagement: React.FC = () => {
                               <td style={{ padding: '12px 8px' }}>
                                 <input
                                   type="checkbox"
-                                  checked={selectedEmployees.includes(employee.id.toString())}
+                                  checked={selectedEmployees.includes(employee.employeeCode)}
                                   onChange={(e) => {
                                     e.stopPropagation();
-                                    const empId = employee.id.toString();
+                                    const empId = employee.employeeCode;
                                     setSelectedEmployees(prev => 
                                       e.target.checked ? [...prev, empId] : prev.filter(id => id !== empId)
                                     );
@@ -1588,13 +1577,13 @@ const UserManagement: React.FC = () => {
                                 />
                               </td>
                               <td style={{ padding: '12px 8px', fontSize: '14px', color: '#374151', fontWeight: '500' }}>
-                                {employee.attributes.Group_Employee_Code || '-'}
+                                {employee.employeeCode || '-'}
                               </td>
                               <td style={{ padding: '12px 8px', fontSize: '14px', color: '#374151' }}>
-                                {employee.attributes.First_Name} {employee.attributes.Last_Name}
+                                {employee.firstName} {employee.lastName}
                               </td>
                               <td style={{ padding: '12px 8px', fontSize: '14px', color: '#6b7280' }}>
-                                {employee.attributes.Official_Email_ID || employee.attributes.Personal_Email_ID || '-'}
+                                {employee.email || '-'}
                               </td>
                             </tr>
                           ))}
@@ -1604,25 +1593,25 @@ const UserManagement: React.FC = () => {
                       if (!hrmsSearchQuery) return true;
                       const search = hrmsSearchQuery.toLowerCase();
                       return (
-                        emp.attributes.Group_Employee_Code?.toLowerCase().includes(search) ||
-                        emp.attributes.First_Name?.toLowerCase().includes(search) ||
-                        emp.attributes.Last_Name?.toLowerCase().includes(search) ||
-                        emp.attributes.Official_Email_ID?.toLowerCase().includes(search) ||
-                        emp.attributes.Personal_Email_ID?.toLowerCase().includes(search)
+                        emp.employeeCode?.toLowerCase().includes(search) ||
+                        emp.firstName?.toLowerCase().includes(search) ||
+                        emp.lastName?.toLowerCase().includes(search) ||
+                        emp.email?.toLowerCase().includes(search) ||
+                        emp.designation?.toLowerCase().includes(search)
                       );
                     }).length === 0 && (
                       <div style={{ textAlign: 'center', padding: '32px', color: '#9ca3af' }}>
-                        {i18n.language === 'en' ? 'No employees found' : 'कर्मचारी आढळले नाहीत'}
+                        {getText('No employees found', 'कर्मचारी आढळले नाहीत', 'कर्मचारी आढळले नाहीत')}
                       </div>
                     )}
                   </div>
 
-                  {/* Role and Project Assignment */}
+                  {/* Role and Project Assignment - Fixed Footer */}
                   {selectedEmployees.length > 0 && (
-                    <div style={{ padding: '16px 24px', borderTop: '1px solid #e5e7eb', backgroundColor: '#fefce8', borderBottom: '1px solid #e5e7eb' }}>
+                    <div style={{ padding: '16px 24px', borderTop: '2px solid #e5e7eb', backgroundColor: '#fefce8', flexShrink: 0, maxHeight: '35vh', overflowY: 'auto' }}>
                       <div style={{ marginBottom: '12px' }}>
                         <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#854d0e', marginBottom: '6px' }}>
-                          📋 {i18n.language === 'en' ? 'Assign Role to Selected Employees' : 'निवडलेल्या कर्मचाऱ्यांना रोल नियुक्त करा'} <span style={{ color: '#ef4444' }}>*</span>
+                          📋 {getText('Assign Role to Selected Employees', 'निवडलेल्या कर्मचाऱ्यांना रोल नियुक्त करा', 'निवडलेल्या कर्मचाऱ्यांना रोल नियुक्त करा')} <span style={{ color: '#ef4444' }}>*</span>
                         </label>
                         <select 
                           value={selectedRole} 
@@ -1638,27 +1627,91 @@ const UserManagement: React.FC = () => {
                             fontWeight: '500'
                           }}
                         >
-                          <option value="">{i18n.language === 'en' ? '⚠️ Select Role for All Selected Employees' : '⚠️ सर्व निवडलेल्या कर्मचाऱ्यांसाठी रोल निवडा'}</option>
+                          <option value="">{getText('⚠️ Select Role for All Selected Employees', '⚠️ सर्व निवडलेल्या कर्मचाऱ्यांसाठी रोल निवडा', '⚠️ सर्व निवडलेल्या कर्मचाऱ्यांसाठी रोल निवडा')}</option>
                           {roles.map(role => (
                             <option key={role._id} value={role._id}>{role.name}</option>
                           ))}
                         </select>
                         <p style={{ fontSize: '12px', color: '#92400e', marginTop: '6px', fontStyle: 'italic' }}>
-                          💡 {i18n.language === 'en' 
-                            ? 'Tip: Employees with the same HRMS code (designation) should typically get the same role.' 
-                            : 'टीप: समान HRMS कोड (पदनाम) असलेल्या कर्मचाऱ्यांना सामान्यतः समान रोल मिळावी.'}
+                          💡 {getText('Tip: Employees with the same HRMS code (designation) should typically get the same role.', 'टीप: समान HRMS कोड (पदनाम) असलेल्या कर्मचाऱ्यांना सामान्यतः समान रोल मिळावी.', 'टीप: समान HRMS कोड (पदनाम) असलेल्या कर्मचाऱ्यांना सामान्यतः समान रोल मिळावी.')}
+                        </p>
+                      </div>
+                      
+                      {/* Project Assignment */}
+                      <div style={{ marginTop: '16px' }}>
+                        <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#854d0e', marginBottom: '6px' }}>
+                          🏢 {getText('Assign Projects (Optional)', 'प्रकल्प नियुक्त करा (वैकल्पिक)', 'प्रकल्प नियुक्त करा (वैकल्पिक)')}
+                        </label>
+                        <div style={{ border: '2px solid #ca8a04', borderRadius: '6px', backgroundColor: 'white', maxHeight: '120px', overflowY: 'auto', padding: '8px' }}>
+                          {projects.length === 0 ? (
+                            <div style={{ padding: '12px', textAlign: 'center', color: '#92400e', fontSize: '13px' }}>
+                              {getText('No projects available', 'कोणतेही प्रकल्प उपलब्ध नाहीत', 'कोणतेही प्रकल्प उपलब्ध नाहीत')}
+                            </div>
+                          ) : (
+                            projects.map(project => (
+                              <label 
+                                key={project._id} 
+                                style={{ 
+                                  display: 'flex', 
+                                  alignItems: 'center', 
+                                  padding: '8px', 
+                                  cursor: 'pointer',
+                                  borderRadius: '4px',
+                                  transition: 'background-color 0.2s'
+                                }}
+                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#fef9c3'}
+                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={selectedProjects.includes(project._id)}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      setSelectedProjects([...selectedProjects, project._id]);
+                                    } else {
+                                      setSelectedProjects(selectedProjects.filter(id => id !== project._id));
+                                    }
+                                  }}
+                                  style={{ width: '16px', height: '16px', marginRight: '10px', cursor: 'pointer' }}
+                                />
+                                <div style={{ flex: 1 }}>
+                                  <div style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>
+                                    {project.name}
+                                  </div>
+                                  {project.code && (
+                                    <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '2px' }}>
+                                      {getText('Code', 'कोड', 'कोड')}: {project.code}
+                                    </div>
+                                  )}
+                                </div>
+                                <span style={{ 
+                                  fontSize: '11px', 
+                                  padding: '2px 8px', 
+                                  borderRadius: '12px',
+                                  backgroundColor: project.status === 'active' ? '#dcfce7' : '#fee2e2',
+                                  color: project.status === 'active' ? '#166534' : '#991b1b',
+                                  fontWeight: '500'
+                                }}>
+                                  {project.status}
+                                </span>
+                              </label>
+                            ))
+                          )}
+                        </div>
+                        <p style={{ fontSize: '12px', color: '#92400e', marginTop: '6px', fontStyle: 'italic' }}>
+                          💡 {getText('Select one or more projects to assign to the selected employees.', 'निवडलेल्या कर्मचाऱ्यांना नियुक्त करण्यासाठी एक किंवा अधिक प्रकल्प निवडा.', 'निवडलेल्या कर्मचाऱ्यांना नियुक्त करण्यासाठी एक किंवा अधिक प्रकल्प निवडा.')}
                         </p>
                       </div>
                     </div>
                   )}
 
-                  {/* Action Buttons */}
-                  <div style={{ padding: '16px 24px', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
+                  {/* Action Buttons - Fixed Footer */}
+                  <div style={{ padding: '16px 24px', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexShrink: 0, backgroundColor: 'white' }}>
                     <button onClick={() => { setShowHRMSModal(false); setHrmsEmployees([]); setSelectedEmployees([]); setSelectedRole(''); setSelectedProjects([]); setHrmsEmployeeCodes(''); setHrmsSearchQuery(''); }} disabled={saving} style={{ padding: '10px 20px', border: '1px solid #d1d5db', borderRadius: '6px', backgroundColor: 'white', color: '#374151', fontSize: '14px', fontWeight: '500', cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.5 : 1 }}>
-                      {i18n.language === 'en' ? 'Cancel' : 'रद्द करा'}
+                      {getText('Cancel', 'रद्द करा', 'रद्द करा')}
                     </button>
                     <button onClick={handleConfirmHRMS} disabled={saving || selectedEmployees.length === 0 || !selectedRole} style={{ padding: '10px 32px', border: 'none', borderRadius: '6px', backgroundColor: (selectedEmployees.length === 0 || !selectedRole || saving) ? '#d1d5db' : '#f97316', color: 'white', fontSize: '14px', fontWeight: '500', cursor: (selectedEmployees.length === 0 || !selectedRole || saving) ? 'not-allowed' : 'pointer' }}>
-                      {saving ? (i18n.language === 'en' ? 'Adding...' : 'जोडत आहे...') : (i18n.language === 'en' ? `Add ${selectedEmployees.length} User(s)` : `${selectedEmployees.length} वापरकर्ते जोडा`)}
+                      {saving ? getText('Adding...', 'जोडत आहे...', 'जोडत आहे...') : getText(`Add ${selectedEmployees.length} User(s)`, `${selectedEmployees.length} वापरकर्ते जोडा`, `${selectedEmployees.length} वापरकर्ते जोडा`)}
                     </button>
                   </div>
                 </>
@@ -1716,7 +1769,7 @@ const UserManagement: React.FC = () => {
                   </div>
                   <div>
                     <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#111827', margin: 0 }}>
-                      {i18n.language === 'en' ? 'User Login Credentials' : 'वापरकर्ता लॉगिन क्रेडेन्शियल'}
+                      {getText('User Login Credentials', 'वापरकर्ता लॉगिन क्रेडेन्शियल', 'वापरकर्ता लॉगिन क्रेडेन्शियल')}
                     </h2>
                     <p style={{ fontSize: '14px', color: '#6b7280', margin: '4px 0 0 0' }}>
                       {selectedUserForCredentials.firstName} {selectedUserForCredentials.lastName}
@@ -1752,7 +1805,7 @@ const UserManagement: React.FC = () => {
                 {selectedUserForCredentials.projects && selectedUserForCredentials.projects.length > 0 && (
                   <div style={{ marginBottom: '24px' }}>
                     <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '12px' }}>
-                      🌐 {i18n.language === 'en' ? 'Project Login URLs' : 'प्रोजेक्ट लॉगिन URLs'}
+                      🌐 {getText('Project Login URLs', 'प्रोजेक्ट लॉगिन URLs', 'प्रोजेक्ट लॉगिन URLs')}
                     </label>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                       {selectedUserForCredentials.projects.map((project) => {
@@ -1782,7 +1835,7 @@ const UserManagement: React.FC = () => {
                             <button
                               onClick={() => {
                                 navigator.clipboard.writeText(loginUrl);
-                                alert(i18n.language === 'en' ? 'URL copied to clipboard!' : 'URL क्लिपबोर्डवर कॉपी केले!');
+                                alert(getText('URL copied to clipboard!', 'URL क्लिपबोर्डवर कॉपी केले!', 'URL क्लिपबोर्डवर कॉपी केले!'));
                               }}
                               style={{
                                 padding: '6px 12px',
@@ -1796,7 +1849,7 @@ const UserManagement: React.FC = () => {
                                 whiteSpace: 'nowrap'
                               }}
                             >
-                              {i18n.language === 'en' ? 'Copy' : 'कॉपी'}
+                              {getText('Copy', 'कॉपी', 'कॉपी')}
                             </button>
                           </div>
                         );
@@ -1808,7 +1861,7 @@ const UserManagement: React.FC = () => {
                 {/* Username */}
                 <div style={{ marginBottom: '20px' }}>
                   <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>
-                    👤 {i18n.language === 'en' ? 'Username (Email)' : 'वापरकर्तानाव (ईमेल)'}
+                    👤 {getText('Username (Email)', 'वापरकर्तानाव (ईमेल)', 'वापरकर्तानाव (ईमेल)')}
                   </label>
                   <div style={{
                     padding: '12px',
@@ -1827,7 +1880,7 @@ const UserManagement: React.FC = () => {
                     <button
                       onClick={() => {
                         navigator.clipboard.writeText(selectedUserForCredentials.email);
-                        alert(i18n.language === 'en' ? 'Email copied to clipboard!' : 'ईमेल क्लिपबोर्डवर कॉपी केले!');
+                        alert(getText('Email copied to clipboard!', 'ईमेल क्लिपबोर्डवर कॉपी केले!', 'ईमेल क्लिपबोर्डवर कॉपी केले!'));
                       }}
                       style={{
                         padding: '4px 8px',
@@ -1838,7 +1891,7 @@ const UserManagement: React.FC = () => {
                         fontSize: '12px'
                       }}
                     >
-                      {i18n.language === 'en' ? 'Copy' : 'कॉपी'}
+                      {getText('Copy', 'कॉपी', 'कॉपी')}
                     </button>
                   </div>
                 </div>
@@ -1846,7 +1899,7 @@ const UserManagement: React.FC = () => {
                 {/* Password - Development Phase */}
                 <div style={{ marginBottom: '20px' }}>
                   <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>
-                    🔐 {i18n.language === 'en' ? 'Password' : 'पासवर्ड'}
+                    🔐 {getText('Password', 'पासवर्ड', 'पासवर्ड')}
                   </label>
                   <div style={{
                     padding: '12px',
@@ -1865,7 +1918,7 @@ const UserManagement: React.FC = () => {
                     <button
                       onClick={() => {
                         navigator.clipboard.writeText('Welcome@123');
-                        alert(i18n.language === 'en' ? 'Password copied to clipboard!' : 'पासवर्ड क्लिपबोर्डवर कॉपी केले!');
+                        alert(getText('Password copied to clipboard!', 'पासवर्ड क्लिपबोर्डवर कॉपी केले!', 'पासवर्ड क्लिपबोर्डवर कॉपी केले!'));
                       }}
                       style={{
                         padding: '4px 8px',
@@ -1876,7 +1929,7 @@ const UserManagement: React.FC = () => {
                         fontSize: '12px'
                       }}
                     >
-                      {i18n.language === 'en' ? 'Copy' : 'कॉपी'}
+                      {getText('Copy', 'कॉपी', 'कॉपी')}
                     </button>
                   </div>
                 </div>
@@ -1890,9 +1943,7 @@ const UserManagement: React.FC = () => {
                   marginBottom: '20px'
                 }}>
                   <p style={{ fontSize: '12px', color: '#1E40AF', margin: 0, lineHeight: '1.5' }}>
-                    ℹ️ {i18n.language === 'en' 
-                      ? 'Development Phase: Default password is "Welcome@123". Users can change it after first login.'
-                      : 'विकास टप्पा: डीफॉल्ट पासवर्ड "Welcome@123" आहे. वापरकर्ते पहिल्या लॉगिननंतर ते बदलू शकतात.'}
+                    ℹ️ {getText('Development Phase: Default password is "Welcome@123". Users can change it after first login.', 'विकास टप्पा: डीफॉल्ट पासवर्ड "Welcome@123" आहे. वापरकर्ते पहिल्या लॉगिननंतर ते बदलू शकतात.', 'विकास टप्पा: डीफॉल्ट पासवर्ड "Welcome@123" आहे. वापरकर्ते पहिल्या लॉगिननंतर ते बदलू शकतात.')}
                   </p>
                 </div>
 
@@ -1915,7 +1966,7 @@ const UserManagement: React.FC = () => {
                       cursor: 'pointer'
                     }}
                   >
-                    {i18n.language === 'en' ? 'Close' : 'बंद करा'}
+                    {getText('Close', 'बंद करा', 'बंद करा')}
                   </button>
                   <button
                     onClick={() => {
@@ -1935,7 +1986,7 @@ const UserManagement: React.FC = () => {
                       cursor: 'pointer'
                     }}
                   >
-                    {i18n.language === 'en' ? 'Reset Password' : 'पासवर्ड रीसेट करा'}
+                    {getText('Reset Password', 'पासवर्ड रीसेट करा', 'पासवर्ड रीसेट करा')}
                   </button>
                 </div>
               </div>

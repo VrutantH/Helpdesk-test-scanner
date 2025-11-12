@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test SLA API</title>
+</head>
+<body>
+    <h1>Test SLA Rules API</h1>
+    <button onclick="setToken()">Set Token in LocalStorage</button>
+    <button onclick="testAPI()">Test API</button>
+    <button onclick="checkToken()">Check Token</button>
+    <pre id="output"></pre>
+
+    <script>
+        const TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NTMyZmQxYmY4OWYyNzcxMjVjN2YwNzdlIiwiZW1haWwiOiJhZG1pbkBzeWFzYy5pbiIsInJvbGUiOiJzdXBlcmFkbWluIiwiaWF0IjoxNzYyOTEzMjU4LCJleHAiOjE3NjU1MDUyNTh9.kZgB-IMUuEAj5zZYpGEnKsPfL2vAKhVhphD_7_875PE';
+
+        function setToken() {
+            localStorage.setItem('token', TOKEN);
+            document.getElementById('output').textContent = '✅ Token set in localStorage';
+        }
+
+        function checkToken() {
+            const token = localStorage.getItem('token');
+            document.getElementById('output').textContent = token ? 
+                `✅ Token exists:\n${token.substring(0, 50)}...` : 
+                '❌ No token in localStorage';
+        }
+
+        async function testAPI() {
+            const token = localStorage.getItem('token');
+            const output = document.getElementById('output');
+            
+            if (!token) {
+                output.textContent = '❌ No token found. Click "Set Token" first.';
+                return;
+            }
+
+            try {
+                output.textContent = '⏳ Fetching SLA rules...';
+                
+                const response = await fetch('http://localhost:3003/api/sla-rules', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    output.textContent = `✅ Success!\n\nFound ${data.data.length} SLA rules:\n\n` + 
+                        JSON.stringify(data, null, 2);
+                } else {
+                    output.textContent = `❌ Error ${response.status}:\n\n` + 
+                        JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                output.textContent = `❌ Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

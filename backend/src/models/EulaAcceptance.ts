@@ -1,66 +1,39 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IEulaAcceptance extends Document {
   userId: mongoose.Types.ObjectId;
-  userName: string;
-  userEmail: string;
-  userRole: string;
-  ipAddress: string;
-  userAgent?: string;
-  eulaVersion: string;
+  version: string;
   acceptedAt: Date;
-  createdAt: Date;
-  updatedAt: Date;
+  ipAddress?: string;
 }
 
-const EulaAcceptanceSchema = new Schema<IEulaAcceptance>(
+const EulaAcceptanceSchema: Schema = new Schema(
   {
     userId: {
       type: Schema.Types.ObjectId,
       ref: 'User',
       required: true,
-      index: true
     },
-    userName: {
-      type: String,
-      required: true
-    },
-    userEmail: {
-      type: String,
-      required: true
-    },
-    userRole: {
+    version: {
       type: String,
       required: true,
-      enum: ['admin', 'agent', 'user', 'super_admin']
-    },
-    ipAddress: {
-      type: String,
-      required: true
-    },
-    userAgent: {
-      type: String
-    },
-    eulaVersion: {
-      type: String,
-      required: true,
-      default: '1.0'
+      default: '1.0',
     },
     acceptedAt: {
       type: Date,
-      required: true,
-      default: Date.now
-    }
+      default: Date.now,
+    },
+    ipAddress: {
+      type: String,
+    },
   },
   {
-    timestamps: true
+    timestamps: true,
   }
 );
 
-// Compound index for efficient queries
-EulaAcceptanceSchema.index({ userId: 1, eulaVersion: 1 });
-EulaAcceptanceSchema.index({ acceptedAt: -1 });
+// Index for faster queries
+EulaAcceptanceSchema.index({ userId: 1, version: 1 });
 
-const EulaAcceptance = mongoose.model<IEulaAcceptance>('EulaAcceptance', EulaAcceptanceSchema);
-
+export const EulaAcceptance = mongoose.model<IEulaAcceptance>('EulaAcceptance', EulaAcceptanceSchema);
 export default EulaAcceptance;

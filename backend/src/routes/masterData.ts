@@ -1,35 +1,41 @@
-import express from 'express';
+import { Router } from 'express';
+import { auth } from '../middleware/auth';
 import {
+  getMasterData,
   getMasterDataByCategory,
-  getAllCategories,
   createMasterData,
   updateMasterData,
   deleteMasterData,
-  toggleMasterDataStatus,
-  bulkCreateMasterData,
 } from '../controllers/masterDataController';
 
-const router = express.Router();
+const router = Router();
 
-// Get all categories
-router.get('/categories', getAllCategories);
+// All master data routes require authentication
+router.use(auth);
 
-// Get master data by category
+// @desc    Get all master data
+// @route   GET /api/master-data
+// @access  Private
+router.get('/', getMasterData);
+
+// @desc    Get master data by category
+// @route   GET /api/master-data/category/:category
+// @access  Private
 router.get('/category/:category', getMasterDataByCategory);
 
-// Create single master data item
+// @desc    Create master data
+// @route   POST /api/master-data
+// @access  Private
 router.post('/', createMasterData);
 
-// Bulk create master data items
-router.post('/bulk', bulkCreateMasterData);
-
-// Update master data item
+// @desc    Update master data
+// @route   PUT /api/master-data/:id
+// @access  Private
 router.put('/:id', updateMasterData);
 
-// Delete master data item
+// @desc    Delete master data
+// @route   DELETE /api/master-data/:id
+// @access  Private
 router.delete('/:id', deleteMasterData);
-
-// Toggle master data status
-router.patch('/:id/toggle-status', toggleMasterDataStatus);
 
 export default router;

@@ -1,15 +1,16 @@
 import { Router } from 'express';
-import stateRoutes from './stateRoutes';
-import cityRoutes from './cityRoutes';
-import centerRoutes from './centerRoutes';
-import otherRoutes from './otherRoutes';
 
 const router = Router();
 
-// Mount all master data routes
-router.use('/states', stateRoutes);
-router.use('/cities', cityRoutes);
-router.use('/centers', centerRoutes);
-router.use('/', otherRoutes); // This handles all other simple master data types
+// Placeholder for new master data routes
+// These routes handle separate collections for cities, states, centers, etc.
+// TODO: Implement individual routes for each master data collection
+
+router.get('/', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Master data routes - coming soon',
+  });
+});
 
 export default router;

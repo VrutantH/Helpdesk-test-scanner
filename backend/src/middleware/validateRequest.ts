@@ -1,21 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
 import { validationResult } from 'express-validator';
 
-export const validateRequest = (req: Request, res: Response, next: NextFunction): void => {
+export const validateRequest = (req: Request, res: Response, next: NextFunction) => {
   const errors = validationResult(req);
   
   if (!errors.isEmpty()) {
-    const extractedErrors: { [key: string]: string } = {};
-    errors.array().forEach(err => {
-      if ('path' in err) {
-        extractedErrors[err.path] = err.msg;
-      }
-    });
-
     res.status(400).json({
       success: false,
-      error: 'Validation failed',
-      details: extractedErrors
+      errors: errors.array(),
     });
     return;
   }

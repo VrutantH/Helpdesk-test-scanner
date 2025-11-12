@@ -1,254 +1,133 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
+import { AuthRequest } from '../middleware/auth';
 import { MasterData } from '../models/MasterData';
 
-/**
- * Get all master data by category
- */
-export const getMasterDataByCategory = async (req: Request, res: Response) => {
+// @desc    Get all master data
+// @route   GET /api/master-data
+// @access  Private
+export const getMasterData = async (req: AuthRequest, res: Response) => {
+  try {
+    const masterData = await MasterData.find();
+    res.json({
+      success: true,
+      data: masterData,
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to fetch master data',
+    });
+  }
+};
+
+// @desc    Get master data by category
+// @route   GET /api/master-data/category/:category
+// @access  Private
+export const getMasterDataByCategory = async (req: AuthRequest, res: Response) => {
   try {
     const { category } = req.params;
-    const { includeInactive } = req.query;
-    
-    const query: any = { category };
-    if (!includeInactive || includeInactive === 'false') {
-      query.isActive = true;
-    }
-    
-    const data = await MasterData.find(query)
-      .sort({ displayOrder: 1, value: 1 });
-    
-    console.log(`📋 Retrieved ${data.length} items for category: ${category}`);
-    
-    return res.json({
+    const masterData = await MasterData.find({ category });
+    res.json({
       success: true,
-      data: {
-        category,
-        items: data,
-      },
+      data: masterData,
     });
-    
-  } catch (error) {
-    console.error('Get master data by category error:', error);
-    return res.status(500).json({
+  } catch (error: any) {
+    res.status(500).json({
       success: false,
-      message: 'Internal server error',
+      error: error.message || 'Failed to fetch master data',
     });
   }
 };
 
-/**
- * Get all categories
- */
-export const getAllCategories = async (req: Request, res: Response) => {
+// @desc    Create master data
+// @route   POST /api/master-data
+// @access  Private
+export const createMasterData = async (req: AuthRequest, res: Response) => {
   try {
-    const categories = await MasterData.distinct('category');
-    
-    return res.json({
-      success: true,
-      data: { categories },
-    });
-    
-  } catch (error) {
-    console.error('Get all categories error:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Internal server error',
-    });
-  }
-};
+    const { category, key, value, metadata } = req.body;
 
-/**
- * Create master data item
- */
-export const createMasterData = async (req: Request, res: Response) => {
-  try {
-    const { category, key, value, description, displayOrder, metadata } = req.body;
-    
-    // Check if item already exists
-    const existing = await MasterData.findOne({ category, key });
-    if (existing) {
-      return res.status(400).json({
-        success: false,
-        message: 'Master data item with this key already exists in this category',
-      });
-    }
-    
-    const masterData = new MasterData({
+    const masterData = await MasterData.create({
       category,
-      key: key.toLowerCase(),
+      key,
       value,
-      description,
-      displayOrder,
       metadata,
-      createdBy: req.body.createdBy, // TODO: Get from auth
     });
-    
+
+    res.status(201).json({
+      success: true,
+      data: masterData,
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to create master data',
+    });
+  }
+};
+
+// @desc    Update master data
+// @route   PUT /api/master-data/:id
+// @access  Private
+export const updateMasterData = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { category, key, value, metadata, isActive } = req.body;
+
+    const masterData = await MasterData.findById(id);
+    if (!masterData) {
+      res.status(404).json({
+        success: false,
+        error: 'Master data not found',
+      });
+      return;
+    }
+
+    masterData.category = category || masterData.category;
+    masterData.key = key || masterData.key;
+    masterData.value = value || masterData.value;
+    masterData.metadata = metadata !== undefined ? metadata : masterData.metadata;
+    masterData.isActive = isActive !== undefined ? isActive : masterData.isActive;
+
     await masterData.save();
-    
-    console.log(`✅ Created master data: ${category}/${key}`);
-    
-    return res.status(201).json({
+
+    res.json({
       success: true,
-      data: { masterData },
-      message: 'Master data created successfully',
+      data: masterData,
     });
-    
-  } catch (error) {
-    console.error('Create master data error:', error);
-    return res.status(500).json({
+  } catch (error: any) {
+    res.status(500).json({
       success: false,
-      message: 'Internal server error',
+      error: error.message || 'Failed to update master data',
     });
   }
 };
 
-/**
- * Update master data item
- */
-export const updateMasterData = async (req: Request, res: Response) => {
+// @desc    Delete master data
+// @route   DELETE /api/master-data/:id
+// @access  Private
+export const deleteMasterData = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const updateData = req.body;
-    
-    const masterData = await MasterData.findByIdAndUpdate(
-      id,
-      {
-        ...updateData,
-        updatedBy: req.body.updatedBy, // TODO: Get from auth
-      },
-      { new: true, runValidators: true }
-    );
-    
-    if (!masterData) {
-      return res.status(404).json({
-        success: false,
-        message: 'Master data not found',
-      });
-    }
-    
-    console.log(`✅ Updated master data: ${masterData.category}/${masterData.key}`);
-    
-    return res.json({
-      success: true,
-      data: { masterData },
-      message: 'Master data updated successfully',
-    });
-    
-  } catch (error) {
-    console.error('Update master data error:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Internal server error',
-    });
-  }
-};
 
-/**
- * Delete master data item
- */
-export const deleteMasterData = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    
-    const masterData = await MasterData.findByIdAndDelete(id);
-    
+    const masterData = await MasterData.findById(id);
     if (!masterData) {
-      return res.status(404).json({
+      res.status(404).json({
         success: false,
-        message: 'Master data not found',
+        error: 'Master data not found',
       });
+      return;
     }
-    
-    console.log(`🗑️ Deleted master data: ${masterData.category}/${masterData.key}`);
-    
-    return res.json({
+
+    await masterData.deleteOne();
+
+    res.json({
       success: true,
       message: 'Master data deleted successfully',
     });
-    
-  } catch (error) {
-    console.error('Delete master data error:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Internal server error',
-    });
-  }
-};
-
-/**
- * Toggle master data active status
- */
-export const toggleMasterDataStatus = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    
-    const masterData = await MasterData.findById(id);
-    
-    if (!masterData) {
-      return res.status(404).json({
-        success: false,
-        message: 'Master data not found',
-      });
-    }
-    
-    masterData.isActive = !masterData.isActive;
-    await masterData.save();
-    
-    console.log(`🔄 Toggled master data status: ${masterData.category}/${masterData.key} -> ${masterData.isActive}`);
-    
-    return res.json({
-      success: true,
-      data: { masterData },
-      message: `Master data ${masterData.isActive ? 'activated' : 'deactivated'} successfully`,
-    });
-    
-  } catch (error) {
-    console.error('Toggle master data status error:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Internal server error',
-    });
-  }
-};
-
-/**
- * Bulk create master data items
- */
-export const bulkCreateMasterData = async (req: Request, res: Response) => {
-  try {
-    const { items } = req.body;
-    
-    if (!Array.isArray(items) || items.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'Items array is required',
-      });
-    }
-    
-    const createdItems = await MasterData.insertMany(items, { ordered: false });
-    
-    console.log(`✅ Bulk created ${createdItems.length} master data items`);
-    
-    return res.status(201).json({
-      success: true,
-      data: { items: createdItems, count: createdItems.length },
-      message: 'Master data items created successfully',
-    });
-    
   } catch (error: any) {
-    // Handle duplicate key errors
-    if (error.code === 11000) {
-      return res.status(400).json({
-        success: false,
-        message: 'Some items already exist',
-        details: error.writeErrors || [],
-      });
-    }
-    
-    console.error('Bulk create master data error:', error);
-    return res.status(500).json({
+    res.status(500).json({
       success: false,
-      message: 'Internal server error',
+      error: error.message || 'Failed to delete master data',
     });
   }
 };

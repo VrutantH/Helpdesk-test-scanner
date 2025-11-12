@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { MdSettings, MdLock, MdShield, MdMenuBook, MdPalette } from 'react-icons/md';
+import { MdSettings, MdLock, MdShield, MdMenuBook, MdPalette, MdConfirmationNumber } from 'react-icons/md';
+import { getText } from '../utils/language';
+
 
 interface AddProjectFormProps {
   project?: any | null;
@@ -68,6 +70,59 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
     restrictCcUsersFromUpdating: false,
     allowUnauthenticatedTickets: false,
     allowEndUsersToCloseTickets: true,
+    
+    // Ticket Assignment Settings
+    enableAutoAssignment: false,
+    assignmentType: 'manual' as 'round-robin' | 'load-balanced' | 'manual' | 'condition-based',
+    assignToUsers: [] as string[],
+    assignToRoles: [] as string[],
+    reassignOnEscalation: false,
+    notifyOnAssignment: true,
+    // Condition-based assignment rules
+    conditionRules: [] as Array<{
+      field: string;
+      operator: string;
+      categories: string[];
+      assignToAgents: string[];
+    }>,
+    // Manual assignment permissions
+    manualAssignmentPermissions: [] as Array<{
+      roleId: string;
+      canAssignToRoles: string[];
+    }>,
+    
+    // Ticket Submission Settings (for Student Portal)
+    ticketSubmissionMode: 'both' as 'online' | 'offline' | 'both',
+    enableOnlineTicketForm: true,
+    enableOfflineCenter: true,
+    ticketSubmissionAnnouncement: '',
+    ticketWelcomeMessage: 'Welcome! Submit your ticket below and our team will assist you.',
+    ticketSuccessMessage: 'Your ticket has been successfully submitted. We will get back to you soon.',
+    allowTicketAttachments: true,
+    maxTicketAttachmentSize: 10, // in MB
+    allowedTicketFileTypes: ['.pdf', '.doc', '.docx', '.jpg', '.jpeg', '.png'],
+    onlineFormFields: [] as Array<{
+      fieldName: string;
+      fieldType: 'text' | 'number' | 'date' | 'email' | 'phone' | 'url' | 'textarea' | 'dropdown' | 'multiselect' | 'radio' | 'checkbox' | 'file';
+      required: boolean;
+      placeholder: string;
+      options?: string[];
+      allowedFileTypes?: string[];
+      maxFileSizeMB?: number;
+      allowMultiple?: boolean;
+    }>,
+    offlineCenters: [] as Array<{
+      centerName: string;
+      address: string;
+      city: string;
+      state: string;
+      pincode: string;
+      phone: string;
+      email: string;
+      workingHours: string;
+      latitude?: number;
+      longitude?: number;
+    }>,
     
     // File Download Settings
     fileDownloadPermission: 'logged-in-permission' as 'logged-in-permission' | 'logged-in' | 'anyone',
@@ -239,27 +294,78 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
   const [timezones, setTimezones] = useState<Array<{ key: string; value: string }>>([]);
   const [dateFormats, setDateFormats] = useState<Array<{ key: string; value: string }>>([]);
   const [currencies, setCurrencies] = useState<Array<{ key: string; value: string }>>([]);
+  const [users, setUsers] = useState<Array<{ _id: string; name: string; email: string; role: string; roleId?: string; projects?: string[] }>>([]);
+  const [roles, setRoles] = useState<Array<{ _id: string; name: string; code: string; projectId?: string; projects?: string[]; type?: string }>>([]);
+  const [agentRoleId, setAgentRoleId] = useState<string>('');
 
-  // Fetch master data
+  // Computed: Filter roles for current project
+  // Shows: System roles + Roles mapped to this specific project
+  const projectRoles = roles.filter(role => {
+    // System roles (like SuperAdmin) are available to all projects
+    if (role.type === 'system') return true;
+    
+    // When creating new project, show all custom roles
+    if (!project?._id) return true;
+    
+    // For existing project, show roles mapped to this project
+    if (role.projects && Array.isArray(role.projects)) {
+      return role.projects.includes(project._id);
+    }
+    
+    // Backward compatibility: check old projectId field
+    return role.projectId === project._id;
+  });
+
+  // DEBUG: Log roles data
+  useEffect(() => {
+    console.log('🔍 DEBUG - Roles State:', roles.length, roles);
+    console.log('🔍 DEBUG - Project ID:', project?._id);
+    console.log('🔍 DEBUG - Filtered ProjectRoles:', projectRoles.length, projectRoles);
+  }, [roles, project, projectRoles]);
+
+  // Computed: Filter users mapped to current project
+  const projectUsers = users.filter(user => {
+    // When creating new project, show all users
+    if (!project?._id) return true;
+    
+    // Show users whose projects array includes this project
+    return user.projects && user.projects.includes(project._id);
+  });
+
+  // Computed: Get agents only (with Agent role and mapped to project)
+  const projectAgents = projectUsers.filter(user => 
+    user.roleId === agentRoleId || user.role.toLowerCase() === 'agent'
+  );
+
+  // Fetch master data, users, and roles
   useEffect(() => {
     const fetchMasterData = async () => {
       try {
-        const [orgTypesRes, countriesRes, languagesRes, timezonesRes, dateFormatsRes, currenciesRes] = await Promise.all([
-          fetch('http://localhost:3003/api/masters/organization-types', { credentials: 'include' }),
-          fetch('http://localhost:3003/api/masters/countries', { credentials: 'include' }),
-          fetch('http://localhost:3003/api/masters/languages', { credentials: 'include' }),
-          fetch('http://localhost:3003/api/masters/timezones', { credentials: 'include' }),
-          fetch('http://localhost:3003/api/masters/date-formats', { credentials: 'include' }),
-          fetch('http://localhost:3003/api/masters/currencies', { credentials: 'include' })
+        const token = localStorage.getItem('authToken');
+        const headers = {
+          'Authorization': `Bearer ${token}`,
+        };
+        
+        const [orgTypesRes, countriesRes, languagesRes, timezonesRes, dateFormatsRes, currenciesRes, usersRes, rolesRes] = await Promise.all([
+          fetch('http://localhost:3003/api/masters/organization-types', { headers, credentials: 'include' }),
+          fetch('http://localhost:3003/api/masters/countries', { headers, credentials: 'include' }),
+          fetch('http://localhost:3003/api/masters/languages', { headers, credentials: 'include' }),
+          fetch('http://localhost:3003/api/masters/timezones', { headers, credentials: 'include' }),
+          fetch('http://localhost:3003/api/masters/date-formats', { headers, credentials: 'include' }),
+          fetch('http://localhost:3003/api/masters/currencies', { headers, credentials: 'include' }),
+          fetch('http://localhost:3003/api/users', { headers, credentials: 'include' }),
+          fetch('http://localhost:3003/api/roles', { headers, credentials: 'include' })
         ]);
 
-        const [orgTypes, countries, languages, timezones, dateFormats, currencies] = await Promise.all([
+        const [orgTypes, countries, languages, timezones, dateFormats, currencies, usersData, rolesData] = await Promise.all([
           orgTypesRes.json(),
           countriesRes.json(),
           languagesRes.json(),
           timezonesRes.json(),
           dateFormatsRes.json(),
-          currenciesRes.json()
+          currenciesRes.json(),
+          usersRes.json(),
+          rolesRes.json()
         ]);
 
         if (orgTypes.success) setOrganizationTypes(orgTypes.data);
@@ -268,6 +374,14 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
         if (timezones.success) setTimezones(timezones.data);
         if (dateFormats.success) setDateFormats(dateFormats.data);
         if (currencies.success) setCurrencies(currencies.data);
+        if (usersData.success) setUsers(usersData.data);
+        if (rolesData.success) {
+          console.log('🔍 DEBUG - Roles API Response:', rolesData.data);
+          setRoles(rolesData.data);
+          // Find Agent role ID
+          const agentRole = rolesData.data.find((r: any) => r.code === 'AGENT' || r.name.toLowerCase() === 'agent');
+          if (agentRole) setAgentRoleId(agentRole._id);
+        }
       } catch (error) {
         console.error('Error fetching master data:', error);
       }
@@ -279,18 +393,118 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
   // Update form data when project changes (for edit mode)
   useEffect(() => {
     if (project) {
+      console.log('Loading project data:', project); // Debug log
+      
       setFormData(prevData => ({
         ...prevData,
+        
+        // Basic Information
         portalName: project?.name || project?.branding?.headerText || '',
-        branding: {
-          ...prevData.branding,
-          primaryColor: project?.branding?.colorTheme?.primary || '#f97316',
-          secondaryColor: project?.branding?.colorTheme?.secondary || '#64748b',
-          footerText: project?.branding?.footerText || '© 2025 Your Organization. All rights reserved.',
-          customUrlPath: project?.branding?.customUrlPath || ''
-        },
+        portalUrl: project?.branding?.domainUrl || '',
+        displayPortalNameInNav: true,
+        
+        // Branding
         logo: project?.branding?.logo || '',
         favicon: project?.branding?.favicon || '',
+        logoLinkbackUrl: project?.branding?.logoLinkbackUrl || '',
+        
+        // Footer Links
+        copyrightUrl: project?.configuration?.footerLinks?.copyright || '',
+        termsOfUseUrl: project?.configuration?.footerLinks?.termsOfUse || '',
+        privacyPolicyUrl: project?.configuration?.footerLinks?.privacyPolicy || '',
+        cookiePolicyUrl: project?.configuration?.footerLinks?.cookiePolicy || '',
+        
+        // Announcement Banner
+        announcementBannerMessage: project?.configuration?.announcementBanner?.message || '',
+        announcementBannerType: project?.configuration?.announcementBanner?.type || 'plain',
+        
+        // Auto Suggest Articles
+        autoSuggestArticles: project?.configuration?.autoSuggestArticles ?? true,
+        
+        // Ticket Settings
+        restrictTicketEditing: project?.configuration?.ticketSettings?.restrictEditing ?? false,
+        restrictCcUsersFromUpdating: project?.configuration?.ticketSettings?.restrictCcUsers ?? false,
+        allowUnauthenticatedTickets: project?.configuration?.ticketSettings?.allowUnauthenticated ?? false,
+        allowEndUsersToCloseTickets: project?.configuration?.ticketSettings?.allowEndUsersToClose ?? true,
+        
+        // Ticket Assignment Settings
+        enableAutoAssignment: project?.configuration?.ticketAssignmentSettings?.enabled ?? false,
+        assignmentType: project?.configuration?.ticketAssignmentSettings?.assignmentType || 'manual',
+        assignToUsers: project?.configuration?.ticketAssignmentSettings?.assignToUsers || [],
+        assignToRoles: project?.configuration?.ticketAssignmentSettings?.assignToRoles || [],
+        reassignOnEscalation: project?.configuration?.ticketAssignmentSettings?.reassignOnEscalation ?? false,
+        notifyOnAssignment: project?.configuration?.ticketAssignmentSettings?.notifyOnAssignment ?? true,
+        conditionRules: project?.configuration?.ticketAssignmentSettings?.conditionRules || [],
+        manualAssignmentPermissions: project?.configuration?.ticketAssignmentSettings?.manualAssignmentPermissions || [],
+        
+        // Ticket Submission Settings (Student Portal)
+        ticketSubmissionMode: project?.configuration?.ticketSubmissionSettings?.mode || 'both',
+        enableOnlineTicketForm: project?.configuration?.ticketSubmissionSettings?.enableOnlineForm ?? true,
+        enableOfflineCenter: project?.configuration?.ticketSubmissionSettings?.enableOfflineCenter ?? true,
+        ticketSubmissionAnnouncement: project?.configuration?.ticketSubmissionSettings?.announcement || '',
+        ticketWelcomeMessage: project?.configuration?.ticketSubmissionSettings?.welcomeMessage || 'Welcome! Submit your ticket below and our team will assist you.',
+        ticketSuccessMessage: project?.configuration?.ticketSubmissionSettings?.successMessage || 'Your ticket has been successfully submitted. We will get back to you soon.',
+        allowTicketAttachments: project?.configuration?.ticketSubmissionSettings?.allowAttachments ?? true,
+        maxTicketAttachmentSize: project?.configuration?.ticketSubmissionSettings?.maxAttachmentSize || 10,
+        allowedTicketFileTypes: project?.configuration?.ticketSubmissionSettings?.allowedFileTypes || ['.pdf', '.doc', '.docx', '.jpg', '.jpeg', '.png'],
+        onlineFormFields: project?.configuration?.ticketSubmissionSettings?.onlineFormFields || [],
+        offlineCenters: project?.configuration?.ticketSubmissionSettings?.offlineCenters || [],
+        
+        // File Settings
+        fileDownloadPermission: project?.configuration?.fileSettings?.downloadPermission || 'logged-in-permission',
+        inlineImageAttachment: project?.configuration?.fileSettings?.inlineImageAttachment ?? false,
+        attachFilesToEmails: project?.configuration?.fileSettings?.attachToEmails ?? false,
+        
+        // Google Tag Manager
+        googleTagManagerId: project?.configuration?.googleTagManagerId || '',
+        
+        // Login Settings
+        enableFormLogin: project?.configuration?.loginSettings?.enableFormLogin ?? true,
+        enableGoogleRecaptcha: project?.configuration?.loginSettings?.enableGoogleRecaptcha ?? false,
+        socialLogins: {
+          google: project?.configuration?.loginSettings?.socialLogins?.google ?? false,
+          facebook: project?.configuration?.loginSettings?.socialLogins?.facebook ?? false,
+          microsoft: project?.configuration?.loginSettings?.socialLogins?.microsoft ?? false
+        },
+        ssoSettings: {
+          oauth20: project?.configuration?.loginSettings?.ssoSettings?.oauth20 ?? false,
+          openIdConnect: project?.configuration?.loginSettings?.ssoSettings?.openIdConnect ?? false,
+          jwt: project?.configuration?.loginSettings?.ssoSettings?.jwt ?? false
+        },
+        
+        // Security Settings
+        allowUserSignup: project?.configuration?.securitySettings?.allowUserSignup ?? true,
+        restrictSignupViaSocial: project?.configuration?.securitySettings?.restrictSignupViaSocial ?? false,
+        enforceTwoFactorAuth: project?.configuration?.securitySettings?.mfaRequired ?? false,
+        passwordPolicy: project?.configuration?.securitySettings?.passwordPolicy ? 'custom' : 'default',
+        requireLowerCase: project?.configuration?.securitySettings?.passwordPolicy?.requireLowercase ?? false,
+        requireUpperCase: project?.configuration?.securitySettings?.passwordPolicy?.requireUppercase ?? false,
+        requireNumber: project?.configuration?.securitySettings?.passwordPolicy?.requireNumbers ?? false,
+        requireSpecialChar: project?.configuration?.securitySettings?.passwordPolicy?.requireSpecialChars ?? false,
+        minimumPasswordLength: project?.configuration?.securitySettings?.passwordPolicy?.minLength || 8,
+        passwordExpiration: (() => {
+          const days = project?.configuration?.securitySettings?.passwordPolicy?.expiryDays;
+          if (days === 30 || days === 60 || days === 90 || days === 180) return String(days) as '30' | '60' | '90' | '180';
+          return 'never';
+        })(),
+        
+        // Knowledge Base Settings
+        enableKB: project?.configuration?.knowledgeBaseSettings?.enabled ?? true,
+        kbHomeConfiguration: project?.configuration?.knowledgeBaseSettings?.kbHomeConfiguration || prevData.kbHomeConfiguration,
+        articleConfiguration: project?.configuration?.knowledgeBaseSettings?.articleConfiguration || prevData.articleConfiguration,
+        enableAIAssistance: project?.configuration?.knowledgeBaseSettings?.enableAIAssistance ?? false,
+        enableSatisfactionFeedback: project?.configuration?.knowledgeBaseSettings?.enableSatisfactionFeedback ?? true,
+        satisfactionFeedback: project?.configuration?.knowledgeBaseSettings?.satisfactionFeedback || prevData.satisfactionFeedback,
+        seoSettings: project?.configuration?.knowledgeBaseSettings?.seoSettings || prevData.seoSettings,
+        
+        // Customization Settings
+        loginPageBackgroundImageUrl: project?.configuration?.customizationSettings?.loginPageBackgroundImage || '',
+        themeMode: project?.configuration?.customizationSettings?.themeMode || 'light',
+        themeColor: project?.configuration?.customizationSettings?.themeColor || '#444ce7',
+        customCSS: project?.configuration?.customizationSettings?.customCSS || '',
+        customJS: project?.configuration?.customizationSettings?.customJS || '',
+        
+        // Address
         address: {
           street: project?.address?.street || '',
           city: project?.address?.city || '',
@@ -298,20 +512,86 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
           country: project?.address?.country || 'India',
           pincode: project?.address?.pincode || ''
         },
+        
+        // Contact Info
         contactInfo: {
           phone: project?.contactInfo?.phone || '',
           email: project?.contactInfo?.email || '',
           website: project?.contactInfo?.website || ''
         },
+        
+        // Primary Contact
         primaryContact: {
           name: project?.primaryContact?.name || '',
           title: project?.primaryContact?.designation || '',
           email: project?.primaryContact?.email || '',
           phone: project?.primaryContact?.phone || ''
-        }
+        },
+        
+        // Branding
+        branding: {
+          primaryColor: project?.branding?.colorTheme?.primary || '#f97316',
+          secondaryColor: project?.branding?.colorTheme?.secondary || '#64748b',
+          footerText: project?.branding?.footerText || '© 2025 Your Organization. All rights reserved.',
+          customUrlPath: project?.branding?.customUrlPath || ''
+        },
+        
+        // Modules
+        modules: project?.modules || prevData.modules,
+        
+        // Settings
+        settings: project?.settings || prevData.settings
       }));
     }
   }, [project]);
+
+  // Initialize default form fields for new projects
+  useEffect(() => {
+    if (!project && formData.onlineFormFields.length === 0) {
+      setFormData(prevData => ({
+        ...prevData,
+        onlineFormFields: [
+          {
+            fieldName: 'Name',
+            fieldType: 'text',
+            required: true,
+            placeholder: 'Enter your full name'
+          },
+          {
+            fieldName: 'Category',
+            fieldType: 'dropdown',
+            required: true,
+            placeholder: 'Select ticket category',
+            options: ['Technical Support', 'Account Issues', 'Billing', 'General Inquiry', 'Feature Request']
+          },
+          {
+            fieldName: 'Email',
+            fieldType: 'email',
+            required: true,
+            placeholder: 'your.email@example.com'
+          },
+          {
+            fieldName: 'Phone',
+            fieldType: 'phone',
+            required: false,
+            placeholder: '+91 98765 43210'
+          },
+          {
+            fieldName: 'Subject',
+            fieldType: 'text',
+            required: true,
+            placeholder: 'Brief description of your issue'
+          },
+          {
+            fieldName: 'Description',
+            fieldType: 'textarea',
+            required: true,
+            placeholder: 'Please provide detailed information about your request'
+          }
+        ]
+      }));
+    }
+  }, [project, formData.onlineFormFields.length]);
 
   const handleFileUpload = async (file: File, type: 'logo' | 'favicon') => {
     // TODO: Implement file upload to server
@@ -363,7 +643,6 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
         name: formData.portalName,
         code: generatedCode,
         description: `Portal for ${formData.portalName}`,
-        organizationType: 'private', // Default value
         
         address: formData.address,
         contactInfo: formData.contactInfo,
@@ -404,6 +683,29 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
             restrictCcUsers: formData.restrictCcUsersFromUpdating,
             allowUnauthenticated: formData.allowUnauthenticatedTickets,
             allowEndUsersToClose: formData.allowEndUsersToCloseTickets
+          },
+          ticketAssignmentSettings: {
+            enabled: formData.enableAutoAssignment,
+            assignmentType: formData.assignmentType,
+            assignToUsers: formData.assignToUsers,
+            assignToRoles: formData.assignToRoles,
+            reassignOnEscalation: formData.reassignOnEscalation,
+            notifyOnAssignment: formData.notifyOnAssignment,
+            conditionRules: formData.conditionRules,
+            manualAssignmentPermissions: formData.manualAssignmentPermissions
+          },
+          ticketSubmissionSettings: {
+            mode: formData.ticketSubmissionMode,
+            enableOnlineForm: formData.enableOnlineTicketForm,
+            enableOfflineCenter: formData.enableOfflineCenter,
+            onlineFormFields: formData.onlineFormFields,
+            offlineCenters: formData.offlineCenters,
+            welcomeMessage: formData.ticketWelcomeMessage,
+            successMessage: formData.ticketSuccessMessage,
+            announcement: formData.ticketSubmissionAnnouncement,
+            allowAttachments: formData.allowTicketAttachments,
+            maxAttachmentSize: formData.maxTicketAttachmentSize,
+            allowedFileTypes: formData.allowedTicketFileTypes
           },
           fileSettings: {
             downloadPermission: formData.fileDownloadPermission,
@@ -511,6 +813,7 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
     { id: 'general', label: 'General', labelMr: 'सामान्य', icon: <MdSettings /> },
     { id: 'login', label: 'Login', labelMr: 'लॉगिन', icon: <MdLock /> },
     { id: 'security', label: 'Security', labelMr: 'सुरक्षा', icon: <MdShield /> },
+    { id: 'ticketportal', label: 'Ticket Portal', labelMr: 'टिकट पोर्टल', icon: <MdConfirmationNumber /> },
     { id: 'knowledge', label: 'Knowledge Base', labelMr: 'ज्ञान आधार', icon: <MdMenuBook /> },
     { id: 'customization', label: 'Customization', labelMr: 'सानुकूलीकरण', icon: <MdPalette /> }
   ];
@@ -549,8 +852,8 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
         }}>
           <h2 style={{ fontSize: '20px', fontWeight: '600', color: '#111827', margin: 0 }}>
             {project
-              ? (i18n.language === 'en' ? 'Edit Project' : 'प्रकल्प संपादित करा')
-              : (i18n.language === 'en' ? 'Add New Project' : 'नवीन प्रकल्प जोडा')}
+              ? (getText('Edit Project', 'प्रकल्प संपादित करा', 'प्रकल्प संपादित करा'))
+              : (getText('Add New Project', 'नवीन प्रकल्प जोडा', 'नवीन प्रकल्प जोडा'))}
           </h2>
           <button
             onClick={onClose}
@@ -622,7 +925,7 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
                 <span style={{ fontSize: '20px', display: 'flex', alignItems: 'center' }}>
                   {tab.icon}
                 </span>
-                <span>{i18n.language === 'en' ? tab.label : tab.labelMr}</span>
+                <span>{i18n.language === 'mr' && tab.labelMr ? tab.labelMr : tab.label}</span>
               </button>
             ))}
           </div>
@@ -2440,6 +2743,1393 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
             </div>
           )}
 
+          {activeTab === 'ticketportal' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '900px' }}>
+              {/* Ticket Portal Header */}
+              <div style={{
+                padding: '20px',
+                backgroundColor: '#f9fafb',
+                borderRadius: '8px',
+                border: '1px solid #e5e7eb'
+              }}>
+                <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', fontWeight: '600', color: '#1f2937' }}>
+                  Student Ticket Submission Portal
+                </h3>
+                <p style={{ margin: 0, fontSize: '14px', color: '#6b7280' }}>
+                  Configure how students can submit support tickets - online forms, offline centers, or both.
+                </p>
+              </div>
+
+              {/* Submission Mode */}
+              <div style={{
+                padding: '20px',
+                backgroundColor: 'white',
+                borderRadius: '8px',
+                border: '1px solid #e5e7eb'
+              }}>
+                <h4 style={{ margin: '0 0 16px 0', fontSize: '16px', fontWeight: '600', color: '#1f2937' }}>
+                  Ticket Submission Mode
+                </h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
+                    <input
+                      type="radio"
+                      name="ticketSubmissionMode"
+                      value="online"
+                      checked={formData.ticketSubmissionMode === 'online'}
+                      onChange={(e) => setFormData({ ...formData, ticketSubmissionMode: e.target.value as 'online' | 'offline' | 'both' })}
+                      style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                    />
+                    <div>
+                      <div style={{ fontSize: '15px', fontWeight: '500', color: '#1f2937' }}>Online Only</div>
+                      <div style={{ fontSize: '13px', color: '#6b7280' }}>Students can only submit tickets through online forms</div>
+                    </div>
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
+                    <input
+                      type="radio"
+                      name="ticketSubmissionMode"
+                      value="offline"
+                      checked={formData.ticketSubmissionMode === 'offline'}
+                      onChange={(e) => setFormData({ ...formData, ticketSubmissionMode: e.target.value as 'online' | 'offline' | 'both' })}
+                      style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                    />
+                    <div>
+                      <div style={{ fontSize: '15px', fontWeight: '500', color: '#1f2937' }}>Offline Only</div>
+                      <div style={{ fontSize: '13px', color: '#6b7280' }}>Students can only visit offline support centers</div>
+                    </div>
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
+                    <input
+                      type="radio"
+                      name="ticketSubmissionMode"
+                      value="both"
+                      checked={formData.ticketSubmissionMode === 'both'}
+                      onChange={(e) => setFormData({ ...formData, ticketSubmissionMode: e.target.value as 'online' | 'offline' | 'both' })}
+                      style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                    />
+                    <div>
+                      <div style={{ fontSize: '15px', fontWeight: '500', color: '#1f2937' }}>Both Online & Offline</div>
+                      <div style={{ fontSize: '13px', color: '#6b7280' }}>Students can choose between online forms or visiting centers</div>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              {/* Announcement Banner */}
+              <div style={{
+                padding: '20px',
+                backgroundColor: 'white',
+                borderRadius: '8px',
+                border: '1px solid #e5e7eb'
+              }}>
+                <h4 style={{ margin: '0 0 8px 0', fontSize: '16px', fontWeight: '600', color: '#1f2937' }}>
+                  Announcement Banner
+                </h4>
+                <p style={{ margin: '0 0 16px 0', fontSize: '13px', color: '#6b7280' }}>
+                  Display an important message at the top of the ticket submission portal
+                </p>
+                <textarea
+                  value={formData.ticketSubmissionAnnouncement}
+                  onChange={(e) => setFormData({ ...formData, ticketSubmissionAnnouncement: e.target.value })}
+                  placeholder="e.g., Our support team is available Monday-Friday, 9 AM - 6 PM. For urgent issues, please call our helpline."
+                  rows={4}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    fontFamily: 'inherit',
+                    resize: 'vertical'
+                  }}
+                />
+                {formData.ticketSubmissionAnnouncement && (
+                  <div style={{
+                    marginTop: '12px',
+                    padding: '12px 16px',
+                    backgroundColor: '#fef3c7',
+                    border: '1px solid #fbbf24',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    color: '#92400e'
+                  }}>
+                    <strong>Preview:</strong> {formData.ticketSubmissionAnnouncement}
+                  </div>
+                )}
+              </div>
+
+              {/* Ticket Assignment Settings */}
+              <div style={{
+                marginTop: '24px',
+                padding: '20px',
+                backgroundColor: '#f0f9ff',
+                borderRadius: '8px',
+                border: '1px solid #bae6fd'
+              }}>
+                <label style={{
+                  display: 'block',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  color: '#1f2937',
+                  marginBottom: '12px'
+                }}>
+                  Automatic Ticket Assignment
+                </label>
+                
+                <label style={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '12px',
+                  cursor: 'pointer',
+                  marginBottom: '16px'
+                }}>
+                  <input
+                    type="checkbox"
+                    checked={formData.enableAutoAssignment}
+                    onChange={(e) => setFormData({ ...formData, enableAutoAssignment: e.target.checked })}
+                    style={{
+                      marginTop: '4px',
+                      width: '18px',
+                      height: '18px',
+                      cursor: 'pointer'
+                    }}
+                  />
+                  <div>
+                    <span style={{ fontSize: '14px', fontWeight: '500', color: '#1f2937' }}>
+                      Enable automatic ticket assignment
+                    </span>
+                    <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#6b7280', lineHeight: '1.5' }}>
+                      When enabled, new tickets from student portal will be automatically assigned to agents based on the selected algorithm
+                    </p>
+                  </div>
+                </label>
+
+                {formData.enableAutoAssignment && (
+                  <div style={{
+                    marginLeft: '24px',
+                    paddingLeft: '20px',
+                    borderLeft: '3px solid #3b82f6'
+                  }}>
+                    {/* Assignment Method */}
+                    <div style={{ marginBottom: '20px' }}>
+                      <label style={{
+                        display: 'block',
+                        fontSize: '14px',
+                        fontWeight: '500',
+                        color: '#1f2937',
+                        marginBottom: '8px'
+                      }}>
+                        Assignment Method
+                      </label>
+                      <select
+                        value={formData.assignmentType}
+                        onChange={(e) => setFormData({ ...formData, assignmentType: e.target.value as any })}
+                        style={{
+                          width: '100%',
+                          padding: '10px 12px',
+                          border: '1px solid #d1d5db',
+                          borderRadius: '6px',
+                          fontSize: '14px',
+                          backgroundColor: 'white'
+                        }}
+                      >
+                        <option value="manual">Manual Assignment (No auto-assignment)</option>
+                        <option value="round-robin">Round Robin (Rotate equally among agents)</option>
+                        <option value="condition-based">Condition Based (Assign based on ticket category)</option>
+                      </select>
+                      
+                      {/* Dynamic description based on selected method */}
+                      <div style={{
+                        marginTop: '8px',
+                        padding: '12px',
+                        backgroundColor: '#eff6ff',
+                        borderRadius: '6px',
+                        fontSize: '13px',
+                        color: '#1e40af',
+                        lineHeight: '1.5'
+                      }}>
+                        {formData.assignmentType === 'manual' && (
+                          <span>ℹ️ Tickets will not be automatically assigned. Agents must manually claim or be assigned tickets.</span>
+                        )}
+                        {formData.assignmentType === 'round-robin' && (
+                          <span>✓ Tickets will be distributed equally among eligible agents in a rotating sequence. Each agent gets one ticket before the cycle repeats.</span>
+                        )}
+                        {formData.assignmentType === 'condition-based' && (
+                          <span>✓ Tickets will be assigned to specific agents based on ticket category. Define rules below to map categories to agents.</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Eligible Agents - by Roles (Only for Round Robin) */}
+                    {formData.assignmentType === 'round-robin' && (
+                      <div style={{ marginBottom: '20px' }}>
+                        <label style={{
+                          display: 'block',
+                          fontSize: '14px',
+                          fontWeight: '500',
+                          color: '#1f2937',
+                          marginBottom: '8px'
+                        }}>
+                          Eligible Roles for Assignment
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.assignToRoles.join(', ')}
+                          onChange={(e) => {
+                            const roles = e.target.value
+                              .split(',')
+                              .map(r => r.trim())
+                              .filter(r => r.length > 0);
+                            setFormData({ ...formData, assignToRoles: roles });
+                          }}
+                          placeholder="Enter role names (comma-separated): Agent, Support, Technician"
+                          style={{
+                            width: '100%',
+                            padding: '10px 12px',
+                            border: '1px solid #d1d5db',
+                            borderRadius: '6px',
+                            fontSize: '14px'
+                          }}
+                        />
+                        <p style={{ margin: '6px 0 0 0', fontSize: '12px', color: '#6b7280' }}>
+                          Only users with these roles will be eligible for automatic assignment. Leave empty to include all agents.
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Manual Assignment Permissions */}
+                    {formData.assignmentType === 'manual' && (
+                      <div style={{ marginBottom: '20px' }}>
+                        <div style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          marginBottom: '12px'
+                        }}>
+                          <label style={{
+                            fontSize: '14px',
+                            fontWeight: '500',
+                            color: '#1f2937'
+                          }}>
+                            Assignment Permissions
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setFormData({
+                                ...formData,
+                                manualAssignmentPermissions: [
+                                  ...formData.manualAssignmentPermissions,
+                                  {
+                                    roleId: '',
+                                    canAssignToRoles: []
+                                  }
+                                ]
+                              });
+                            }}
+                            style={{
+                              padding: '8px 16px',
+                              backgroundColor: '#3b82f6',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '6px',
+                              fontSize: '13px',
+                              fontWeight: '500',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            + Add Permission
+                          </button>
+                        </div>
+
+                        <div style={{
+                          padding: '12px',
+                          backgroundColor: '#eff6ff',
+                          borderRadius: '6px',
+                          fontSize: '13px',
+                          color: '#1e40af',
+                          marginBottom: '16px'
+                        }}>
+                          💡 Define which roles can assign tickets to which other roles. For example: Center Manager can assign to L1, L2, L3 agents.
+                        </div>
+
+                        {formData.manualAssignmentPermissions.length === 0 ? (
+                          <div style={{
+                            padding: '20px',
+                            backgroundColor: '#fef3c7',
+                            border: '1px solid #fbbf24',
+                            borderRadius: '6px',
+                            textAlign: 'center',
+                            fontSize: '13px',
+                            color: '#92400e'
+                          }}>
+                            ⚠️ No permissions defined. By default, all roles can assign to anyone.
+                          </div>
+                        ) : (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                            {formData.manualAssignmentPermissions.map((perm, permIndex) => (
+                              <div key={permIndex} style={{
+                                padding: '16px',
+                                backgroundColor: '#f9fafb',
+                                border: '1px solid #e5e7eb',
+                                borderRadius: '6px'
+                              }}>
+                                <div style={{
+                                  display: 'flex',
+                                  justifyContent: 'space-between',
+                                  alignItems: 'center',
+                                  marginBottom: '12px'
+                                }}>
+                                  <span style={{ fontSize: '13px', fontWeight: '600', color: '#4b5563' }}>
+                                    Permission {permIndex + 1}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setFormData({
+                                        ...formData,
+                                        manualAssignmentPermissions: formData.manualAssignmentPermissions.filter((_, i) => i !== permIndex)
+                                      });
+                                    }}
+                                    style={{
+                                      padding: '6px 12px',
+                                      backgroundColor: '#ef4444',
+                                      color: 'white',
+                                      border: 'none',
+                                      borderRadius: '4px',
+                                      fontSize: '12px',
+                                      cursor: 'pointer'
+                                    }}
+                                  >
+                                    Remove
+                                  </button>
+                                </div>
+
+                                {/* Role that can assign */}
+                                <div style={{ marginBottom: '12px' }}>
+                                  <label style={{
+                                    display: 'block',
+                                    fontSize: '12px',
+                                    fontWeight: '500',
+                                    color: '#6b7280',
+                                    marginBottom: '6px'
+                                  }}>
+                                    Role (Who can assign tickets)
+                                  </label>
+                                  <select
+                                    value={perm.roleId}
+                                    onChange={(e) => {
+                                      const newPerms = [...formData.manualAssignmentPermissions];
+                                      newPerms[permIndex].roleId = e.target.value;
+                                      setFormData({ ...formData, manualAssignmentPermissions: newPerms });
+                                    }}
+                                    style={{
+                                      width: '100%',
+                                      padding: '8px 12px',
+                                      border: '1px solid #d1d5db',
+                                      borderRadius: '4px',
+                                      fontSize: '13px',
+                                      backgroundColor: 'white'
+                                    }}
+                                  >
+                                    <option value="">Select a role...</option>
+                                    {projectRoles.map((role) => (
+                                      <option key={role._id} value={role._id}>
+                                        {role.name}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+
+                                {/* Roles they can assign to */}
+                                <div>
+                                  <label style={{
+                                    display: 'block',
+                                    fontSize: '12px',
+                                    fontWeight: '500',
+                                    color: '#6b7280',
+                                    marginBottom: '6px'
+                                  }}>
+                                    Can Assign To (Multiple roles)
+                                  </label>
+                                  <select
+                                    multiple
+                                    value={perm.canAssignToRoles}
+                                    onChange={(e) => {
+                                      const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
+                                      const newPerms = [...formData.manualAssignmentPermissions];
+                                      newPerms[permIndex].canAssignToRoles = selectedOptions;
+                                      setFormData({ ...formData, manualAssignmentPermissions: newPerms });
+                                    }}
+                                    style={{
+                                      width: '100%',
+                                      minHeight: '100px',
+                                      padding: '8px',
+                                      border: '1px solid #d1d5db',
+                                      borderRadius: '4px',
+                                      fontSize: '13px',
+                                      backgroundColor: 'white'
+                                    }}
+                                  >
+                                    {projectRoles.map((role) => (
+                                      <option key={role._id} value={role._id}>
+                                        {role.name}
+                                      </option>
+                                    ))}
+                                  </select>
+                                  <p style={{ margin: '4px 0 0 0', fontSize: '11px', color: '#9ca3af' }}>
+                                    Hold Ctrl/Cmd to select multiple roles (e.g., L1, L2, L3)
+                                  </p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Condition-Based Assignment Rules */}
+                    {formData.assignmentType === 'condition-based' && (
+                      <div style={{ marginBottom: '20px' }}>
+                        <div style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          marginBottom: '12px'
+                        }}>
+                          <label style={{
+                            fontSize: '14px',
+                            fontWeight: '500',
+                            color: '#1f2937'
+                          }}>
+                            Assignment Rules
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setFormData({
+                                ...formData,
+                                conditionRules: [
+                                  ...formData.conditionRules,
+                                  {
+                                    field: 'category',
+                                    operator: 'is',
+                                    categories: [],
+                                    assignToAgents: []
+                                  }
+                                ]
+                              });
+                            }}
+                            style={{
+                              padding: '8px 16px',
+                              backgroundColor: '#3b82f6',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '6px',
+                              fontSize: '13px',
+                              fontWeight: '500',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            + Add Rule
+                          </button>
+                        </div>
+
+                        {formData.conditionRules.length === 0 ? (
+                          <div style={{
+                            padding: '20px',
+                            backgroundColor: '#fef3c7',
+                            border: '1px solid #fbbf24',
+                            borderRadius: '6px',
+                            textAlign: 'center',
+                            fontSize: '13px',
+                            color: '#92400e'
+                          }}>
+                            ⚠️ No rules defined. Click "+ Add Rule" to create assignment conditions.
+                          </div>
+                        ) : (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                            {formData.conditionRules.map((rule, ruleIndex) => (
+                              <div key={ruleIndex} style={{
+                                padding: '16px',
+                                backgroundColor: '#f9fafb',
+                                border: '1px solid #e5e7eb',
+                                borderRadius: '6px'
+                              }}>
+                                <div style={{
+                                  display: 'flex',
+                                  justifyContent: 'space-between',
+                                  alignItems: 'center',
+                                  marginBottom: '12px'
+                                }}>
+                                  <span style={{ fontSize: '13px', fontWeight: '600', color: '#4b5563' }}>
+                                    Rule {ruleIndex + 1}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setFormData({
+                                        ...formData,
+                                        conditionRules: formData.conditionRules.filter((_, i) => i !== ruleIndex)
+                                      });
+                                    }}
+                                    style={{
+                                      padding: '6px 12px',
+                                      backgroundColor: '#ef4444',
+                                      color: 'white',
+                                      border: 'none',
+                                      borderRadius: '4px',
+                                      fontSize: '12px',
+                                      cursor: 'pointer'
+                                    }}
+                                  >
+                                    Remove
+                                  </button>
+                                </div>
+
+                                {/* Rule Builder: IF [field] [operator] [values] THEN assign to [agents] */}
+                                <div style={{
+                                  display: 'grid',
+                                  gridTemplateColumns: 'auto auto 1fr',
+                                  gap: '8px',
+                                  alignItems: 'center',
+                                  marginBottom: '12px'
+                                }}>
+                                  <span style={{ fontSize: '13px', fontWeight: '600', color: '#6b7280' }}>IF</span>
+                                  
+                                  <select
+                                    value={rule.field}
+                                    onChange={(e) => {
+                                      const newRules = [...formData.conditionRules];
+                                      newRules[ruleIndex].field = e.target.value;
+                                      setFormData({ ...formData, conditionRules: newRules });
+                                    }}
+                                    style={{
+                                      padding: '8px 10px',
+                                      border: '1px solid #d1d5db',
+                                      borderRadius: '4px',
+                                      fontSize: '13px',
+                                      backgroundColor: 'white'
+                                    }}
+                                  >
+                                    <option value="category">Category</option>
+                                  </select>
+
+                                  <select
+                                    value={rule.operator}
+                                    onChange={(e) => {
+                                      const newRules = [...formData.conditionRules];
+                                      newRules[ruleIndex].operator = e.target.value;
+                                      setFormData({ ...formData, conditionRules: newRules });
+                                    }}
+                                    style={{
+                                      padding: '8px 10px',
+                                      border: '1px solid #d1d5db',
+                                      borderRadius: '4px',
+                                      fontSize: '13px',
+                                      backgroundColor: 'white'
+                                    }}
+                                  >
+                                    <option value="is">is</option>
+                                  </select>
+                                </div>
+
+                                {/* Categories Multi-Select */}
+                                <div style={{ marginBottom: '12px' }}>
+                                  <label style={{
+                                    display: 'block',
+                                    fontSize: '12px',
+                                    fontWeight: '500',
+                                    color: '#6b7280',
+                                    marginBottom: '6px'
+                                  }}>
+                                    Select Categories
+                                  </label>
+                                  <select
+                                    multiple
+                                    value={rule.categories}
+                                    onChange={(e) => {
+                                      const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
+                                      const newRules = [...formData.conditionRules];
+                                      newRules[ruleIndex].categories = selectedOptions;
+                                      setFormData({ ...formData, conditionRules: newRules });
+                                    }}
+                                    style={{
+                                      width: '100%',
+                                      minHeight: '100px',
+                                      padding: '8px',
+                                      border: '1px solid #d1d5db',
+                                      borderRadius: '4px',
+                                      fontSize: '13px',
+                                      backgroundColor: 'white'
+                                    }}
+                                  >
+                                    {(() => {
+                                      // Get unique categories from online form fields
+                                      const categoryField = formData.onlineFormFields.find(f => f.fieldName.toLowerCase() === 'category');
+                                      if (categoryField && categoryField.options) {
+                                        return categoryField.options.map((cat, idx) => (
+                                          <option key={idx} value={cat}>{cat}</option>
+                                        ));
+                                      }
+                                      return <option disabled>No categories defined in online form</option>;
+                                    })()}
+                                  </select>
+                                  <p style={{ margin: '4px 0 0 0', fontSize: '11px', color: '#9ca3af' }}>
+                                    Hold Ctrl/Cmd to select multiple categories
+                                  </p>
+                                </div>
+
+                                {/* THEN assign to agents */}
+                                <div>
+                                  <label style={{
+                                    display: 'block',
+                                    fontSize: '12px',
+                                    fontWeight: '500',
+                                    color: '#6b7280',
+                                    marginBottom: '6px'
+                                  }}>
+                                    <span style={{ fontWeight: '600', color: '#3b82f6' }}>THEN</span> Assign to Agents
+                                  </label>
+                                  <select
+                                    multiple
+                                    value={rule.assignToAgents}
+                                    onChange={(e) => {
+                                      const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
+                                      const newRules = [...formData.conditionRules];
+                                      newRules[ruleIndex].assignToAgents = selectedOptions;
+                                      setFormData({ ...formData, conditionRules: newRules });
+                                    }}
+                                    style={{
+                                      width: '100%',
+                                      minHeight: '100px',
+                                      padding: '8px',
+                                      border: '1px solid #d1d5db',
+                                      borderRadius: '4px',
+                                      fontSize: '13px',
+                                      backgroundColor: 'white'
+                                    }}
+                                  >
+                                    {projectAgents.length > 0 ? (
+                                      projectAgents.map((user) => (
+                                        <option key={user._id} value={user._id}>
+                                          {user.name} ({user.email})
+                                        </option>
+                                      ))
+                                    ) : (
+                                      <option disabled>No agents mapped to this project</option>
+                                    )}
+                                  </select>
+                                  <p style={{ margin: '4px 0 0 0', fontSize: '11px', color: '#9ca3af' }}>
+                                    Hold Ctrl/Cmd to select multiple agents
+                                  </p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Additional Options */}
+                    {formData.assignmentType !== 'manual' && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        <label style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          cursor: 'pointer'
+                        }}>
+                          <input
+                            type="checkbox"
+                            checked={formData.notifyOnAssignment}
+                            onChange={(e) => setFormData({ ...formData, notifyOnAssignment: e.target.checked })}
+                            style={{
+                              width: '16px',
+                              height: '16px',
+                              cursor: 'pointer'
+                            }}
+                          />
+                          <span style={{ fontSize: '14px', color: '#374151' }}>
+                            Send email notification to agent on assignment
+                          </span>
+                        </label>
+
+                        <label style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          cursor: 'pointer'
+                        }}>
+                          <input
+                            type="checkbox"
+                            checked={formData.reassignOnEscalation}
+                            onChange={(e) => setFormData({ ...formData, reassignOnEscalation: e.target.checked })}
+                            style={{
+                              width: '16px',
+                              height: '16px',
+                              cursor: 'pointer'
+                            }}
+                          />
+                          <span style={{ fontSize: '14px', color: '#374151' }}>
+                            Automatically reassign when ticket is escalated
+                          </span>
+                        </label>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Welcome & Success Messages */}
+              <div style={{
+                padding: '20px',
+                backgroundColor: 'white',
+                borderRadius: '8px',
+                border: '1px solid #e5e7eb'
+              }}>
+                <h4 style={{ margin: '0 0 16px 0', fontSize: '16px', fontWeight: '600', color: '#1f2937' }}>
+                  Portal Messages
+                </h4>
+                
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    color: '#374151',
+                    marginBottom: '8px'
+                  }}>
+                    Welcome Message
+                  </label>
+                  <textarea
+                    value={formData.ticketWelcomeMessage}
+                    onChange={(e) => setFormData({ ...formData, ticketWelcomeMessage: e.target.value })}
+                    placeholder="Enter welcome message for students..."
+                    rows={3}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      fontFamily: 'inherit',
+                      resize: 'vertical'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    color: '#374151',
+                    marginBottom: '8px'
+                  }}>
+                    Success Message
+                  </label>
+                  <textarea
+                    value={formData.ticketSuccessMessage}
+                    onChange={(e) => setFormData({ ...formData, ticketSuccessMessage: e.target.value })}
+                    placeholder="Message shown after successful ticket submission..."
+                    rows={3}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      fontFamily: 'inherit',
+                      resize: 'vertical'
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Online Form Settings */}
+              {(formData.ticketSubmissionMode === 'online' || formData.ticketSubmissionMode === 'both') && (
+                <div style={{
+                  padding: '20px',
+                  backgroundColor: 'white',
+                  borderRadius: '8px',
+                  border: '1px solid #e5e7eb'
+                }}>
+                  <h4 style={{ margin: '0 0 16px 0', fontSize: '16px', fontWeight: '600', color: '#1f2937' }}>
+                    Online Form Configuration
+                  </h4>
+
+                  {/* Form Fields Configuration */}
+                  <div style={{ marginTop: '0px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                      <h5 style={{ margin: 0, fontSize: '15px', fontWeight: '600', color: '#1f2937' }}>
+                        Form Fields
+                      </h5>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFormData({
+                            ...formData,
+                            onlineFormFields: [
+                              ...formData.onlineFormFields,
+                              {
+                                fieldName: '',
+                                fieldType: 'text',
+                                required: false,
+                                placeholder: '',
+                                options: [],
+                                // file-specific defaults (used when fieldType === 'file')
+                                allowedFileTypes: [],
+                                maxFileSizeMB: 5,
+                                allowMultiple: false
+                              }
+                            ]
+                          });
+                        }}
+                        style={{
+                          padding: '8px 16px',
+                          backgroundColor: '#3b82f6',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '6px',
+                          fontSize: '14px',
+                          fontWeight: '500',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        + Add Field
+                      </button>
+                    </div>
+
+                    {formData.onlineFormFields.length === 0 ? (
+                      <div style={{
+                        padding: '20px',
+                        backgroundColor: '#f9fafb',
+                        borderRadius: '6px',
+                        textAlign: 'center',
+                        color: '#6b7280',
+                        fontSize: '14px'
+                      }}>
+                        No custom fields added. Default fields (Name, Email, Phone, Subject, Description) will be used.
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        {formData.onlineFormFields.map((field, index) => (
+                          <div key={index} style={{
+                            padding: '16px',
+                            backgroundColor: '#f9fafb',
+                            borderRadius: '6px',
+                            border: '1px solid #e5e7eb'
+                          }}>
+                            <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
+                              <input
+                                type="text"
+                                placeholder="Field Name"
+                                value={field.fieldName}
+                                onChange={(e) => {
+                                  const newFields = [...formData.onlineFormFields];
+                                  newFields[index].fieldName = e.target.value;
+                                  setFormData({ ...formData, onlineFormFields: newFields });
+                                }}
+                                style={{
+                                  flex: 1,
+                                  padding: '10px 12px',
+                                  border: '1px solid #d1d5db',
+                                  borderRadius: '6px',
+                                  fontSize: '14px'
+                                }}
+                              />
+                              <select
+                                value={field.fieldType}
+                                onChange={(e) => {
+                                  const newFields = [...formData.onlineFormFields];
+                                  newFields[index].fieldType = e.target.value as any;
+                                  setFormData({ ...formData, onlineFormFields: newFields });
+                                }}
+                                style={{
+                                  flex: 1,
+                                  padding: '10px 12px',
+                                  border: '1px solid #d1d5db',
+                                  borderRadius: '6px',
+                                  fontSize: '14px'
+                                }}
+                              >
+                                <option value="text">Text</option>
+                                <option value="number">Number</option>
+                                <option value="date">Date</option>
+                                <option value="email">Email</option>
+                                <option value="phone">Phone</option>
+                                <option value="url">Link (URL)</option>
+                                <option value="textarea">Textarea</option>
+                                <option value="dropdown">Dropdown (Single Select)</option>
+                                <option value="multiselect">Multi-Select</option>
+                                <option value="radio">Radio Buttons</option>
+                                <option value="checkbox">Checkboxes</option>
+                                <option value="file">File Upload</option>
+                              </select>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setFormData({
+                                    ...formData,
+                                    onlineFormFields: formData.onlineFormFields.filter((_, i) => i !== index)
+                                  });
+                                }}
+                                style={{
+                                  padding: '10px 16px',
+                                  backgroundColor: '#ef4444',
+                                  color: 'white',
+                                  border: 'none',
+                                  borderRadius: '6px',
+                                  fontSize: '14px',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                Remove
+                              </button>
+                            </div>
+                            <div style={{ display: 'flex', gap: '12px' }}>
+                              <input
+                                type="text"
+                                placeholder="Placeholder text"
+                                value={field.placeholder}
+                                onChange={(e) => {
+                                  const newFields = [...formData.onlineFormFields];
+                                  newFields[index].placeholder = e.target.value;
+                                  setFormData({ ...formData, onlineFormFields: newFields });
+                                }}
+                                style={{
+                                  flex: 1,
+                                  padding: '10px 12px',
+                                  border: '1px solid #d1d5db',
+                                  borderRadius: '6px',
+                                  fontSize: '14px'
+                                }}
+                              />
+                              <label style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                padding: '10px 12px',
+                                backgroundColor: 'white',
+                                border: '1px solid #d1d5db',
+                                borderRadius: '6px',
+                                cursor: 'pointer'
+                              }}>
+                                <input
+                                  type="checkbox"
+                                  checked={field.required}
+                                  onChange={(e) => {
+                                    const newFields = [...formData.onlineFormFields];
+                                    newFields[index].required = e.target.checked;
+                                    setFormData({ ...formData, onlineFormFields: newFields });
+                                  }}
+                                  style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                                />
+                                <span style={{ fontSize: '14px', color: '#374151' }}>Required</span>
+                              </label>
+                            </div>
+                            {field.fieldType === 'dropdown' && (
+                              <div style={{ marginTop: '12px' }}>
+                                <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
+                                  Dropdown Options (one per line or comma-separated)
+                                </label>
+                                <textarea
+                                  placeholder="Enter options (one per line or comma-separated)&#10;Example:&#10;Option 1&#10;Option 2&#10;Option 3"
+                                  defaultValue={field.options?.join('\n') || ''}
+                                  onBlur={(e) => {
+                                    const newFields = [...formData.onlineFormFields];
+                                    const value = e.target.value;
+                                    // Support both newline and comma-separated
+                                    if (value.includes('\n')) {
+                                      newFields[index].options = value.split('\n').map(opt => opt.trim()).filter(opt => opt);
+                                    } else {
+                                      newFields[index].options = value.split(',').map(opt => opt.trim()).filter(opt => opt);
+                                    }
+                                    setFormData({ ...formData, onlineFormFields: newFields });
+                                  }}
+                                  rows={4}
+                                  style={{
+                                    width: '100%',
+                                    padding: '10px 12px',
+                                    border: '1px solid #d1d5db',
+                                    borderRadius: '6px',
+                                    fontSize: '14px',
+                                    fontFamily: 'inherit',
+                                    resize: 'vertical'
+                                  }}
+                                />
+                              </div>
+                            )}
+                            {/* Options for multi-select, radio, checkbox */}
+                            {(field.fieldType === 'multiselect' || field.fieldType === 'radio' || field.fieldType === 'checkbox') && (
+                              <div style={{ marginTop: '12px' }}>
+                                <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
+                                  Options (one per line or comma-separated)
+                                </label>
+                                <textarea
+                                  placeholder="Enter options (one per line or comma-separated)&#10;Example:&#10;Option 1&#10;Option 2&#10;Option 3"
+                                  defaultValue={field.options?.join('\n') || ''}
+                                  onBlur={(e) => {
+                                    const newFields = [...formData.onlineFormFields];
+                                    const value = e.target.value;
+                                    // Support both newline and comma-separated
+                                    if (value.includes('\n')) {
+                                      newFields[index].options = value.split('\n').map(opt => opt.trim()).filter(opt => opt);
+                                    } else {
+                                      newFields[index].options = value.split(',').map(opt => opt.trim()).filter(opt => opt);
+                                    }
+                                    setFormData({ ...formData, onlineFormFields: newFields });
+                                  }}
+                                  rows={4}
+                                  style={{
+                                    width: '100%',
+                                    padding: '10px 12px',
+                                    border: '1px solid #d1d5db',
+                                    borderRadius: '6px',
+                                    fontSize: '14px',
+                                    fontFamily: 'inherit',
+                                    resize: 'vertical'
+                                  }}
+                                />
+                              </div>
+                            )}
+                            {/* File-specific config */}
+                            {field.fieldType === 'file' && (
+                              <div style={{ marginTop: '12px', padding: '12px', backgroundColor: '#fef3c7', borderRadius: '6px', border: '1px solid #fde047' }}>
+                                <div style={{ marginBottom: '12px' }}>
+                                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', color: '#92400e', marginBottom: '6px' }}>
+                                    Allowed File Types (extensions)
+                                  </label>
+                                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                    {['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.jpg', '.jpeg', '.png', '.gif', '.txt', '.zip'].map((ext) => (
+                                      <label key={ext} style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '6px',
+                                        padding: '4px 8px',
+                                        backgroundColor: (field.allowedFileTypes || []).includes(ext) ? '#dbeafe' : '#f9fafb',
+                                        border: (field.allowedFileTypes || []).includes(ext) ? '1px solid #3b82f6' : '1px solid #e5e7eb',
+                                        borderRadius: '4px',
+                                        cursor: 'pointer',
+                                        fontSize: '12px'
+                                      }}>
+                                        <input
+                                          type="checkbox"
+                                          checked={(field.allowedFileTypes || []).includes(ext)}
+                                          onChange={(e) => {
+                                            const newFields = [...formData.onlineFormFields];
+                                            const types = newFields[index].allowedFileTypes || [];
+                                            if (e.target.checked) {
+                                              newFields[index].allowedFileTypes = [...types, ext];
+                                            } else {
+                                              newFields[index].allowedFileTypes = types.filter(t => t !== ext);
+                                            }
+                                            setFormData({ ...formData, onlineFormFields: newFields });
+                                          }}
+                                          style={{ width: '14px', height: '14px', cursor: 'pointer' }}
+                                        />
+                                        <span style={{ color: '#374151', fontWeight: '500' }}>{ext}</span>
+                                      </label>
+                                    ))}
+                                  </div>
+                                </div>
+                                <div style={{ marginBottom: '12px' }}>
+                                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', color: '#92400e', marginBottom: '6px' }}>
+                                    Max File Size (MB)
+                                  </label>
+                                  <input
+                                    type="number"
+                                    min="1"
+                                    max="100"
+                                    value={field.maxFileSizeMB || 5}
+                                    onChange={(e) => {
+                                      const newFields = [...formData.onlineFormFields];
+                                      newFields[index].maxFileSizeMB = parseInt(e.target.value) || 5;
+                                      setFormData({ ...formData, onlineFormFields: newFields });
+                                    }}
+                                    style={{
+                                      width: '120px',
+                                      padding: '8px 10px',
+                                      border: '1px solid #d1d5db',
+                                      borderRadius: '6px',
+                                      fontSize: '13px'
+                                    }}
+                                  />
+                                </div>
+                                <div>
+                                  <label style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    cursor: 'pointer'
+                                  }}>
+                                    <input
+                                      type="checkbox"
+                                      checked={field.allowMultiple || false}
+                                      onChange={(e) => {
+                                        const newFields = [...formData.onlineFormFields];
+                                        newFields[index].allowMultiple = e.target.checked;
+                                        setFormData({ ...formData, onlineFormFields: newFields });
+                                      }}
+                                      style={{ width: '14px', height: '14px', cursor: 'pointer' }}
+                                    />
+                                    <span style={{ fontSize: '13px', color: '#92400e', fontWeight: '500' }}>Allow multiple files</span>
+                                  </label>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Offline Centers */}
+              {(formData.ticketSubmissionMode === 'offline' || formData.ticketSubmissionMode === 'both') && (
+                <div style={{
+                  padding: '20px',
+                  backgroundColor: 'white',
+                  borderRadius: '8px',
+                  border: '1px solid #e5e7eb'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <div>
+                      <h4 style={{ margin: '0 0 4px 0', fontSize: '16px', fontWeight: '600', color: '#1f2937' }}>
+                        Offline Support Centers
+                      </h4>
+                      <p style={{ margin: 0, fontSize: '13px', color: '#6b7280' }}>
+                        Add physical locations where students can visit for support
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFormData({
+                          ...formData,
+                          offlineCenters: [
+                            ...formData.offlineCenters,
+                            {
+                              centerName: '',
+                              address: '',
+                              city: '',
+                              state: '',
+                              pincode: '',
+                              phone: '',
+                              email: '',
+                              workingHours: '',
+                              latitude: undefined,
+                              longitude: undefined
+                            }
+                          ]
+                        });
+                      }}
+                      style={{
+                        padding: '8px 16px',
+                        backgroundColor: '#3b82f6',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '6px',
+                        fontSize: '14px',
+                        fontWeight: '500',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      + Add Center
+                    </button>
+                  </div>
+
+                  {formData.offlineCenters.length === 0 ? (
+                    <div style={{
+                      padding: '20px',
+                      backgroundColor: '#f9fafb',
+                      borderRadius: '6px',
+                      textAlign: 'center',
+                      color: '#6b7280',
+                      fontSize: '14px'
+                    }}>
+                      No offline centers added yet. Click "Add Center" to add support locations.
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                      {formData.offlineCenters.map((center, index) => (
+                        <div key={index} style={{
+                          padding: '16px',
+                          backgroundColor: '#f9fafb',
+                          borderRadius: '6px',
+                          border: '1px solid #e5e7eb'
+                        }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                            <h5 style={{ margin: 0, fontSize: '15px', fontWeight: '600', color: '#1f2937' }}>
+                              Center {index + 1}
+                            </h5>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setFormData({
+                                  ...formData,
+                                  offlineCenters: formData.offlineCenters.filter((_, i) => i !== index)
+                                });
+                              }}
+                              style={{
+                                padding: '6px 12px',
+                                backgroundColor: '#ef4444',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '6px',
+                                fontSize: '13px',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              Remove
+                            </button>
+                          </div>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                            <input
+                              type="text"
+                              placeholder="Center Name"
+                              value={center.centerName}
+                              onChange={(e) => {
+                                const newCenters = [...formData.offlineCenters];
+                                newCenters[index].centerName = e.target.value;
+                                setFormData({ ...formData, offlineCenters: newCenters });
+                              }}
+                              style={{
+                                gridColumn: '1 / -1',
+                                padding: '10px 12px',
+                                border: '1px solid #d1d5db',
+                                borderRadius: '6px',
+                                fontSize: '14px'
+                              }}
+                            />
+                            <input
+                              type="text"
+                              placeholder="Address"
+                              value={center.address}
+                              onChange={(e) => {
+                                const newCenters = [...formData.offlineCenters];
+                                newCenters[index].address = e.target.value;
+                                setFormData({ ...formData, offlineCenters: newCenters });
+                              }}
+                              style={{
+                                gridColumn: '1 / -1',
+                                padding: '10px 12px',
+                                border: '1px solid #d1d5db',
+                                borderRadius: '6px',
+                                fontSize: '14px'
+                              }}
+                            />
+                            <input
+                              type="text"
+                              placeholder="City"
+                              value={center.city}
+                              onChange={(e) => {
+                                const newCenters = [...formData.offlineCenters];
+                                newCenters[index].city = e.target.value;
+                                setFormData({ ...formData, offlineCenters: newCenters });
+                              }}
+                              style={{
+                                padding: '10px 12px',
+                                border: '1px solid #d1d5db',
+                                borderRadius: '6px',
+                                fontSize: '14px'
+                              }}
+                            />
+                            <input
+                              type="text"
+                              placeholder="State"
+                              value={center.state}
+                              onChange={(e) => {
+                                const newCenters = [...formData.offlineCenters];
+                                newCenters[index].state = e.target.value;
+                                setFormData({ ...formData, offlineCenters: newCenters });
+                              }}
+                              style={{
+                                padding: '10px 12px',
+                                border: '1px solid #d1d5db',
+                                borderRadius: '6px',
+                                fontSize: '14px'
+                              }}
+                            />
+                            <input
+                              type="text"
+                              placeholder="Pincode"
+                              value={center.pincode}
+                              onChange={(e) => {
+                                const newCenters = [...formData.offlineCenters];
+                                newCenters[index].pincode = e.target.value;
+                                setFormData({ ...formData, offlineCenters: newCenters });
+                              }}
+                              style={{
+                                padding: '10px 12px',
+                                border: '1px solid #d1d5db',
+                                borderRadius: '6px',
+                                fontSize: '14px'
+                              }}
+                            />
+                            <input
+                              type="text"
+                              placeholder="Phone"
+                              value={center.phone}
+                              onChange={(e) => {
+                                const newCenters = [...formData.offlineCenters];
+                                newCenters[index].phone = e.target.value;
+                                setFormData({ ...formData, offlineCenters: newCenters });
+                              }}
+                              style={{
+                                padding: '10px 12px',
+                                border: '1px solid #d1d5db',
+                                borderRadius: '6px',
+                                fontSize: '14px'
+                              }}
+                            />
+                            <input
+                              type="email"
+                              placeholder="Email"
+                              value={center.email}
+                              onChange={(e) => {
+                                const newCenters = [...formData.offlineCenters];
+                                newCenters[index].email = e.target.value;
+                                setFormData({ ...formData, offlineCenters: newCenters });
+                              }}
+                              style={{
+                                gridColumn: '1 / -1',
+                                padding: '10px 12px',
+                                border: '1px solid #d1d5db',
+                                borderRadius: '6px',
+                                fontSize: '14px'
+                              }}
+                            />
+                            <input
+                              type="text"
+                              placeholder="Working Hours (e.g., Mon-Fri: 9 AM - 6 PM)"
+                              value={center.workingHours}
+                              onChange={(e) => {
+                                const newCenters = [...formData.offlineCenters];
+                                newCenters[index].workingHours = e.target.value;
+                                setFormData({ ...formData, offlineCenters: newCenters });
+                              }}
+                              style={{
+                                gridColumn: '1 / -1',
+                                padding: '10px 12px',
+                                border: '1px solid #d1d5db',
+                                borderRadius: '6px',
+                                fontSize: '14px'
+                              }}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
           {activeTab === 'knowledge' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '900px' }}>
               {/* Enable KB Toggle */}
@@ -3756,7 +5446,7 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
                     e.currentTarget.style.borderColor = '#d1d5db';
                   }}
                 >
-                  {i18n.language === 'en' ? 'Discard' : 'रद्द करा'}
+                  {getText('Discard', 'रद्द करा', 'रद्द करा')}
                 </button>
                 <button
                   type="submit"
@@ -3797,7 +5487,7 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
                       <path d="M8 2v2M8 12v2M14 8h-2M4 8H2M12.657 12.657l-1.414-1.414M4.757 4.757L3.343 3.343M12.657 3.343l-1.414 1.414M4.757 11.243l-1.414 1.414" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
                   )}
-                  {saving ? (i18n.language === 'en' ? 'Saving...' : 'जतन करत आहे...') : (i18n.language === 'en' ? 'Update Project' : 'अपडेट करा')}
+                  {saving ? (getText('Saving...', 'जतन करत आहे...', 'जतन करत आहे...')) : (getText('Update Project', 'अपडेट करा', 'अपडेट करा'))}
                 </button>
               </div>
             </div>

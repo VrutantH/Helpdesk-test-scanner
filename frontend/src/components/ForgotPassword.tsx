@@ -47,7 +47,7 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
     // Validate Indian mobile number
     const mobileRegex = /^[6-9]\d{9}$/
     if (!mobileRegex.test(mobile)) {
-      setError(i18n.language === 'en' ? 'Please enter a valid 10-digit mobile number' : 'कृपया वैध १०-अंकी मोबाइल नंबर टाका')
+      setError(getText('Please enter a valid 10-digit mobile number', 'कृपया वैध १०-अंकी मोबाइल नंबर टाका', 'कृपया वैध १०-अंकी मोबाइल नंबर टाका'))
       return
     }
 
@@ -76,11 +76,11 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
         setCurrentStep('otp')
         startTimer()
       } else {
-        setError(data.message || (i18n.language === 'en' ? 'Failed to send OTP' : 'OTP पाठवण्यात अयशस्वी'))
+        setError(data.message || (getText('Failed to send OTP', 'OTP पाठवण्यात अयशस्वी', 'OTP पाठवण्यात अयशस्वी')))
       }
     } catch (err) {
       console.error('Network error:', err)
-      setError(i18n.language === 'en' ? 'Network error. Please try again.' : 'नेटवर्क त्रुटी. कृपया पुन्हा प्रयत्न करा.')
+      setError(getText('Network error. Please try again.', 'नेटवर्क त्रुटी. कृपया पुन्हा प्रयत्न करा.', 'नेटवर्क त्रुटी. कृपया पुन्हा प्रयत्न करा.'))
     } finally {
       setIsLoading(false)
     }
@@ -92,7 +92,7 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
     setError('')
     
     if (otp.length !== 6) {
-      setError(i18n.language === 'en' ? 'Please enter 6-digit OTP' : 'कृपया ६-अंकी OTP टाका')
+      setError(getText('Please enter 6-digit OTP', 'कृपया ६-अंकी OTP टाका', 'कृपया ६-अंकी OTP टाका'))
       return
     }
 
@@ -112,10 +112,10 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
       if (response.ok && data.success) {
         setCurrentStep('reset')
       } else {
-        setError(data.message || (i18n.language === 'en' ? 'Invalid OTP' : 'अवैध OTP'))
+        setError(data.message || (getText('Invalid OTP', 'अवैध OTP', 'अवैध OTP')))
       }
     } catch (err) {
-      setError(i18n.language === 'en' ? 'Network error. Please try again.' : 'नेटवर्क त्रुटी. कृपया पुन्हा प्रयत्न करा.')
+      setError(getText('Network error. Please try again.', 'नेटवर्क त्रुटी. कृपया पुन्हा प्रयत्न करा.', 'नेटवर्क त्रुटी. कृपया पुन्हा प्रयत्न करा.'))
     } finally {
       setIsLoading(false)
     }
@@ -128,9 +128,7 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
     
     // Password length validation
     if (newPassword.length < 8) {
-      setError(i18n.language === 'en' ? 
-        'Password must be at least 8 characters long' : 
-        'पासवर्डमध्ये किमान ८ अक्षरे असावीत')
+      setError(getText('Password must be at least 8 characters long', 'पासवर्डमध्ये किमान ८ अक्षरे असावीत', 'पासवर्डमध्ये किमान ८ अक्षरे असावीत'))
       return
     }
     
@@ -140,15 +138,13 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
     const hasNumber = /[0-9]/.test(newPassword)
     
     if (!hasUpperCase || !hasLowerCase || !hasNumber) {
-      setError(i18n.language === 'en' ? 
-        'Password must contain at least one uppercase letter, one lowercase letter, and one number' : 
-        'पासवर्डमध्ये किमान एक मोठे अक्षर, एक लहान अक्षर आणि एक संख्या असणे आवश्यक आहे')
+      setError(getText('Password must contain at least one uppercase letter, one lowercase letter, and one number', 'पासवर्डमध्ये किमान एक मोठे अक्षर, एक लहान अक्षर आणि एक संख्या असणे आवश्यक आहे', 'पासवर्डमध्ये किमान एक मोठे अक्षर, एक लहान अक्षर आणि एक संख्या असणे आवश्यक आहे'))
       return
     }
     
     // Password match validation
     if (newPassword !== confirmPassword) {
-      setError(i18n.language === 'en' ? 'Passwords do not match' : 'पासवर्ड जुळत नाहीत')
+      setError(getText('Passwords do not match', 'पासवर्ड जुळत नाहीत', 'पासवर्ड जुळत नाहीत'))
       return
     }
 
@@ -172,11 +168,11 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
         // Navigate to success step
         setCurrentStep('success')
       } else {
-        setError(data.message || (i18n.language === 'en' ? 'Failed to reset password' : 'पासवर्ड रीसेट करण्यात अयशस्वी'))
+        setError(data.message || (getText('Failed to reset password', 'पासवर्ड रीसेट करण्यात अयशस्वी', 'पासवर्ड रीसेट करण्यात अयशस्वी')))
       }
     } catch (err) {
       console.error('Password reset error:', err)
-      setError(i18n.language === 'en' ? 'Network error. Please try again.' : 'नेटवर्क त्रुटी. कृपया पुन्हा प्रयत्न करा.')
+      setError(getText('Network error. Please try again.', 'नेटवर्क त्रुटी. कृपया पुन्हा प्रयत्न करा.', 'नेटवर्क त्रुटी. कृपया पुन्हा प्रयत्न करा.'))
     } finally {
       setIsLoading(false)
     }
@@ -207,10 +203,10 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
         }
         startTimer()
       } else {
-        setError(data.message || (i18n.language === 'en' ? 'Failed to resend OTP' : 'OTP पुन्हा पाठवण्यात अयशस्वी'))
+        setError(data.message || (getText('Failed to resend OTP', 'OTP पुन्हा पाठवण्यात अयशस्वी', 'OTP पुन्हा पाठवण्यात अयशस्वी')))
       }
     } catch (err) {
-      setError(i18n.language === 'en' ? 'Failed to resend OTP' : 'OTP पुन्हा पाठवण्यात अयशस्वी')
+      setError(getText('Failed to resend OTP', 'OTP पुन्हा पाठवण्यात अयशस्वी', 'OTP पुन्हा पाठवण्यात अयशस्वी'))
     } finally {
       setIsLoading(false)
     }
@@ -239,14 +235,14 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
           color: '#1f2937',
           margin: '0 0 8px 0'
         }}>
-          {i18n.language === 'en' ? 'Reset Password' : 'पासवर्ड रीसेट करा'}
+          {getText('Reset Password', 'पासवर्ड रीसेट करा', 'पासवर्ड रीसेट करा')}
         </h1>
         <p style={{ 
           fontSize: '16px', 
           color: '#6b7280',
           margin: '0'
         }}>
-          {i18n.language === 'en' ? 'Enter your registered mobile number' : 'आपला नोंदणीकृत मोबाइल नंबर टाका'}
+          {getText('Enter your registered mobile number', 'आपला नोंदणीकृत मोबाइल नंबर टाका', 'आपला नोंदणीकृत मोबाइल नंबर टाका')}
         </p>
       </div>
 
@@ -259,14 +255,14 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
             color: '#374151',
             marginBottom: '6px'
           }}>
-            📱 {i18n.language === 'en' ? 'Mobile Number' : 'मोबाइल नंबर'}
+            📱 {getText('Mobile Number', 'मोबाइल नंबर', 'मोबाइल नंबर')}
           </label>
           <div style={{ position: 'relative' }}>
             <input
               type="tel"
               value={mobile}
               onChange={(e) => setMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
-              placeholder={i18n.language === 'en' ? 'Enter 10-digit mobile number' : '१०-अंकी मोबाइल नंबर टाका'}
+              placeholder={getText('Enter 10-digit mobile number', '१०-अंकी मोबाइल नंबर टाका', '१०-अंकी मोबाइल नंबर टाका')}
               style={{
                 width: '100%',
                 padding: '12px 12px 12px 40px',
@@ -323,8 +319,8 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
           }}
         >
           {isLoading ? 
-            (i18n.language === 'en' ? '📤 Sending OTP...' : '📤 OTP पाठवत आहे...') : 
-            (i18n.language === 'en' ? '📤 Send OTP' : '📤 OTP पाठवा')
+            (getText('📤 Sending OTP...', '📤 OTP पाठवत आहे...', '📤 OTP पाठवत आहे...')) : 
+            (getText('📤 Send OTP', '📤 OTP पाठवा', '📤 OTP पाठवा'))
           }
         </button>
       </form>
@@ -354,7 +350,7 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
           color: '#1f2937',
           margin: '0 0 8px 0'
         }}>
-          {i18n.language === 'en' ? 'Verify OTP' : 'OTP तपासा'}
+          {getText('Verify OTP', 'OTP तपासा', 'OTP तपासा')}
         </h1>
         <p style={{ 
           fontSize: '16px', 
@@ -379,7 +375,7 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
               color: '#1e40af',
               marginBottom: '4px' 
             }}>
-              {i18n.language === 'en' ? 'Account Holder:' : 'खाताधारक:'}
+              {getText('Account Holder:', 'खाताधारक:', 'खाताधारक:')}
             </div>
             <div style={{ color: '#1f2937' }}>
               👤 {accountHolder.name}
@@ -401,7 +397,7 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
             fontSize: '14px'
           }}
         >
-          {i18n.language === 'en' ? 'Change mobile number' : 'मोबाइल नंबर बदला'}
+          {getText('Change mobile number', 'मोबाइल नंबर बदला', 'मोबाइल नंबर बदला')}
         </button>
       </div>
 
@@ -414,13 +410,13 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
             color: '#374151',
             marginBottom: '6px'
           }}>
-            🔐 {i18n.language === 'en' ? 'Enter OTP' : 'OTP टाका'}
+            🔐 {getText('Enter OTP', 'OTP टाका', 'OTP टाका')}
           </label>
           <input
             type="text"
             value={otp}
             onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-            placeholder={i18n.language === 'en' ? 'Enter 6-digit OTP' : '६-अंकी OTP टाका'}
+            placeholder={getText('Enter 6-digit OTP', '६-अंकी OTP टाका', '६-अंकी OTP टाका')}
             style={{
               width: '100%',
               padding: '12px',
@@ -468,8 +464,8 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
           }}
         >
           {isLoading ? 
-            (i18n.language === 'en' ? '🔍 Verifying...' : '🔍 तपासत आहे...') : 
-            (i18n.language === 'en' ? '🔍 Verify OTP' : '🔍 OTP तपासा')
+            (getText('🔍 Verifying...', '🔍 तपासत आहे...', '🔍 तपासत आहे...')) : 
+            (getText('🔍 Verify OTP', '🔍 OTP तपासा', '🔍 OTP तपासा'))
           }
         </button>
 
@@ -492,7 +488,7 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
                 fontSize: '14px'
               }}
             >
-              {i18n.language === 'en' ? '📤 Resend OTP' : '📤 OTP पुन्हा पाठवा'}
+              {getText('📤 Resend OTP', '📤 OTP पुन्हा पाठवा', '📤 OTP पुन्हा पाठवा')}
             </button>
           )}
         </div>
@@ -523,14 +519,14 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
           color: '#1f2937',
           margin: '0 0 8px 0'
         }}>
-          {i18n.language === 'en' ? 'Create New Password' : 'नवीन पासवर्ड तयार करा'}
+          {getText('Create New Password', 'नवीन पासवर्ड तयार करा', 'नवीन पासवर्ड तयार करा')}
         </h1>
         <p style={{ 
           fontSize: '16px', 
           color: '#6b7280',
           margin: '0'
         }}>
-          {i18n.language === 'en' ? 'Enter a strong password for your account' : 'आपल्या खात्यासाठी मजबूत पासवर्ड टाका'}
+          {getText('Enter a strong password for your account', 'आपल्या खात्यासाठी मजबूत पासवर्ड टाका', 'आपल्या खात्यासाठी मजबूत पासवर्ड टाका')}
         </p>
       </div>
 
@@ -543,13 +539,13 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
             color: '#374151',
             marginBottom: '6px'
           }}>
-            🔒 {i18n.language === 'en' ? 'New Password' : 'नवीन पासवर्ड'}
+            🔒 {getText('New Password', 'नवीन पासवर्ड', 'नवीन पासवर्ड')}
           </label>
           <input
             type="password"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
-            placeholder={i18n.language === 'en' ? 'Enter new password' : 'नवीन पासवर्ड टाका'}
+            placeholder={getText('Enter new password', 'नवीन पासवर्ड टाका', 'नवीन पासवर्ड टाका')}
             style={{
               width: '100%',
               padding: '12px',
@@ -594,13 +590,13 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
             color: '#374151',
             marginBottom: '6px'
           }}>
-            🔒 {i18n.language === 'en' ? 'Confirm Password' : 'पासवर्डची पुष्टी करा'}
+            🔒 {getText('Confirm Password', 'पासवर्डची पुष्टी करा', 'पासवर्डची पुष्टी करा')}
           </label>
           <input
             type="password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            placeholder={i18n.language === 'en' ? 'Confirm your new password' : 'आपल्या नवीन पासवर्डची पुष्टी करा'}
+            placeholder={getText('Confirm your new password', 'आपल्या नवीन पासवर्डची पुष्टी करा', 'आपल्या नवीन पासवर्डची पुष्टी करा')}
             style={{
               width: '100%',
               padding: '12px',
@@ -645,8 +641,8 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
           }}
         >
           {isLoading ? 
-            (i18n.language === 'en' ? '🔄 Resetting...' : '🔄 रीसेट करत आहे...') : 
-            (i18n.language === 'en' ? '✅ Reset Password' : '✅ पासवर्ड रीसेट करा')
+            (getText('🔄 Resetting...', '🔄 रीसेट करत आहे...', '🔄 रीसेट करत आहे...')) : 
+            (getText('✅ Reset Password', '✅ पासवर्ड रीसेट करा', '✅ पासवर्ड रीसेट करा'))
           }
         </button>
       </form>
@@ -676,7 +672,7 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
           color: '#1f2937',
           margin: '0 0 12px 0'
         }}>
-          {i18n.language === 'en' ? 'Password Reset Successful!' : 'पासवर्ड यशस्वीरित्या रीसेट झाला!'}
+          {getText('Password Reset Successful!', 'पासवर्ड यशस्वीरित्या रीसेट झाला!', 'पासवर्ड यशस्वीरित्या रीसेट झाला!')}
         </h1>
         <p style={{ 
           fontSize: '16px', 
@@ -684,9 +680,7 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
           margin: '0 0 32px 0',
           lineHeight: '1.5'
         }}>
-          {i18n.language === 'en' ? 
-            'Your password has been successfully reset. You can now login with your new password.' : 
-            'आपला पासवर्ड यशस्वीरित्या रीसेट केला गेला आहे. आता आपण आपल्या नवीन पासवर्डसह लॉगिन करू शकता.'}
+          {getText('Your password has been successfully reset. You can now login with your new password.', 'आपला पासवर्ड यशस्वीरित्या रीसेट केला गेला आहे. आता आपण आपल्या नवीन पासवर्डसह लॉगिन करू शकता.', 'आपला पासवर्ड यशस्वीरित्या रीसेट केला गेला आहे. आता आपण आपल्या नवीन पासवर्डसह लॉगिन करू शकता.')}
         </p>
         
         <Link
@@ -706,7 +700,7 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
             textAlign: 'center'
           }}
         >
-          {i18n.language === 'en' ? '🔐 Go to Login Page' : '🔐 लॉगिन पृष्ठावर जा'}
+          {getText('🔐 Go to Login Page', '🔐 लॉगिन पृष्ठावर जा', '🔐 लॉगिन पृष्ठावर जा')}
         </Link>
       </div>
     </>
@@ -753,7 +747,7 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack }) => {
                 gap: '8px'
               }}
             >
-              ← {i18n.language === 'en' ? 'Back to Login' : 'लॉगिनकडे परत'}
+              ← {getText('Back to Login', 'लॉगिनकडे परत', 'लॉगिनकडे परत')}
             </Link>
           </div>
         )}

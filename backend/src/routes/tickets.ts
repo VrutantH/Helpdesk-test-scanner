@@ -1,6 +1,13 @@
 import { Router } from 'express';
+import { submitTicket, upload } from '../controllers/ticketController';
 
 const router = Router();
+
+// @desc    Submit ticket from student portal
+// @route   POST /api/tickets/submit
+// @access  Public
+// Accept any file field names from the student portal (we'll map files by their fieldnames in the controller)
+router.post('/submit', upload.any(), submitTicket);
 
 // @desc    Get all tickets
 // @route   GET /api/tickets

@@ -1,219 +1,92 @@
-import { Request, Response } from 'express';
-import { User } from '../models/User';
-import EulaAcceptance from '../models/EulaAcceptance';
+import { Response } from 'express';
+import { AuthRequest } from '../middleware/auth';
+import { EulaAcceptance } from '../models/EulaAcceptance';
 
-// Current EULA version - increment when EULA content changes
-const CURRENT_EULA_VERSION = '1.0';
-
-/**
- * Helper function to extract IP address from request
- */
-const getClientIp = (req: Request): string => {
-  // Check for various headers that might contain the real IP
-  const forwarded = req.headers['x-forwarded-for'];
-  if (forwarded) {
-    const ips = (forwarded as string).split(',');
-    return ips[0].trim();
+// @desc    Get latest EULA
+// @route   GET /api/auth/eula/latest
+// @access  Public
+export const getLatestEula = async (req: AuthRequest, res: Response) => {
+  try {
+    // For now, return a static EULA text
+    // In production, this should fetch from a database
+    res.json({
+      success: true,
+      data: {
+        version: '1.0',
+        text: 'End User License Agreement (EULA) - This is a placeholder EULA text.',
+        effectiveDate: new Date('2024-01-01'),
+      },
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to fetch EULA',
+    });
   }
-  
-  const realIp = req.headers['x-real-ip'];
-  if (realIp) {
-    return realIp as string;
-  }
-  
-  return req.socket.remoteAddress || 'Unknown';
 };
 
-/**
- * Accept EULA - Save acceptance record in separate table
- */
-export const acceptEula = async (req: Request, res: Response) => {
+// @desc    Check if user has accepted EULA
+// @route   GET /api/auth/eula/check
+// @access  Private
+export const hasAcceptedEula = async (req: AuthRequest, res: Response) => {
   try {
-    const { userId, eulaVersion } = req.body;
-    
+    const userId = req.user?.userId;
     if (!userId) {
-      return res.status(400).json({
+      res.status(401).json({
         success: false,
-        message: 'User ID is required'
+        error: 'User not authenticated',
       });
+      return;
     }
 
-    // Find the user and populate role
-    const user = await User.findById(userId).populate('role');
-    
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found'
-      });
-    }
+    const acceptance = await EulaAcceptance.findOne({ userId }).sort({ acceptedAt: -1 });
 
-    // Extract role code from populated role object
-    let roleCode = 'user'; // default
-    if (user.role && typeof user.role === 'object' && 'code' in user.role) {
-      // Map uppercase codes to lowercase: SUPER_ADMIN -> super_admin
-      roleCode = (user.role as any).code.toLowerCase();
-    }
-    console.log(`🔍 User role: ${roleCode}, Role object:`, user.role);
-
-    const versionToAccept = eulaVersion || CURRENT_EULA_VERSION;
-
-    // Check if user has already accepted this version
-    const existingAcceptance = await EulaAcceptance.findOne({
-      userId: user._id,
-      eulaVersion: versionToAccept
-    });
-
-    if (existingAcceptance) {
-      console.log(`ℹ️  User ${user.email} has already accepted EULA version ${versionToAccept}`);
-      return res.json({
-        success: true,
-        message: 'EULA already accepted',
-        acceptance: {
-          id: existingAcceptance._id,
-          userName: existingAcceptance.userName,
-          userEmail: existingAcceptance.userEmail,
-          userRole: existingAcceptance.userRole,
-          ipAddress: existingAcceptance.ipAddress,
-          eulaVersion: existingAcceptance.eulaVersion,
-          acceptedAt: existingAcceptance.acceptedAt
-        }
-      });
-    }
-
-    // Get client information
-    const ipAddress = getClientIp(req);
-    const userAgent = req.headers['user-agent'] || 'Unknown';
-
-    // Create EULA acceptance record
-    const eulaAcceptance = await EulaAcceptance.create({
-      userId: user._id,
-      userName: `${user.firstName} ${user.lastName}`.trim(),
-      userEmail: user.email,
-      userRole: roleCode,
-      ipAddress,
-      userAgent,
-      eulaVersion: versionToAccept,
-      acceptedAt: new Date()
-    });
-
-    console.log(`✅ EULA Acceptance recorded - User: ${user.email}, IP: ${ipAddress}, Role: ${roleCode}, Version: ${eulaAcceptance.eulaVersion}`);
-
-    return res.json({
+    res.json({
       success: true,
-      message: 'EULA accepted successfully',
-      acceptance: {
-        id: eulaAcceptance._id,
-        userName: eulaAcceptance.userName,
-        userEmail: eulaAcceptance.userEmail,
-        userRole: eulaAcceptance.userRole,
-        ipAddress: eulaAcceptance.ipAddress,
-        eulaVersion: eulaAcceptance.eulaVersion,
-        acceptedAt: eulaAcceptance.acceptedAt
-      }
+      data: {
+        hasAccepted: !!acceptance,
+        version: acceptance?.version,
+        acceptedAt: acceptance?.acceptedAt,
+      },
     });
-
-  } catch (error) {
-    console.error('❌ Accept EULA error:', error);
-    return res.status(500).json({
+  } catch (error: any) {
+    res.status(500).json({
       success: false,
-      message: 'Internal server error'
+      error: error.message || 'Failed to check EULA acceptance',
     });
   }
 };
 
-/**
- * Check EULA status - Check if user has accepted current version
- */
-export const checkEulaStatus = async (req: Request, res: Response) => {
+// @desc    Accept EULA
+// @route   POST /api/auth/eula/accept
+// @access  Private
+export const acceptEula = async (req: AuthRequest, res: Response) => {
   try {
-    const { userId } = req.query;
-    
-    if (!userId || typeof userId !== 'string') {
-      return res.status(400).json({
+    const userId = req.user?.userId;
+    if (!userId) {
+      res.status(401).json({
         success: false,
-        message: 'User ID is required'
+        error: 'User not authenticated',
       });
+      return;
     }
 
-    const user = await User.findById(userId).populate('role');
-    
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found'
-      });
-    }
+    const { version } = req.body;
 
-    // Check if user has accepted the current EULA version
-    const acceptance = await EulaAcceptance.findOne({
-      userId: user._id,
-      eulaVersion: CURRENT_EULA_VERSION
-    }).sort({ acceptedAt: -1 });
+    const acceptance = await EulaAcceptance.create({
+      userId,
+      version: version || '1.0',
+      ipAddress: req.ip,
+    });
 
-    const hasAccepted = !!acceptance;
-
-    console.log(`ℹ️  EULA Status check - User: ${user.email}, Accepted: ${hasAccepted}, Version: ${CURRENT_EULA_VERSION}`);
-
-    return res.json({
+    res.status(201).json({
       success: true,
-      eulaAccepted: hasAccepted,
-      eulaVersion: CURRENT_EULA_VERSION,
-      acceptance: acceptance ? {
-        ipAddress: acceptance.ipAddress,
-        acceptedAt: acceptance.acceptedAt,
-        eulaVersion: acceptance.eulaVersion
-      } : null
+      data: acceptance,
     });
-
-  } catch (error) {
-    console.error('❌ Check EULA status error:', error);
-    return res.status(500).json({
+  } catch (error: any) {
+    res.status(500).json({
       success: false,
-      message: 'Internal server error'
-    });
-  }
-};
-
-/**
- * Get user's EULA acceptance history
- */
-export const getEulaHistory = async (req: Request, res: Response) => {
-  try {
-    const { userId } = req.query;
-    
-    if (!userId || typeof userId !== 'string') {
-      return res.status(400).json({
-        success: false,
-        message: 'User ID is required'
-      });
-    }
-
-    // Get all EULA acceptances for this user
-    const acceptances = await EulaAcceptance.find({ userId })
-      .sort({ acceptedAt: -1 })
-      .limit(10);
-
-    return res.json({
-      success: true,
-      count: acceptances.length,
-      acceptances: acceptances.map(acc => ({
-        id: acc._id,
-        userName: acc.userName,
-        userEmail: acc.userEmail,
-        userRole: acc.userRole,
-        ipAddress: acc.ipAddress,
-        userAgent: acc.userAgent,
-        eulaVersion: acc.eulaVersion,
-        acceptedAt: acc.acceptedAt
-      }))
-    });
-
-  } catch (error) {
-    console.error('❌ Get EULA history error:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Internal server error'
+      error: error.message || 'Failed to accept EULA',
     });
   }
 };

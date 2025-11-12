@@ -1,15 +1,26 @@
-import express from 'express';
-import { acceptEula, checkEulaStatus, getEulaHistory } from '../controllers/eulaController';
+import { Router } from 'express';
+import { auth } from '../middleware/auth';
+import {
+  acceptEula,
+  getLatestEula,
+  hasAcceptedEula,
+} from '../controllers/eulaController';
 
-const router = express.Router();
+const router = Router();
 
-// Accept EULA
-router.post('/accept-eula', acceptEula);
+// @desc    Get latest EULA
+// @route   GET /api/auth/eula/latest
+// @access  Public
+router.get('/eula/latest', getLatestEula);
 
-// Check EULA status
-router.get('/eula-status', checkEulaStatus);
+// @desc    Check if user has accepted EULA
+// @route   GET /api/auth/eula/check
+// @access  Private
+router.get('/eula/check', auth, hasAcceptedEula);
 
-// Get EULA acceptance history for a user
-router.get('/eula-history', getEulaHistory);
+// @desc    Accept EULA
+// @route   POST /api/auth/eula/accept
+// @access  Private
+router.post('/eula/accept', auth, acceptEula);
 
 export default router;

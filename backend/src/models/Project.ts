@@ -6,7 +6,6 @@ export interface IProject extends Document {
   name: string;
   code: string; // Short code for project
   description?: string;
-  organizationType: 'government' | 'ngo' | 'private' | 'partner';
   
   // Contact Information
   address?: {
@@ -85,6 +84,24 @@ export interface IProject extends Document {
       defaultResponseTime?: number; // in hours
       defaultResolutionTime?: number; // in hours
     };
+    ticketAssignmentSettings?: {
+      enabled: boolean;
+      assignmentType: 'round-robin' | 'load-balanced' | 'manual' | 'condition-based';
+      assignToUsers?: mongoose.Types.ObjectId[]; // Pool of agents for auto-assignment
+      assignToRoles?: string[]; // Roles eligible for assignment (e.g., 'Agent', 'Support')
+      reassignOnEscalation?: boolean;
+      notifyOnAssignment?: boolean;
+      conditionRules?: Array<{
+        field: string;
+        operator: string;
+        categories: string[];
+        assignToAgents: string[];
+      }>;
+      manualAssignmentPermissions?: Array<{
+        roleId: string; // Role that can assign tickets
+        canAssignToRoles: string[]; // Role IDs they can assign to
+      }>;
+    };
     securitySettings?: {
       mfaRequired?: boolean;
       passwordPolicy?: {
@@ -130,6 +147,36 @@ export interface IProject extends Document {
       customCSS?: string;
       customJS?: string;
     };
+    ticketSubmissionSettings?: {
+      mode?: 'online' | 'offline' | 'both'; // How students can submit tickets
+      enableOnlineForm?: boolean;
+      enableOfflineCenter?: boolean;
+      onlineFormFields?: Array<{
+        fieldName: string;
+        fieldType: 'text' | 'email' | 'phone' | 'textarea' | 'dropdown' | 'file';
+        required: boolean;
+        placeholder?: string;
+        options?: string[];
+      }>;
+      offlineCenters?: Array<{
+        centerName: string;
+        address: string;
+        city: string;
+        state: string;
+        pincode: string;
+        phone?: string;
+        email?: string;
+        workingHours?: string;
+        latitude?: number;
+        longitude?: number;
+      }>;
+      welcomeMessage?: string;
+      successMessage?: string;
+      announcement?: string;
+      allowAttachments?: boolean;
+      maxAttachmentSize?: number; // in MB
+      allowedFileTypes?: string[];
+    };
   };
   
   // Status and Metadata
@@ -164,11 +211,6 @@ const projectSchema = new Schema<IProject>({
   description: {
     type: String,
     trim: true,
-  },
-  organizationType: {
-    type: String,
-    enum: ['government', 'ngo', 'private', 'partner'],
-    required: false, // Default to 'private'
   },
   
   // Contact Information
@@ -262,6 +304,24 @@ const projectSchema = new Schema<IProject>({
       defaultResponseTime: Number,
       defaultResolutionTime: Number,
     },
+    ticketAssignmentSettings: {
+      enabled: { type: Boolean, default: false },
+      assignmentType: { type: String, enum: ['round-robin', 'load-balanced', 'manual', 'condition-based'], default: 'manual' },
+      assignToUsers: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+      assignToRoles: [{ type: String }],
+      reassignOnEscalation: { type: Boolean, default: false },
+      notifyOnAssignment: { type: Boolean, default: true },
+      conditionRules: [{
+        field: { type: String },
+        operator: { type: String },
+        categories: [{ type: String }],
+        assignToAgents: [{ type: String }]
+      }],
+      manualAssignmentPermissions: [{
+        roleId: { type: String },
+        canAssignToRoles: [{ type: String }]
+      }]
+    },
     securitySettings: {
       mfaRequired: { type: Boolean, default: false },
       passwordPolicy: {
@@ -307,6 +367,36 @@ const projectSchema = new Schema<IProject>({
       customCSS: { type: String },
       customJS: { type: String },
     },
+    ticketSubmissionSettings: {
+      mode: { type: String, enum: ['online', 'offline', 'both'], default: 'both' },
+      enableOnlineForm: { type: Boolean, default: true },
+      enableOfflineCenter: { type: Boolean, default: true },
+      onlineFormFields: [{
+        fieldName: { type: String },
+        fieldType: { type: String, enum: ['text', 'email', 'phone', 'textarea', 'dropdown', 'file'] },
+        required: { type: Boolean, default: false },
+        placeholder: { type: String },
+        options: [{ type: String }],
+      }],
+      offlineCenters: [{
+        centerName: { type: String },
+        address: { type: String },
+        city: { type: String },
+        state: { type: String },
+        pincode: { type: String },
+        phone: { type: String },
+        email: { type: String },
+        workingHours: { type: String },
+        latitude: { type: Number },
+        longitude: { type: Number },
+      }],
+      welcomeMessage: { type: String },
+      successMessage: { type: String },
+      announcement: { type: String },
+      allowAttachments: { type: Boolean, default: true },
+      maxAttachmentSize: { type: Number, default: 10 }, // 10 MB
+      allowedFileTypes: [{ type: String }],
+    },
   },
   
   // Status and Metadata
@@ -339,7 +429,6 @@ const projectSchema = new Schema<IProject>({
 projectSchema.index({ projectId: 1 });
 projectSchema.index({ code: 1 });
 projectSchema.index({ name: 1 });
-projectSchema.index({ organizationType: 1 });
 projectSchema.index({ status: 1 });
 projectSchema.index({ isActive: 1 });
 projectSchema.index({ createdAt: -1 });
@@ -361,11 +450,6 @@ projectSchema.pre('save', async function(next) {
     // Auto-generate code from portal name if not provided
     if (!this.code && this.branding?.headerText) {
       this.code = this.branding.headerText.replace(/\s+/g, '').toUpperCase().substring(0, 10);
-    }
-    
-    // Set default organization type if not provided
-    if (!this.organizationType) {
-      this.organizationType = 'private';
     }
   }
   next();

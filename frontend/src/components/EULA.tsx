@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { formatDateTimeToDDMMYYYY } from '../utils/dateFormat';
+import { getText } from '../utils/language';
+
 
 const EULA = () => {
   const { i18n } = useTranslation();
@@ -10,9 +12,7 @@ const EULA = () => {
 
   const handleAccept = async () => {
     if (!isChecked) {
-      alert(i18n.language === 'en' 
-        ? 'Please read and agree to the Terms and Conditions' 
-        : 'कृपया अटी आणि शर्ती वाचा आणि सहमत व्हा');
+      alert(getText('Please read and agree to the Terms and Conditions', 'कृपया अटी आणि शर्ती वाचा आणि सहमत व्हा', 'कृपया अटी आणि शर्ती वाचा आणि सहमत व्हा'));
       return;
     }
 
@@ -58,7 +58,7 @@ const EULA = () => {
   };
 
   const toggleLanguage = () => {
-    const newLang = i18n.language === 'en' ? 'mr' : 'en';
+    const newLang = getText('mr', 'en', 'en');
     i18n.changeLanguage(newLang);
   };
 
@@ -108,16 +108,14 @@ const EULA = () => {
                 fontSize: '24px',
                 fontWeight: '600'
               }}>
-                {i18n.language === 'en' ? 'End-User License Agreement' : 'अंतिम-वापरकर्ता परवाना करार'}
+                {getText('End-User License Agreement', 'अंतिम-वापरकर्ता परवाना करार', 'अंतिम-वापरकर्ता परवाना करार')}
               </h1>
               <p style={{
                 margin: '4px 0 0 0',
                 color: 'rgba(255, 255, 255, 0.9)',
                 fontSize: '14px'
               }}>
-                {i18n.language === 'en' 
-                  ? 'PLEASE READ THE TERMS AND CONDITIONS CAREFULLY' 
-                  : 'कृपया अटी आणि शर्ती काळजीपूर्वक वाचा'}
+                {getText('PLEASE READ THE TERMS AND CONDITIONS CAREFULLY', 'कृपया अटी आणि शर्ती काळजीपूर्वक वाचा', 'कृपया अटी आणि शर्ती काळजीपूर्वक वाचा')}
               </p>
             </div>
           </div>
@@ -144,7 +142,7 @@ const EULA = () => {
               e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
             }}
           >
-            🌐 {i18n.language === 'en' ? 'मराठी' : 'English'}
+            🌐 {getText('मराठी', 'English', 'English')}
           </button>
         </div>
 
@@ -162,9 +160,7 @@ const EULA = () => {
             fontSize: '14px',
             lineHeight: '1.6'
           }}>
-            {i18n.language === 'en'
-              ? 'Before installing the Software, please read the terms and conditions of this document carefully. If you do not agree to the terms and conditions, please do not install this Software.'
-              : 'सॉफ्टवेअर इंस्टॉल करण्यापूर्वी, कृपया या दस्तऐवजातील अटी आणि शर्ती काळजीपूर्वक वाचा. जर तुम्ही अटी आणि शर्तींशी सहमत नसाल तर कृपया हे सॉफ्टवेअर इंस्टॉल करू नका.'}
+            {getText('Before installing the Software, please read the terms and conditions of this document carefully. If you do not agree to the terms and conditions, please do not install this Software.', 'सॉफ्टवेअर इंस्टॉल करण्यापूर्वी, कृपया या दस्तऐवजातील अटी आणि शर्ती काळजीपूर्वक वाचा. जर तुम्ही अटी आणि शर्तींशी सहमत नसाल तर कृपया हे सॉफ्टवेअर इंस्टॉल करू नका.', 'सॉफ्टवेअर इंस्टॉल करण्यापूर्वी, कृपया या दस्तऐवजातील अटी आणि शर्ती काळजीपूर्वक वाचा. जर तुम्ही अटी आणि शर्तींशी सहमत नसाल तर कृपया हे सॉफ्टवेअर इंस्टॉल करू नका.')}
           </p>
         </div>
 
@@ -343,9 +339,7 @@ const EULA = () => {
               }}
             />
             <span>
-              {i18n.language === 'en'
-                ? 'I have read and agree to the Terms and Conditions'
-                : 'मी अटी आणि शर्ती वाचल्या आहेत आणि त्यांना सहमत आहे'}
+              {getText('I have read and agree to the Terms and Conditions', 'मी अटी आणि शर्ती वाचल्या आहेत आणि त्यांना सहमत आहे', 'मी अटी आणि शर्ती वाचल्या आहेत आणि त्यांना सहमत आहे')}
             </span>
           </label>
         </div>
@@ -381,7 +375,7 @@ const EULA = () => {
               }
             }}
           >
-            {i18n.language === 'en' ? 'I Accept' : 'मी स्वीकारतो'}
+            {getText('I Accept', 'मी स्वीकारतो', 'मी स्वीकारतो')}
           </button>
         </div>
       </div>
