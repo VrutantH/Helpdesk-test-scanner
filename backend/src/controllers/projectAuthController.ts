@@ -74,6 +74,178 @@ export const getProjectBrandingByUrl = async (req: Request, res: Response) => {
   }
 };
 
+// Project-specific login by custom URL path
+export const projectLoginByUrl = async (req: Request, res: Response) => {
+  try {
+    const { customUrlPath } = req.params;
+    const { email, password } = req.body;
+
+    console.log('🔐 Project login attempt by URL:', email, 'Path:', customUrlPath);
+
+    // Validate input
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email and password are required'
+      });
+    }
+
+    // Find project by custom URL path
+    const project = await Project.findOne({
+      'branding.customUrlPath': customUrlPath.toLowerCase(),
+      isActive: true,
+      status: 'active'
+    });
+
+    if (!project) {
+      console.log('❌ Project not found for URL:', customUrlPath);
+      return res.status(404).json({
+        success: false,
+        message: 'Project not found'
+      });
+    }
+
+    // Find user in database and populate role
+    const user = await User.findOne({ 
+      email: email.toLowerCase(), 
+      isActive: true 
+    }).populate('role');
+
+    if (!user) {
+      console.log('❌ User not found:', email);
+      
+      await logLogin(
+        '',
+        '',
+        email,
+        req,
+        'failure',
+        'User not found'
+      );
+      
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid credentials'
+      });
+    }
+
+    // Verify user is mapped to this project
+    const isAuthorized = user.projects?.some(
+      (pid) => pid.toString() === project._id.toString()
+    );
+    
+    if (!isAuthorized) {
+      console.log('❌ User not authorized for project:', project.name);
+      
+      await logLogin(
+        user._id.toString(),
+        `${user.firstName} ${user.lastName}`,
+        user.email,
+        req,
+        'failure',
+        'User not authorized for this project'
+      );
+      
+      return res.status(403).json({
+        success: false,
+        message: 'You are not authorized to access this project'
+      });
+    }
+
+    // Verify password
+    const isPasswordValid = await user.comparePassword(password);
+    if (!isPasswordValid) {
+      console.log('❌ Invalid password for:', email);
+      
+      await logLogin(
+        user._id.toString(),
+        `${user.firstName} ${user.lastName}`,
+        user.email,
+        req,
+        'failure',
+        'Invalid password'
+      );
+      
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid credentials'
+      });
+    }
+
+    // Generate JWT token
+    const payload = { 
+      userId: user._id, 
+      email: user.email, 
+      role: user.role,
+      projectId: project._id,
+      projectName: project.name
+    };
+    const secret = process.env.JWT_SECRET || 'fallback-secret-key-for-development';
+    const options: SignOptions = { 
+      expiresIn: '7d'
+    };
+    
+    const token = jwt.sign(payload, secret, options);
+
+    // Set HTTP-only cookie
+    res.cookie('authToken', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    });
+
+    console.log('✅ Project login successful:', email, 'Project:', project.name);
+
+    // Get role information
+    const roleData = user.role && typeof user.role === 'object' 
+      ? user.role as any 
+      : { name: 'User', code: 'USER' };
+
+    await logLogin(
+      user._id.toString(),
+      `${user.firstName} ${user.lastName}`,
+      user.email,
+      req,
+      'success',
+      undefined,
+      project.name,
+      roleData.name
+    );
+
+    return res.json({
+      success: true,
+      data: {
+        user: {
+          id: user._id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          name: `${user.firstName} ${user.lastName}`,
+          role: {
+            name: roleData.name,
+            code: roleData.code
+          },
+          project: {
+            id: project._id,
+            name: project.name,
+            code: project.code
+          }
+        },
+        token
+      },
+      message: 'Login successful'
+    });
+
+  } catch (error) {
+    console.error('Project login by URL error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+};
+
 // Project-specific login
 export const projectLogin = async (req: Request, res: Response) => {
   try {

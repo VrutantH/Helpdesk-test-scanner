@@ -135,7 +135,11 @@ export const login = async (req: Request<{}, {}, LoginRequest>, res: Response) =
     const payload = { 
       userId: user._id, 
       email: user.email, 
-      role: user.role 
+      role: user.role ? {
+        _id: (user.role as any)._id,
+        code: (user.role as any).code,
+        name: (user.role as any).name
+      } : null
     };
     const secret = process.env.JWT_SECRET || 'fallback-secret-key-for-development';
     const options: SignOptions = { 
@@ -232,10 +236,67 @@ export const login = async (req: Request<{}, {}, LoginRequest>, res: Response) =
     });
 
   } catch (error) {
-    console.error('Login error:', error);
+    console.error('Logout error:', error);
     return res.status(500).json({
       success: false,
       error: 'Internal server error'
+    });
+  }
+};
+
+/**
+ * Get current user profile
+ */
+export const getMe = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+    
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Unauthorized'
+      });
+    }
+
+    // Find user and populate role
+    const user = await User.findById(userId).populate('role');
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Get role information
+    const roleData = user.role && typeof user.role === 'object' 
+      ? user.role as any 
+      : { name: 'User', code: 'USER' };
+
+    return res.json({
+      success: true,
+      data: {
+        _id: user._id,
+        id: user._id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        name: `${user.firstName} ${user.lastName}`,
+        role: {
+          name: roleData.name,
+          code: roleData.code,
+          _id: roleData._id
+        },
+        projects: user.projects,
+        isActive: user.isActive
+      }
+    });
+
+  } catch (error) {
+    console.error('Get me error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error'
     });
   }
 };

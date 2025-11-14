@@ -381,6 +381,7 @@ export const getProjectBranding = async (req: Request, res: Response) => {
       logoUrl: project.branding?.logo,
       welcomeText: project.branding?.headerText,
       footerText: project.branding?.footerText,
+      knowledgeBase: (project as any).knowledgeBase ?? true, // Enable KB by default
     };
     
     console.log(`✅ Found project branding: ${project.name}`);

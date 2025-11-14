@@ -5,6 +5,7 @@ import {
   getUserById,
   updateUser,
   deleteUser,
+  getUserPermissions,
 } from '../controllers/userController';
 
 const router = Router();
@@ -21,6 +22,11 @@ router.get('/', getAllUsers);
 // @route   GET /api/users/:id
 // @access  Private
 router.get('/:id', getUserById);
+
+// @desc    Get user permissions
+// @route   GET /api/users/:id/permissions
+// @access  Private
+router.get('/:id/permissions', getUserPermissions);
 
 // @desc    Update user
 // @route   PUT /api/users/:id

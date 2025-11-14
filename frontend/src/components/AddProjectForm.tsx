@@ -122,6 +122,8 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
       workingHours: string;
       latitude?: number;
       longitude?: number;
+      features?: string[];
+      mapLink?: string;
     }>,
     
     // File Download Settings
@@ -294,6 +296,8 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
   const [timezones, setTimezones] = useState<Array<{ key: string; value: string }>>([]);
   const [dateFormats, setDateFormats] = useState<Array<{ key: string; value: string }>>([]);
   const [currencies, setCurrencies] = useState<Array<{ key: string; value: string }>>([]);
+  const [states, setStates] = useState<Array<{ key: string; value: string }>>([]);
+  const [cities, setCities] = useState<Array<{ key: string; value: string }>>([]);
   const [users, setUsers] = useState<Array<{ _id: string; name: string; email: string; role: string; roleId?: string; projects?: string[] }>>([]);
   const [roles, setRoles] = useState<Array<{ _id: string; name: string; code: string; projectId?: string; projects?: string[]; type?: string }>>([]);
   const [agentRoleId, setAgentRoleId] = useState<string>('');
@@ -346,24 +350,28 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
           'Authorization': `Bearer ${token}`,
         };
         
-        const [orgTypesRes, countriesRes, languagesRes, timezonesRes, dateFormatsRes, currenciesRes, usersRes, rolesRes] = await Promise.all([
+        const [orgTypesRes, countriesRes, languagesRes, timezonesRes, dateFormatsRes, currenciesRes, statesRes, citiesRes, usersRes, rolesRes] = await Promise.all([
           fetch('http://localhost:3003/api/masters/organization-types', { headers, credentials: 'include' }),
           fetch('http://localhost:3003/api/masters/countries', { headers, credentials: 'include' }),
           fetch('http://localhost:3003/api/masters/languages', { headers, credentials: 'include' }),
           fetch('http://localhost:3003/api/masters/timezones', { headers, credentials: 'include' }),
           fetch('http://localhost:3003/api/masters/date-formats', { headers, credentials: 'include' }),
           fetch('http://localhost:3003/api/masters/currencies', { headers, credentials: 'include' }),
+          fetch('http://localhost:3003/api/masters/states', { headers, credentials: 'include' }),
+          fetch('http://localhost:3003/api/masters/cities', { headers, credentials: 'include' }),
           fetch('http://localhost:3003/api/users', { headers, credentials: 'include' }),
           fetch('http://localhost:3003/api/roles', { headers, credentials: 'include' })
         ]);
 
-        const [orgTypes, countries, languages, timezones, dateFormats, currencies, usersData, rolesData] = await Promise.all([
+        const [orgTypes, countries, languages, timezones, dateFormats, currencies, statesData, citiesData, usersData, rolesData] = await Promise.all([
           orgTypesRes.json(),
           countriesRes.json(),
           languagesRes.json(),
           timezonesRes.json(),
           dateFormatsRes.json(),
           currenciesRes.json(),
+          statesRes.json(),
+          citiesRes.json(),
           usersRes.json(),
           rolesRes.json()
         ]);
@@ -374,6 +382,8 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
         if (timezones.success) setTimezones(timezones.data);
         if (dateFormats.success) setDateFormats(dateFormats.data);
         if (currencies.success) setCurrencies(currencies.data);
+        if (statesData.success) setStates(statesData.data.map((item: any) => ({ key: item.key, value: item.value })));
+        if (citiesData.success) setCities(citiesData.data.map((item: any) => ({ key: item.key, value: item.value })));
         if (usersData.success) setUsers(usersData.data);
         if (rolesData.success) {
           console.log('🔍 DEBUG - Roles API Response:', rolesData.data);
@@ -3922,7 +3932,9 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
                               email: '',
                               workingHours: '',
                               latitude: undefined,
-                              longitude: undefined
+                              longitude: undefined,
+                              features: [],
+                              mapLink: ''
                             }
                           ]
                         });
@@ -4022,9 +4034,7 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
                                 fontSize: '14px'
                               }}
                             />
-                            <input
-                              type="text"
-                              placeholder="City"
+                            <select
                               value={center.city}
                               onChange={(e) => {
                                 const newCenters = [...formData.offlineCenters];
@@ -4035,12 +4045,17 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
                                 padding: '10px 12px',
                                 border: '1px solid #d1d5db',
                                 borderRadius: '6px',
-                                fontSize: '14px'
+                                fontSize: '14px',
+                                backgroundColor: 'white',
+                                cursor: 'pointer'
                               }}
-                            />
-                            <input
-                              type="text"
-                              placeholder="State"
+                            >
+                              <option value="">Select City</option>
+                              {cities.map((city) => (
+                                <option key={city.key} value={city.value}>{city.value}</option>
+                              ))}
+                            </select>
+                            <select
                               value={center.state}
                               onChange={(e) => {
                                 const newCenters = [...formData.offlineCenters];
@@ -4051,9 +4066,16 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
                                 padding: '10px 12px',
                                 border: '1px solid #d1d5db',
                                 borderRadius: '6px',
-                                fontSize: '14px'
+                                fontSize: '14px',
+                                backgroundColor: 'white',
+                                cursor: 'pointer'
                               }}
-                            />
+                            >
+                              <option value="">Select State</option>
+                              {states.map((state) => (
+                                <option key={state.key} value={state.value}>{state.value}</option>
+                              ))}
+                            </select>
                             <input
                               type="text"
                               placeholder="Pincode"
@@ -4120,6 +4142,106 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
                                 fontSize: '14px'
                               }}
                             />
+                            <input
+                              type="text"
+                              placeholder="Google Maps Link (for directions)"
+                              value={center.mapLink || ''}
+                              onChange={(e) => {
+                                const newCenters = [...formData.offlineCenters];
+                                newCenters[index].mapLink = e.target.value;
+                                setFormData({ ...formData, offlineCenters: newCenters });
+                              }}
+                              style={{
+                                gridColumn: '1 / -1',
+                                padding: '10px 12px',
+                                border: '1px solid #d1d5db',
+                                borderRadius: '6px',
+                                fontSize: '14px'
+                              }}
+                            />
+                            <div style={{ gridColumn: '1 / -1' }}>
+                              <div style={{ marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>
+                                  Features Available
+                                </label>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const newCenters = [...formData.offlineCenters];
+                                    if (!newCenters[index].features) {
+                                      newCenters[index].features = [];
+                                    }
+                                    newCenters[index].features!.push('');
+                                    setFormData({ ...formData, offlineCenters: newCenters });
+                                  }}
+                                  style={{
+                                    padding: '4px 12px',
+                                    backgroundColor: '#10b981',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    fontSize: '12px',
+                                    cursor: 'pointer'
+                                  }}
+                                >
+                                  + Add Feature
+                                </button>
+                              </div>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                {(center.features || []).map((feature, featureIndex) => (
+                                  <div key={featureIndex} style={{ display: 'flex', gap: '8px' }}>
+                                    <input
+                                      type="text"
+                                      placeholder="e.g., WiFi, Parking, Wheelchair Access"
+                                      value={feature}
+                                      onChange={(e) => {
+                                        const newCenters = [...formData.offlineCenters];
+                                        newCenters[index].features![featureIndex] = e.target.value;
+                                        setFormData({ ...formData, offlineCenters: newCenters });
+                                      }}
+                                      style={{
+                                        flex: 1,
+                                        padding: '8px 12px',
+                                        border: '1px solid #d1d5db',
+                                        borderRadius: '6px',
+                                        fontSize: '14px'
+                                      }}
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const newCenters = [...formData.offlineCenters];
+                                        newCenters[index].features!.splice(featureIndex, 1);
+                                        setFormData({ ...formData, offlineCenters: newCenters });
+                                      }}
+                                      style={{
+                                        padding: '8px 12px',
+                                        backgroundColor: '#ef4444',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '6px',
+                                        fontSize: '12px',
+                                        cursor: 'pointer'
+                                      }}
+                                    >
+                                      Remove
+                                    </button>
+                                  </div>
+                                ))}
+                                {(!center.features || center.features.length === 0) && (
+                                  <div style={{ 
+                                    padding: '12px', 
+                                    backgroundColor: '#f3f4f6', 
+                                    borderRadius: '6px',
+                                    textAlign: 'center',
+                                    color: '#6b7280',
+                                    fontSize: '13px'
+                                  }}>
+                                    No features added. Click "Add Feature" to list center amenities.
+                                  </div>
+                                )}
+                              </div>
+                            </div>
                           </div>
                         </div>
                       ))}

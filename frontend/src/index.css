@@ -913,3 +913,163 @@
     }
   }
 }
+/* ========================================
+   KB ARTICLE CONTENT STYLES
+   Rich text formatting for knowledge base articles
+   ======================================== */
+.kb-content {
+  line-height: 1.75;
+  color: var(--text-primary);
+}
+
+.kb-content p {
+  margin-bottom: 1em;
+}
+
+.kb-content h1,
+.kb-content h2,
+.kb-content h3,
+.kb-content h4,
+.kb-content h5,
+.kb-content h6 {
+  font-weight: 600;
+  margin-top: 1.5em;
+  margin-bottom: 0.75em;
+  line-height: 1.25;
+}
+
+.kb-content h1 { font-size: 2em; }
+.kb-content h2 { font-size: 1.75em; }
+.kb-content h3 { font-size: 1.5em; }
+.kb-content h4 { font-size: 1.25em; }
+.kb-content h5 { font-size: 1.125em; }
+.kb-content h6 { font-size: 1em; }
+
+.kb-content ul,
+.kb-content ol {
+  margin: 1em 0;
+  padding-left: 2em;
+  list-style-position: outside;
+}
+
+.kb-content ul {
+  list-style-type: disc;
+}
+
+.kb-content ol {
+  list-style-type: decimal;
+}
+
+.kb-content li {
+  margin-bottom: 0.5em;
+  padding-left: 0.25em;
+}
+
+.kb-content li > p {
+  margin-bottom: 0.5em;
+}
+
+.kb-content ul ul,
+.kb-content ol ul {
+  list-style-type: circle;
+  margin-top: 0.5em;
+}
+
+.kb-content ul ul ul,
+.kb-content ol ul ul,
+.kb-content ol ol ul {
+  list-style-type: square;
+}
+
+.kb-content ol ol,
+.kb-content ul ol {
+  list-style-type: lower-alpha;
+  margin-top: 0.5em;
+}
+
+.kb-content a {
+  color: var(--primary-main);
+  text-decoration: underline;
+  font-weight: 500;
+  transition: color 200ms ease;
+}
+
+.kb-content a:hover {
+  color: var(--primary-variant);
+  text-decoration: underline;
+}
+
+.kb-content strong,
+.kb-content b {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.kb-content em,
+.kb-content i {
+  font-style: italic;
+}
+
+.kb-content u {
+  text-decoration: underline;
+}
+
+.kb-content code {
+  background-color: var(--surface-variant);
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+  font-size: 0.875em;
+  font-family: 'Courier New', monospace;
+}
+
+.kb-content pre {
+  background-color: var(--surface-variant);
+  padding: 1em;
+  border-radius: var(--radius-md);
+  overflow-x: auto;
+  margin: 1em 0;
+}
+
+.kb-content pre code {
+  background-color: transparent;
+  padding: 0;
+}
+
+.kb-content blockquote {
+  border-left: 4px solid var(--primary-main);
+  padding-left: 1em;
+  margin: 1em 0;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.kb-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-md);
+  margin: 1em 0;
+}
+
+.kb-content hr {
+  border: none;
+  border-top: 1px solid var(--border-light);
+  margin: 2em 0;
+}
+
+.kb-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1em 0;
+}
+
+.kb-content th,
+.kb-content td {
+  border: 1px solid var(--border-light);
+  padding: 0.75em;
+  text-align: left;
+}
+
+.kb-content th {
+  background-color: var(--surface-variant);
+  font-weight: 600;
+}

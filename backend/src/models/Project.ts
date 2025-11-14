@@ -176,6 +176,7 @@ export interface IProject extends Document {
       allowAttachments?: boolean;
       maxAttachmentSize?: number; // in MB
       allowedFileTypes?: string[];
+      allowStudentToCloseTicket?: boolean; // Allow students to close their own tickets
     };
   };
   
@@ -389,6 +390,8 @@ const projectSchema = new Schema<IProject>({
         workingHours: { type: String },
         latitude: { type: Number },
         longitude: { type: Number },
+        features: [{ type: String }],
+        mapLink: { type: String },
       }],
       welcomeMessage: { type: String },
       successMessage: { type: String },

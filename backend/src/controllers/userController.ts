@@ -734,3 +734,54 @@ export const resetUserPassword = async (req: Request, res: Response): Promise<vo
     });
   }
 };
+
+/**
+ * Get user permissions by role and project
+ */
+export const getUserPermissions = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { projectId } = req.query;
+
+    const user = await User.findById(id).populate('role');
+    if (!user) {
+      res.status(404).json({
+        success: false,
+        error: 'User not found',
+      });
+      return;
+    }
+
+    // Get role permissions
+    const role = user.role as any;
+    if (!role || !role.permissions) {
+      res.json({
+        success: true,
+        data: [],
+      });
+      return;
+    }
+
+    // If projectId is provided, filter permissions for that project
+    let permissions = role.permissions;
+    
+    if (projectId) {
+      // Filter permissions by project (if role-project mapping exists)
+      // For now, return all role permissions
+      permissions = role.permissions;
+    }
+
+    res.json({
+      success: true,
+      data: permissions,
+    });
+
+  } catch (error: any) {
+    console.error('Get user permissions error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch user permissions',
+      message: error.message,
+    });
+  }
+};

@@ -17,26 +17,26 @@ router.use(auth);
 // @desc    Get all roles
 // @route   GET /api/roles
 // @access  Private
-router.get('/roles', getRoles);
+router.get('/', getRoles);
 
 // @desc    Get role by ID
 // @route   GET /api/roles/:id
 // @access  Private
-router.get('/roles/:id', getRoleById);
+router.get('/:id', getRoleById);
 
 // @desc    Create new role
 // @route   POST /api/roles
 // @access  Private (requires permission)
-router.post('/roles', checkPermission('role', 'create'), createRole);
+router.post('/', checkPermission('role', 'create'), createRole);
 
 // @desc    Update role
 // @route   PUT /api/roles/:id
 // @access  Private (requires permission)
-router.put('/roles/:id', checkPermission('role', 'update'), updateRole);
+router.put('/:id', checkPermission('role', 'update'), updateRole);
 
 // @desc    Delete role
 // @route   DELETE /api/roles/:id
 // @access  Private (requires permission)
-router.delete('/roles/:id', checkPermission('role', 'delete'), deleteRole);
+router.delete('/:id', checkPermission('role', 'delete'), deleteRole);
 
 export default router;

@@ -1,10 +1,14 @@
-import { Permission } from '../models/Permission';
-import { Role } from '../models/Role';
-import mongoose from 'mongoose';
-
 // Define all permissions for the helpdesk portal - Organized by Sidebar Navigation
-export const helpDeskPermissions = [
-  
+interface HelpDeskPermission {
+  module: string;
+  name: string;
+  code: string;
+  description: string;
+  category: string;
+  [key: string]: any;
+}
+
+export const helpDeskPermissions: HelpDeskPermission[] = [
   // =====================================================
   // DASHBOARD CATEGORY
   // =====================================================
@@ -29,7 +33,6 @@ export const helpDeskPermissions = [
     description: 'Can export dashboard data and reports',
     category: 'dashboard',
   },
-
   // =====================================================
   // PROJECT MANAGEMENT CATEGORY
   // =====================================================
@@ -96,7 +99,6 @@ export const helpDeskPermissions = [
     description: 'Can assign users and roles to projects',
     category: 'project-management',
   },
-
   // =====================================================
   // MASTER DATA CATEGORY
   // =====================================================
@@ -142,7 +144,6 @@ export const helpDeskPermissions = [
     description: 'Can create and manage office locations',
     category: 'master-data',
   },
-
   // =====================================================
   // RBAC SETUP CATEGORY
   // =====================================================
@@ -188,7 +189,6 @@ export const helpDeskPermissions = [
     description: 'Can view all available permissions',
     category: 'rbac-setup',
   },
-
   // =====================================================
   // USER MANAGEMENT CATEGORY
   // =====================================================
@@ -255,7 +255,6 @@ export const helpDeskPermissions = [
     description: 'Can import users in bulk',
     category: 'user-management',
   },
-
   // =====================================================
   // FIELDS & FORMS CATEGORY
   // =====================================================
@@ -308,7 +307,6 @@ export const helpDeskPermissions = [
     description: 'Can configure field dependencies and conditional logic',
     category: 'fields-forms',
   },
-
   // =====================================================
   // TICKET AUTOMATION CATEGORY
   // =====================================================
@@ -354,7 +352,6 @@ export const helpDeskPermissions = [
     description: 'Can enable or disable automation rules',
     category: 'ticket-automation',
   },
-
   // =====================================================
   // APPROVAL PROCESS CATEGORY
   // =====================================================
@@ -393,7 +390,6 @@ export const helpDeskPermissions = [
     description: 'Can approve or reject tickets requiring approval',
     category: 'approval-process',
   },
-
   // =====================================================
   // WORKFLOW & ROLE MAPPING CATEGORY
   // =====================================================
@@ -432,7 +428,6 @@ export const helpDeskPermissions = [
     description: 'Can assign roles to workflow steps',
     category: 'workflow-role-mapping',
   },
-
   // =====================================================
   // SLA & ESCALATION CATEGORY
   // =====================================================
@@ -478,7 +473,6 @@ export const helpDeskPermissions = [
     description: 'Can configure business hours and holidays',
     category: 'sla-escalation',
   },
-
   // =====================================================
   // INTEGRATIONS CATEGORY
   // =====================================================
@@ -524,7 +518,6 @@ export const helpDeskPermissions = [
     description: 'Can connect and manage third-party applications',
     category: 'integrations',
   },
-
   // =====================================================
   // PREDEFINED REPORTS CATEGORY
   // =====================================================
@@ -577,7 +570,6 @@ export const helpDeskPermissions = [
     description: 'Can schedule automated report generation',
     category: 'reports',
   },
-
   // =====================================================
   // AUDIT LOGS CATEGORY
   // =====================================================
@@ -644,7 +636,6 @@ export const helpDeskPermissions = [
     description: 'Can export audit logs for compliance',
     category: 'audit-logs',
   },
-
   // =====================================================
   // TICKETS CATEGORY (Core Ticket Operations)
   // =====================================================
@@ -760,229 +751,159 @@ export const helpDeskPermissions = [
     description: 'Can export tickets to CSV/Excel',
     category: 'tickets',
   },
+  // =====================================================
+  // FORM BUILDER CATEGORY
+  // =====================================================
+  {
+    module: 'Form Builder',
+    name: 'View Forms',
+    code: 'FORM_VIEW',
+    description: 'Can view all forms and their versions',
+    category: 'form-builder',
+  },
+  {
+    module: 'Form Builder',
+    name: 'Create Form',
+    code: 'FORM_CREATE',
+    description: 'Can create new forms',
+    category: 'form-builder',
+  },
+  {
+    module: 'Form Builder',
+    name: 'Edit Form',
+    code: 'FORM_EDIT',
+    description: 'Can edit forms and add new versions',
+    category: 'form-builder',
+  },
+  {
+    module: 'Form Builder',
+    name: 'Delete Form',
+    code: 'FORM_DELETE',
+    description: 'Can delete forms',
+    category: 'form-builder',
+  },
+  {
+    module: 'Form Builder',
+    name: 'Assign Form Context',
+    code: 'FORM_ASSIGN_CONTEXT',
+    description: 'Can map forms to roles, products, categories, or pages',
+    category: 'form-builder',
+  },
+  {
+    module: 'Form Builder',
+    name: 'View Form Audit Logs',
+    code: 'FORM_VIEW_AUDIT_LOGS',
+    description: 'Can view audit logs for form changes',
+    category: 'form-builder',
+  },
 ];
 
-// Super Admin Role - Has ALL permissions
-export const superAdminPermissions = helpDeskPermissions.map(p => p.code);
-
-// Default system roles with their permission sets
-export const defaultRoles = [
+// Default roles for the helpdesk portal (must be after helpDeskPermissions)
+const defaultRoles = [
   {
+    module: 'Super Admin',
     name: 'Super Admin',
     code: 'SUPER_ADMIN',
     description: 'Has complete access to all features and settings across all projects',
     type: 'system',
-    permissions: superAdminPermissions,
+    permissions: helpDeskPermissions.map(p => p.code),
   },
   {
+    module: 'Account Owner',
     name: 'Account Owner',
     code: 'ACCOUNT_OWNER',
     description: 'Has access to all features except system-level settings',
     type: 'custom',
     permissions: [
-      'TICKET_VIEW_ALL',
-      'TICKET_CREATE',
-      'TICKET_EDIT',
-      'TICKET_DELETE',
-      'TICKET_ASSIGN',
-      'TICKET_CHANGE_STATUS',
-      'TICKET_CHANGE_PRIORITY',
-      'TICKET_ADD_COMMENT',
-      'TICKET_EDIT_COMMENT',
-      'TICKET_DELETE_COMMENT',
-      'TICKET_ADD_ATTACHMENT',
-      'TICKET_DELETE_ATTACHMENT',
-      'TICKET_MERGE',
-      'TICKET_BULK_UPDATE',
-      'TICKET_EXPORT',
-      'USER_VIEW_ALL',
-      'USER_CREATE',
-      'USER_EDIT',
-      'USER_DELETE',
-      'USER_TOGGLE_STATUS',
-      'USER_ASSIGN_ROLE',
-      'USER_RESET_PASSWORD',
-      'USER_MANAGE_GROUPS',
-      'PROJECT_VIEW_ALL',
-      'PROJECT_EDIT',
-      'PROJECT_TOGGLE_STATUS',
-      'PROJECT_MANAGE_SETTINGS',
-      'REPORT_VIEW_TICKETS',
-      'REPORT_VIEW_AGENT_PERFORMANCE',
-      'REPORT_VIEW_CSAT',
-      'REPORT_VIEW_SLA',
-      'REPORT_EXPORT',
-      'REPORT_CREATE_CUSTOM',
-      'REPORT_SCHEDULE',
-      'SETTINGS_VIEW',
-      'SETTINGS_MANAGE',
-      'SETTINGS_MANAGE_EMAIL',
-      'SETTINGS_MANAGE_SMS',
-      'SETTINGS_MANAGE_NOTIFICATIONS',
-      'SETTINGS_MANAGE_SLA',
-      'SETTINGS_MANAGE_BUSINESS_HOURS',
-      'SETTINGS_VIEW_AUDIT_LOGS',
-      'KB_VIEW_ARTICLES',
-      'KB_CREATE_ARTICLE',
-      'KB_EDIT_ARTICLE',
-      'KB_DELETE_ARTICLE',
-      'KB_PUBLISH_ARTICLE',
-      'KB_MANAGE_CATEGORIES',
-      'KB_MANAGE_TAGS',
-      'AUTOMATION_VIEW',
-      'AUTOMATION_CREATE',
-      'AUTOMATION_EDIT',
-      'AUTOMATION_DELETE',
-      'AUTOMATION_TOGGLE',
-      'AUTOMATION_MANAGE_WORKFLOWS',
-      'AUTOMATION_MANAGE_MACROS',
-      'CUSTOM_MANAGE_BRANDING',
-      'CUSTOM_MANAGE_FIELDS',
-      'CUSTOM_MANAGE_FORMS',
-      'CUSTOM_MANAGE_EMAIL_TEMPLATES',
-      'CUSTOM_MANAGE_CODE',
-      'CUSTOM_MANAGE_STATUSES',
-      'CUSTOM_MANAGE_PRIORITIES',
-      'CUSTOM_MANAGE_CATEGORIES',
+      'TICKET_VIEW_ALL', 'TICKET_CREATE', 'TICKET_EDIT', 'TICKET_DELETE', 'TICKET_ASSIGN', 'TICKET_CHANGE_STATUS',
+      'TICKET_CHANGE_PRIORITY', 'TICKET_ADD_COMMENT', 'TICKET_EDIT_COMMENT', 'TICKET_DELETE_COMMENT', 'TICKET_ADD_ATTACHMENT',
+      'TICKET_DELETE_ATTACHMENT', 'TICKET_MERGE', 'TICKET_BULK_UPDATE', 'TICKET_EXPORT', 'USER_VIEW_ALL', 'USER_CREATE',
+      'USER_EDIT', 'USER_DELETE', 'USER_TOGGLE_STATUS', 'USER_ASSIGN_ROLE', 'USER_RESET_PASSWORD', 'USER_MANAGE_GROUPS',
+      'PROJECT_VIEW_ALL', 'PROJECT_EDIT', 'PROJECT_TOGGLE_STATUS', 'PROJECT_MANAGE_SETTINGS', 'REPORT_VIEW_TICKETS',
+      'REPORT_VIEW_AGENT_PERFORMANCE', 'REPORT_VIEW_CSAT', 'REPORT_VIEW_SLA', 'REPORT_EXPORT', 'REPORT_CREATE_CUSTOM',
+      'REPORT_SCHEDULE', 'FORM_VIEW', 'FORM_CREATE', 'FORM_EDIT', 'FORM_DELETE', 'FORM_ASSIGN_CONTEXT', 'FORM_VIEW_AUDIT_LOGS',
     ],
   },
   {
+    module: 'Support Administrator',
     name: 'Support Administrator',
     code: 'SUPPORT_ADMIN',
     description: 'Manages support operations and settings',
     type: 'custom',
     permissions: [
-      'TICKET_VIEW_ALL',
-      'TICKET_CREATE',
-      'TICKET_EDIT',
-      'TICKET_ASSIGN',
-      'TICKET_CHANGE_STATUS',
-      'TICKET_CHANGE_PRIORITY',
-      'TICKET_ADD_COMMENT',
-      'TICKET_EDIT_COMMENT',
-      'TICKET_ADD_ATTACHMENT',
-      'TICKET_MERGE',
-      'TICKET_BULK_UPDATE',
-      'TICKET_EXPORT',
-      'USER_VIEW_ALL',
-      'USER_CREATE',
-      'USER_EDIT',
-      'USER_TOGGLE_STATUS',
-      'USER_ASSIGN_ROLE',
-      'USER_MANAGE_GROUPS',
-      'REPORT_VIEW_TICKETS',
-      'REPORT_VIEW_AGENT_PERFORMANCE',
-      'REPORT_VIEW_CSAT',
-      'REPORT_VIEW_SLA',
-      'REPORT_EXPORT',
-      'SETTINGS_VIEW',
-      'SETTINGS_MANAGE_EMAIL',
-      'SETTINGS_MANAGE_NOTIFICATIONS',
-      'KB_VIEW_ARTICLES',
-      'KB_CREATE_ARTICLE',
-      'KB_EDIT_ARTICLE',
-      'KB_PUBLISH_ARTICLE',
-      'KB_MANAGE_CATEGORIES',
-      'AUTOMATION_VIEW',
-      'AUTOMATION_CREATE',
-      'AUTOMATION_EDIT',
-      'AUTOMATION_TOGGLE',
+      'TICKET_VIEW_ALL', 'TICKET_CREATE', 'TICKET_EDIT', 'TICKET_ASSIGN', 'TICKET_CHANGE_STATUS', 'TICKET_CHANGE_PRIORITY',
+      'TICKET_ADD_COMMENT', 'TICKET_EDIT_COMMENT', 'TICKET_ADD_ATTACHMENT', 'TICKET_MERGE', 'TICKET_BULK_UPDATE', 'TICKET_EXPORT',
+      'USER_VIEW_ALL', 'USER_CREATE', 'USER_EDIT', 'USER_TOGGLE_STATUS', 'USER_ASSIGN_ROLE', 'USER_MANAGE_GROUPS',
+      'REPORT_VIEW_TICKETS', 'REPORT_VIEW_AGENT_PERFORMANCE', 'REPORT_VIEW_CSAT', 'REPORT_VIEW_SLA', 'REPORT_EXPORT',
+      'FORM_VIEW', 'FORM_CREATE', 'FORM_EDIT', 'FORM_DELETE', 'FORM_ASSIGN_CONTEXT', 'FORM_VIEW_AUDIT_LOGS',
     ],
   },
   {
+    module: 'Support Manager',
     name: 'Support Manager',
     code: 'SUPPORT_MANAGER',
     description: 'Manages team and ticket operations',
     type: 'custom',
     permissions: [
-      'TICKET_VIEW_ALL',
-      'TICKET_CREATE',
-      'TICKET_EDIT',
-      'TICKET_ASSIGN',
-      'TICKET_CHANGE_STATUS',
-      'TICKET_CHANGE_PRIORITY',
-      'TICKET_ADD_COMMENT',
-      'TICKET_ADD_ATTACHMENT',
-      'TICKET_MERGE',
-      'TICKET_BULK_UPDATE',
-      'TICKET_EXPORT',
-      'USER_VIEW_ALL',
-      'REPORT_VIEW_TICKETS',
-      'REPORT_VIEW_AGENT_PERFORMANCE',
-      'REPORT_VIEW_CSAT',
-      'REPORT_VIEW_SLA',
-      'REPORT_EXPORT',
-      'KB_VIEW_ARTICLES',
-      'KB_CREATE_ARTICLE',
-      'KB_EDIT_ARTICLE',
-      'AUTOMATION_VIEW',
+      'TICKET_VIEW_ALL', 'TICKET_CREATE', 'TICKET_EDIT', 'TICKET_ASSIGN', 'TICKET_CHANGE_STATUS', 'TICKET_CHANGE_PRIORITY',
+      'TICKET_ADD_COMMENT', 'TICKET_ADD_ATTACHMENT', 'TICKET_MERGE', 'TICKET_BULK_UPDATE', 'TICKET_EXPORT', 'USER_VIEW_ALL',
+      'REPORT_VIEW_TICKETS', 'REPORT_VIEW_AGENT_PERFORMANCE', 'REPORT_VIEW_CSAT', 'REPORT_VIEW_SLA', 'REPORT_EXPORT',
+      'FORM_VIEW', 'FORM_CREATE', 'FORM_EDIT', 'FORM_DELETE', 'FORM_ASSIGN_CONTEXT', 'FORM_VIEW_AUDIT_LOGS',
     ],
   },
   {
+    module: 'Agent',
     name: 'Agent',
     code: 'AGENT',
     description: 'Handles day-to-day ticket support',
     type: 'custom',
     permissions: [
-      'TICKET_VIEW_OWN',
-      'TICKET_CREATE',
-      'TICKET_EDIT',
-      'TICKET_CHANGE_STATUS',
-      'TICKET_ADD_COMMENT',
-      'TICKET_ADD_ATTACHMENT',
-      'KB_VIEW_ARTICLES',
-      'KB_CREATE_ARTICLE',
+      'TICKET_VIEW_OWN', 'TICKET_CREATE', 'TICKET_EDIT', 'TICKET_CHANGE_STATUS', 'TICKET_ADD_COMMENT', 'TICKET_ADD_ATTACHMENT',
     ],
   },
 ];
 
+import { Permission } from '../models/Permission';
+import { Role } from '../models/Role';
+import mongoose from 'mongoose';
+
 export async function seedRolesAndPermissions() {
-  try {
-    // Check if roles already exist (skip seeding if they do)
-    const existingRolesCount = await Role.countDocuments();
-    const existingPermissionsCount = await Permission.countDocuments();
-    
-    if (existingRolesCount > 0 && existingPermissionsCount > 0) {
-      console.log('ℹ️  Roles and permissions already exist, skipping seed');
-      console.log(`   - ${existingRolesCount} roles found`);
-      console.log(`   - ${existingPermissionsCount} permissions found`);
-      return;
-    }
-
-    console.log('🌱 Seeding permissions...');
-
-    // Clear existing permissions
-    await Permission.deleteMany({});
-
-    // Insert all permissions
-    const insertedPermissions = await Permission.insertMany(helpDeskPermissions);
-    console.log(`✅ Inserted ${insertedPermissions.length} permissions`);
-
-    // Create a map of permission codes to IDs
-    const permissionMap = new Map();
-    insertedPermissions.forEach(perm => {
-      permissionMap.set(perm.code, perm._id);
-    });
-
-    console.log('🌱 Seeding default roles...');
-
-    // Insert default roles with permission references
-    const rolesToInsert = defaultRoles.map(role => ({
-      ...role,
-      permissions: role.permissions.map(code => permissionMap.get(code)).filter(Boolean),
-    }));
-
-    const insertedRoles = await Role.insertMany(rolesToInsert);
-    console.log(`✅ Inserted ${insertedRoles.length} default roles`);
-
-    console.log('✨ Roles and permissions seeded successfully!');
-    
-    return {
-      permissions: insertedPermissions,
-      roles: insertedRoles,
-    };
-  } catch (error) {
-    console.error('❌ Error seeding roles and permissions:', error);
-    throw error;
-  }
+	try {
+		// Check if roles already exist (skip seeding if they do)
+		const existingRolesCount = await Role.countDocuments();
+		const existingPermissionsCount = await Permission.countDocuments();
+		if (existingRolesCount > 0 && existingPermissionsCount > 0) {
+			console.log('ℹ️  Roles and permissions already exist, skipping seed');
+			console.log(`   - ${existingRolesCount} roles found`);
+			console.log(`   - ${existingPermissionsCount} permissions found`);
+			return;
+		}
+		console.log('🌱 Seeding permissions...');
+		// Clear existing permissions
+		await Permission.deleteMany({});
+		// Insert all permissions
+		const insertedPermissions = await Permission.insertMany(helpDeskPermissions);
+		console.log(`✅ Inserted ${insertedPermissions.length} permissions`);
+		// Create a map of permission codes to IDs
+		const permissionMap = new Map();
+		insertedPermissions.forEach(perm => {
+			permissionMap.set(perm.code, perm._id);
+		});
+		console.log('🌱 Seeding default roles...');
+		// Insert default roles with permission references
+		const rolesToInsert = defaultRoles.map(role => ({
+			...role,
+			permissions: role.permissions.map(code => permissionMap.get(code)).filter(Boolean),
+		}));
+		const insertedRoles = await Role.insertMany(rolesToInsert);
+		console.log(`✅ Inserted ${insertedRoles.length} default roles`);
+		console.log('✨ Roles and permissions seeded successfully!');
+		return {
+			permissions: insertedPermissions,
+			roles: insertedRoles,
+		};
+	} catch (error) {
+		console.error('❌ Error seeding roles and permissions:', error);
+		throw error;
+	}
 }

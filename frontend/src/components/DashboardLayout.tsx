@@ -1,6 +1,7 @@
-import { ReactNode, useState } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import axios from 'axios';
 import { SkipLink } from './accessible/SkipLink';
 import { LanguageToggle } from './LanguageToggle';
 import { designSystem } from '../styles/designSystem';
@@ -29,6 +30,7 @@ import {
   MdFactCheck,
   MdHistory,
   MdLogin,
+  MdBook,
   MdBlock,
   MdError,
   MdMailOutline,
@@ -61,6 +63,54 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState<{ top: number; left: number } | null>(null);
+  const [projectBranding, setProjectBranding] = useState<any>(null);
+
+  // Fetch project branding if user is logged in via project portal
+  useEffect(() => {
+    const fetchProjectBranding = async () => {
+      try {
+        // Check if project context exists in localStorage
+        const projectContextStr = localStorage.getItem('projectContext');
+        if (!projectContextStr) return;
+
+        const projectContext = JSON.parse(projectContextStr);
+        if (projectContext.projectId) {
+          // Fetch project details
+          const response = await axios.get(
+            `http://localhost:3003/api/projects/${projectContext.projectId}`
+          );
+          const project = response.data.data || response.data;
+          
+          // Set branding with proper structure
+          setProjectBranding({
+            name: project.name,
+            code: project.code,
+            logo: project.branding?.logo,
+            colorTheme: project.branding?.colorTheme || {
+              primary: '#667eea',
+              secondary: '#764ba2',
+              accent: '#3b82f6',
+              background: '#ffffff'
+            }
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching project branding:', error);
+      }
+    };
+
+    fetchProjectBranding();
+  }, []);
+
+  // Apply project color theme to CSS variables
+  useEffect(() => {
+    if (projectBranding?.colorTheme) {
+      const root = document.documentElement;
+      root.style.setProperty('--primary-main', projectBranding.colorTheme.primary);
+      root.style.setProperty('--primary-dark', projectBranding.colorTheme.secondary);
+      root.style.setProperty('--accent-main', projectBranding.colorTheme.accent);
+    }
+  }, [projectBranding]);
 
   // Helper function to get label in current language
   const getLabel = (item: MenuItem): string => {
@@ -115,6 +165,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     { path: '/approvals', icon: <MdCheckCircle />, label: 'Approval Process', labelMr: 'मंजूरी प्रक्रिया' },
     { path: '/workflows', icon: <MdAccountTree />, label: 'Workflow & Role Mapping', labelMr: 'कार्यप्रवाह आणि भूमिका मॅपिंग' },
     { path: '/sla', icon: <MdSchedule />, label: 'SLA & Escalation', labelMr: 'SLA आणि वाढीव प्रक्रिया' },
+    { path: '/knowledge-base', icon: <MdBook />, label: 'Knowledge Base', labelMr: 'ज्ञान आधार' },
     { path: '/integrations', icon: <MdIntegrationInstructions />, label: 'Integrations', labelMr: 'इंटिग्रेशन' },
     { path: '/reports', icon: <MdBarChart />, label: 'Predefined Reports', labelMr: 'पूर्वनिर्धारित अहवाल' },
     { 
@@ -241,20 +292,34 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           gap: '12px',
           transition: 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)'
         }}>
-          <div style={{
-            width: '40px',
-            height: '40px',
-            backgroundColor: 'var(--primary-main)',
-            borderRadius: '8px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '24px',
-            flexShrink: 0,
-            color: 'white'
-          }}>
-            <MdFolder />
-          </div>
+          {projectBranding?.logo ? (
+            <img 
+              src={projectBranding.logo} 
+              alt={projectBranding.name}
+              style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '8px',
+                objectFit: 'cover',
+                flexShrink: 0
+              }}
+            />
+          ) : (
+            <div style={{
+              width: '40px',
+              height: '40px',
+              backgroundColor: projectBranding?.colorTheme?.primary || 'var(--primary-main)',
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '24px',
+              flexShrink: 0,
+              color: 'white'
+            }}>
+              <MdFolder />
+            </div>
+          )}
           {!isSidebarCollapsed && (
             <div style={{
               flex: 1,
@@ -270,13 +335,13 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 overflow: 'hidden',
                 textOverflow: 'ellipsis'
               }}>
-                {userName}
+                {projectBranding?.name || userName}
               </div>
               <div style={{ 
                 fontSize: '12px', 
                 color: 'var(--text-secondary)'
               }}>
-                {i18n.language === 'mr' ? 'हेल्पडेस्क' : i18n.language === 'hi' ? 'हेल्पडेस्क' : 'Helpdesk'}
+                {projectBranding?.code || (i18n.language === 'mr' ? 'हेल्पडेस्क' : i18n.language === 'hi' ? 'हेल्पडेस्क' : 'Helpdesk')}
               </div>
             </div>
           )}

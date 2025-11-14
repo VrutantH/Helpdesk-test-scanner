@@ -8,8 +8,9 @@ import {
   forgotPassword,
   verifyOTP,
   resetPassword,
+  getMe,
 } from '../controllers/authController';
-import { auth } from '../middleware/auth';
+import { auth, authMiddleware } from '../middleware/auth';
 
 const router = Router();
 
@@ -21,6 +22,11 @@ router.post('/login', authRateLimit, [
   body('password').notEmpty().withMessage('Password is required'),
   validateRequest,
 ], login);
+
+// @desc    Get current user profile
+// @route   GET /api/auth/me
+// @access  Private
+router.get('/me', authMiddleware, getMe);
 
 // @desc    Logout user
 // @route   POST /api/auth/logout

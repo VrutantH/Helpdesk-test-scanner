@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { formatDateTimeToDDMMYYYY } from '../utils/dateFormat';
 import { getText } from '../utils/language';
 
 
@@ -17,43 +16,43 @@ const EULA = () => {
     }
 
     try {
-      // Get userId from localStorage
+      // Get userId and token from localStorage
       const userId = localStorage.getItem('userId');
+      const token = localStorage.getItem('authToken');
       
-      if (!userId) {
+      if (!userId || !token) {
         alert('User not authenticated');
         navigate('/login');
         return;
       }
       
-      const response = await fetch('http://localhost:3003/api/auth/accept-eula', {
+      const response = await fetch('http://localhost:3003/api/auth/eula/accept', {
         method: 'POST',
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({ 
-          userId,
-          eulaVersion: '1.0' // Send current EULA version
+          version: '1.0' // Send current EULA version
         })
       });
 
+      const data = await response.json();
+      console.log('Response:', data);
+      
       if (response.ok) {
-        const data = await response.json();
-        console.log('✅ EULA accepted:', data.acceptance);
-        console.log(`📍 IP Address: ${data.acceptance.ipAddress}`);
-        console.log(`👤 User: ${data.acceptance.userName} (${data.acceptance.userRole})`);
-        console.log(`⏰ Accepted at: ${formatDateTimeToDDMMYYYY(data.acceptance.acceptedAt)}`);
+        console.log('✅ EULA accepted:', data);
         
         // Redirect to dashboard after accepting EULA
         navigate('/dashboard');
       } else {
-        const data = await response.json();
-        alert(data.message || 'Failed to accept EULA');
+        console.error('❌ EULA acceptance failed:', data);
+        alert(data.error || data.message || 'Failed to accept EULA');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error accepting EULA:', error);
-      alert('An error occurred. Please try again.');
+      alert(`An error occurred: ${error.message || 'Please try again.'}`);
     }
   };
 

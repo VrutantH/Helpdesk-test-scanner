@@ -4,7 +4,8 @@ import { validateRequest } from '../middleware/validateRequest';
 import { authRateLimit } from '../middleware/rateLimiter';
 import { 
   getProjectBrandingByUrl, 
-  projectLogin 
+  projectLogin,
+  projectLoginByUrl
 } from '../controllers/projectAuthController';
 
 const router = Router();
@@ -16,6 +17,20 @@ router.use(authRateLimit);
 // @route   GET /api/project-auth/branding/:urlPath
 // @access  Public (no authentication required)
 router.get('/branding/:urlPath', getProjectBrandingByUrl);
+
+// @desc    Project-specific login by custom URL path
+// @route   POST /api/project-auth/:customUrlPath/login
+// @access  Public
+router.post('/:customUrlPath/login', [
+  body('email')
+    .isEmail()
+    .normalizeEmail()
+    .withMessage('Please provide a valid email'),
+  body('password')
+    .notEmpty()
+    .withMessage('Password is required'),
+  validateRequest
+], projectLoginByUrl);
 
 // @desc    Project-specific login
 // @route   POST /api/project-auth/login

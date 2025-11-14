@@ -26,10 +26,22 @@ export const getMasterData = async (req: AuthRequest, res: Response) => {
 export const getMasterDataByCategory = async (req: AuthRequest, res: Response) => {
   try {
     const { category } = req.params;
-    const masterData = await MasterData.find({ category });
+    const { includeInactive } = req.query;
+    
+    const query: any = { category };
+    if (includeInactive !== 'true') {
+      query.isActive = true;
+    }
+    
+    const masterData = await MasterData.find(query).sort({ displayOrder: 1, value: 1 });
+    
     res.json({
       success: true,
-      data: masterData,
+      data: {
+        category,
+        items: masterData,
+        count: masterData.length
+      },
     });
   } catch (error: any) {
     res.status(500).json({

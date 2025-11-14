@@ -9,7 +9,9 @@ import {
   DocumentArrowUpIcon,
   CheckCircleIcon,
   ExclamationCircleIcon,
+  BookOpenIcon,
 } from '@heroicons/react/24/outline';
+import { StudentLoginModal } from '../components/StudentLoginModal';
 
 interface ProjectBranding {
   projectId: string;
@@ -20,6 +22,7 @@ interface ProjectBranding {
   logoUrl: string | null;
   welcomeText: string;
   footerText: string;
+  knowledgeBase?: boolean;
 }
 
 interface OnlineFormField {
@@ -46,6 +49,8 @@ interface OfflineCenter {
   workingHours: string;
   latitude?: number;
   longitude?: number;
+  features?: string[];
+  mapLink?: string;
   googleMapLink?: string;
 }
 
@@ -75,7 +80,11 @@ const StudentPortal: React.FC = () => {
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [filterType, setFilterType] = useState<'all' | 'state' | 'city' | 'pincode'>('all');
   const [filteredCenters, setFilteredCenters] = useState<OfflineCenter[]>([]);
+  const [uniqueStates, setUniqueStates] = useState<string[]>([]);
+  const [uniqueCities, setUniqueCities] = useState<string[]>([]);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   useEffect(() => {
     const fetchProjectData = async () => {
@@ -110,6 +119,14 @@ const StudentPortal: React.FC = () => {
 
         // Initialize filtered centers
         setFilteredCenters(settingsResponse.data.offlineCenters || []);
+
+        // Extract unique states and cities for filters
+        if (settingsResponse.data.offlineCenters) {
+          const states = [...new Set(settingsResponse.data.offlineCenters.map((c: OfflineCenter) => c.state))] as string[];
+          const cities = [...new Set(settingsResponse.data.offlineCenters.map((c: OfflineCenter) => c.city))] as string[];
+          setUniqueStates(states.sort());
+          setUniqueCities(cities.sort());
+        }
       } catch (err: any) {
         console.error('Error fetching project data:', err);
         setError(err.response?.data?.message || 'Project not found');
@@ -124,20 +141,35 @@ const StudentPortal: React.FC = () => {
   }, [customUrlPath]);
 
   useEffect(() => {
-    // Filter centers based on search query
+    // Filter centers based on search query and filter type
     if (ticketSettings?.offlineCenters) {
-      const filtered = ticketSettings.offlineCenters.filter((center) => {
+      let filtered = ticketSettings.offlineCenters;
+
+      // Apply search query filter
+      if (searchQuery.trim()) {
         const searchLower = searchQuery.toLowerCase();
-        return (
-          center.centerName.toLowerCase().includes(searchLower) ||
-          center.city.toLowerCase().includes(searchLower) ||
-          center.state.toLowerCase().includes(searchLower) ||
-          center.pincode.includes(searchQuery)
-        );
-      });
+        filtered = filtered.filter((center) => {
+          if (filterType === 'state') {
+            return center.state.toLowerCase().includes(searchLower);
+          } else if (filterType === 'city') {
+            return center.city.toLowerCase().includes(searchLower);
+          } else if (filterType === 'pincode') {
+            return center.pincode.includes(searchQuery);
+          } else {
+            // 'all' - search across all fields
+            return (
+              center.centerName.toLowerCase().includes(searchLower) ||
+              center.city.toLowerCase().includes(searchLower) ||
+              center.state.toLowerCase().includes(searchLower) ||
+              center.pincode.includes(searchQuery)
+            );
+          }
+        });
+      }
+
       setFilteredCenters(filtered);
     }
-  }, [searchQuery, ticketSettings]);
+  }, [searchQuery, filterType, ticketSettings]);
 
   const handleInputChange = (fieldName: string, value: any) => {
     setFormData((prev) => ({ ...prev, [fieldName]: value }));
@@ -490,6 +522,29 @@ const StudentPortal: React.FC = () => {
                 <p className="text-white/80 text-sm">{projectBranding.welcomeText}</p>
               </div>
             </div>
+            {/* Action Buttons */}
+            <div className="flex items-center space-x-3">
+              {/* Knowledge Base Button */}
+              {projectBranding.knowledgeBase && (
+                <button
+                  onClick={() => navigate(`/${customUrlPath}/kb`)}
+                  className="flex items-center space-x-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-white transition-colors duration-200 backdrop-blur-sm"
+                >
+                  <BookOpenIcon className="h-5 w-5" />
+                  <span className="font-medium">Knowledge Base</span>
+                </button>
+              )}
+              {/* Login Button */}
+              <button
+                onClick={() => setShowLoginModal(true)}
+                className="flex items-center space-x-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-white transition-colors duration-200 backdrop-blur-sm"
+              >
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <span className="font-medium">Login</span>
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -575,6 +630,7 @@ const StudentPortal: React.FC = () => {
           </div>
         )}
 
+
         {/* Online Form */}
         {showOnline && (ticketSettings.mode !== 'both' || activeTab === 'online') && (
           <div className="bg-white rounded-xl shadow-md p-8">
@@ -610,11 +666,87 @@ const StudentPortal: React.FC = () => {
           <div className="bg-white rounded-xl shadow-md p-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Find Nearest Center</h2>
 
+            {/* Filter Buttons */}
+            <div className="mb-4 flex flex-wrap gap-2">
+              <button
+                onClick={() => {
+                  setFilterType('all');
+                  setSearchQuery('');
+                }}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  filterType === 'all'
+                    ? 'text-white shadow-md'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+                style={{
+                  backgroundColor: filterType === 'all' ? projectBranding.primaryColor : undefined,
+                }}
+              >
+                All Centers
+              </button>
+              <button
+                onClick={() => {
+                  setFilterType('state');
+                  setSearchQuery('');
+                }}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  filterType === 'state'
+                    ? 'text-white shadow-md'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+                style={{
+                  backgroundColor: filterType === 'state' ? projectBranding.primaryColor : undefined,
+                }}
+              >
+                By State
+              </button>
+              <button
+                onClick={() => {
+                  setFilterType('city');
+                  setSearchQuery('');
+                }}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  filterType === 'city'
+                    ? 'text-white shadow-md'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+                style={{
+                  backgroundColor: filterType === 'city' ? projectBranding.primaryColor : undefined,
+                }}
+              >
+                By City
+              </button>
+              <button
+                onClick={() => {
+                  setFilterType('pincode');
+                  setSearchQuery('');
+                }}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  filterType === 'pincode'
+                    ? 'text-white shadow-md'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+                style={{
+                  backgroundColor: filterType === 'pincode' ? projectBranding.primaryColor : undefined,
+                }}
+              >
+                By Pincode
+              </button>
+            </div>
+
             {/* Search */}
             <div className="mb-6">
               <input
                 type="text"
-                placeholder="Search by city, state, or pincode..."
+                placeholder={
+                  filterType === 'state'
+                    ? 'Search by state...'
+                    : filterType === 'city'
+                    ? 'Search by city...'
+                    : filterType === 'pincode'
+                    ? 'Search by pincode...'
+                    : 'Search by city, state, or pincode...'
+                }
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:outline-none"
@@ -667,11 +799,29 @@ const StudentPortal: React.FC = () => {
                         </div>
                       </div>
                     </div>
+
+                    {/* Features Section */}
+                    {center.features && center.features.length > 0 && (
+                      <div className="mt-4 pt-4 border-t border-gray-200">
+                        <p className="text-sm font-medium text-gray-700 mb-2">Available Features</p>
+                        <div className="flex flex-wrap gap-2">
+                          {center.features.map((feature, featureIdx) => (
+                            <span
+                              key={featureIdx}
+                              className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                            >
+                              {feature}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     {/* Get Directions Button */}
                     <div className="mt-4">
                       <button
                         onClick={() => {
-                          let mapUrl = center.googleMapLink;
+                          let mapUrl = center.mapLink || center.googleMapLink;
                           if (!mapUrl && center.latitude && center.longitude) {
                             mapUrl = `https://www.google.com/maps?q=${center.latitude},${center.longitude}`;
                           } else if (!mapUrl) {
@@ -703,6 +853,16 @@ const StudentPortal: React.FC = () => {
           <p className="text-center text-gray-600 text-sm">{projectBranding.footerText}</p>
         </div>
       </footer>
+
+      {/* Login Modal */}
+      {projectBranding && (
+        <StudentLoginModal
+          isOpen={showLoginModal}
+          onClose={() => setShowLoginModal(false)}
+          primaryColor={projectBranding.primaryColor}
+          customUrlPath={customUrlPath || ''}
+        />
+      )}
     </div>
   );
 };

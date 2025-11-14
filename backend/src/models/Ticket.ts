@@ -9,6 +9,22 @@ export interface IAttachment {
   uploadedAt: Date;
 }
 
+export interface IThreadAttachment {
+  filename: string;
+  originalName: string;
+  path: string;
+  mimetype: string;
+  size: number;
+}
+
+export interface IThread {
+  message: string;
+  createdBy: mongoose.Types.ObjectId;
+  attachments?: IThreadAttachment[];
+  isSystemMessage?: boolean;
+  createdAt: Date;
+}
+
 export interface ITicket extends Document {
   ticketNumber: string;
   title: string;
@@ -19,6 +35,7 @@ export interface ITicket extends Document {
   createdBy: mongoose.Types.ObjectId;
   assignedTo?: mongoose.Types.ObjectId;
   attachments: IAttachment[];
+  threads?: IThread[];
   tags: string[];
   metadata?: any;
   createdAt: Date;
@@ -32,6 +49,22 @@ const AttachmentSchema = new Schema({
   mimetype: { type: String, required: true },
   size: { type: Number, required: true },
   uploadedAt: { type: Date, default: Date.now },
+});
+
+const ThreadAttachmentSchema = new Schema({
+  filename: { type: String, required: true },
+  originalName: { type: String, required: true },
+  path: { type: String, required: true },
+  mimetype: { type: String, required: true },
+  size: { type: Number, required: true },
+});
+
+const ThreadSchema = new Schema({
+  message: { type: String, required: true },
+  createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  attachments: [ThreadAttachmentSchema],
+  isSystemMessage: { type: Boolean, default: false },
+  createdAt: { type: Date, default: Date.now },
 });
 
 const TicketSchema: Schema = new Schema(
@@ -78,6 +111,7 @@ const TicketSchema: Schema = new Schema(
       ref: 'User',
     },
     attachments: [AttachmentSchema],
+    threads: [ThreadSchema],
     tags: [{
       type: String,
       trim: true,

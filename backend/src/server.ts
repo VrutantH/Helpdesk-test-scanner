@@ -13,6 +13,7 @@ import { errorHandler } from './middleware/errorHandler';
 import { notFound } from './middleware/notFound';
 import authRoutes from './routes/auth';
 import projectAuthRoutes from './routes/projectAuth';
+import studentAuthRoutes from './routes/studentAuth';
 import userRoutes from './routes/users';
 import ticketRoutes from './routes/tickets';
 import eulaRoutes from './routes/eula';
@@ -25,6 +26,7 @@ import slaRuleRoutes from './routes/sla-module/slaRuleRoutes';
 import escalationPolicyRoutes from './routes/sla-module/escalationPolicyRoutes';
 import activityLogRoutes from './routes/activityLogs';
 import accessLogRoutes from './routes/accessLogs';
+import knowledgeBaseRoutes from './routes/knowledgeBase';
 // import integrationRoutes from './routes/integrations'; // TODO: Implement
 import { setupSocketHandlers } from './socket/socketHandlers';
 import { initializeDatabase } from './utils/dbInit';
@@ -32,6 +34,10 @@ import { seedRolesAndPermissions } from './utils/seedRolesPermissions';
 
 // Load environment variables
 dotenv.config();
+
+// Debug: Log JWT_SECRET status
+console.log('🔐 JWT_SECRET loaded:', process.env.JWT_SECRET ? 'YES (from .env)' : 'NO (will use fallback)');
+console.log('🔑 JWT_SECRET value:', process.env.JWT_SECRET || 'fallback-secret-key-for-development');
 
 const app = express();
 const httpServer = createServer(app);
@@ -78,12 +84,14 @@ if (process.env.NODE_ENV === 'development') {
 
 // API Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/auth/project', projectAuthRoutes); // Agent login via /api/auth/project/:customUrlPath/login
 app.use('/api/project-auth', projectAuthRoutes);
+app.use('/api/student-auth', studentAuthRoutes);
 app.use('/api/auth', eulaRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/tickets', ticketRoutes);
 app.use('/api/projects', projectRoutes);
-app.use('/api', roleRoutes);
+app.use('/api/roles', roleRoutes);
 app.use('/api/master-data', masterDataRoutes); // Old generic routes (backward compatibility)
 app.use('/api/masters', newMasterDataRoutes); // New separate collection routes
 
@@ -98,6 +106,9 @@ app.use('/api/escalation-policies', escalationPolicyRoutes);
 // Audit Logs Routes
 app.use('/api/activity-logs', activityLogRoutes);
 app.use('/api/access-logs', accessLogRoutes);
+
+// Knowledge Base Routes
+app.use('/api/kb', knowledgeBaseRoutes);
 
 // Integration Routes (TODO: Implement)
 // app.use('/api/integrations', integrationRoutes);

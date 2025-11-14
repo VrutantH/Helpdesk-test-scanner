@@ -12,6 +12,7 @@ export interface IUser extends Document {
   lastLogin?: Date;
   eulaAccepted?: boolean; // EULA acceptance status
   eulaAcceptedAt?: Date; // When EULA was accepted
+  requirePasswordSetup?: boolean; // Flag for first-time student users who need to set password via OTP
   createdAt: Date;
   updatedAt: Date;
   
@@ -48,7 +49,10 @@ const userSchema = new Schema<IUser>({
   },
   password: {
     type: String,
-    required: true,
+    required: function(this: IUser) {
+      // Password is optional for new student users who haven't set it yet
+      return !this.requirePasswordSetup;
+    },
     minlength: [8, 'Password must be at least 8 characters long'],
   },
   firstName: {
@@ -89,6 +93,10 @@ const userSchema = new Schema<IUser>({
   },
   eulaAcceptedAt: {
     type: Date,
+  },
+  requirePasswordSetup: {
+    type: Boolean,
+    default: false,
   },
   // HRMS Integration fields
   hrmsId: {

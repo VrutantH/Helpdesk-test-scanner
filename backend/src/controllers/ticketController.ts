@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { Ticket } from '../models/Ticket';
 import { Project } from '../models/Project';
 import { User } from '../models/User';
+import { Role } from '../models/Role';
 import mongoose from 'mongoose';
 import multer from 'multer';
 import path from 'path';
@@ -207,6 +208,44 @@ export const submitTicket = async (req: Request, res: Response) => {
     
     console.log(`✅ Ticket created successfully: ${ticket._id}${assignedAgent ? ` | Assigned to: ${assignedAgent}` : ' | Unassigned'}`);
     
+    // Check if student user exists, create if first time
+    const studentEmail = ticketData.Email;
+    const studentName = ticketData.Name || 'Student';
+    
+    if (studentEmail) {
+      let studentUser = await User.findOne({ email: studentEmail });
+      
+      if (!studentUser) {
+        console.log(`📧 First-time student submission detected: ${studentEmail}`);
+        
+        // Get STUDENT role
+        const studentRole = await Role.findOne({ code: 'STUDENT' });
+        
+        if (studentRole) {
+          // Create new student user
+          const nameParts = studentName.split(' ');
+          studentUser = await User.create({
+            email: studentEmail,
+            firstName: nameParts[0] || 'Student',
+            lastName: nameParts.slice(1).join(' ') || '',
+            role: studentRole._id,
+            projects: [projectId],
+            isActive: true,
+            requirePasswordSetup: true, // Flag for first-time password setup via OTP
+          });
+          
+          console.log(`✅ Student user created: ${studentUser._id} | ${studentEmail}`);
+          
+          // TODO: Send welcome email with OTP link
+          // await sendStudentWelcomeEmail(studentEmail, project.name);
+        } else {
+          console.error('⚠️ STUDENT role not found - cannot create student user');
+        }
+      } else {
+        console.log(`📌 Existing student user found: ${studentUser._id}`);
+      }
+    }
+    
     return res.status(201).json({
       success: true,
       message: 'Ticket submitted successfully',
@@ -221,6 +260,97 @@ export const submitTicket = async (req: Request, res: Response) => {
     return res.status(500).json({
       success: false,
       message: 'Failed to submit ticket',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+};
+
+/**
+ * Get tickets for logged-in student user
+ */
+export const getMyTickets = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.userId;
+    
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Unauthorized',
+      });
+    }
+
+    // Get user to find their email
+    const user = await User.findById(userId);
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
+    // Find all tickets where studentEmail matches user's email
+    const tickets = await Ticket.find({
+      'metadata.studentEmail': user.email,
+    })
+      .populate('assignedTo', 'firstName lastName email')
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      data: tickets,
+    });
+
+  } catch (error) {
+    console.error('Get my tickets error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch tickets',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+};
+
+/**
+ * Get tickets assigned to the current agent
+ */
+export const getAgentAssignedTickets = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.userId;
+    
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Unauthorized',
+      });
+    }
+
+    // Build query to find tickets assigned to this agent
+    const query: any = {
+      assignedTo: userId,
+    };
+
+    // Filter by project if projectId is provided
+    if (req.query.projectId) {
+      query['metadata.projectId'] = req.query.projectId;
+    }
+
+    // Find all tickets assigned to this agent
+    const tickets = await Ticket.find(query)
+      .populate('assignedTo', 'firstName lastName email')
+      .populate('createdBy', 'firstName lastName email')
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      data: tickets,
+    });
+
+  } catch (error) {
+    console.error('Get agent assigned tickets error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch assigned tickets',
       error: error instanceof Error ? error.message : 'Unknown error',
     });
   }
@@ -262,3 +392,270 @@ export const upload = multer({
     }
   }
 });
+
+/**
+ * Get single ticket by ID
+ */
+export const getTicketById = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const userId = (req as any).user?.userId;
+    
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Unauthorized',
+      });
+    }
+
+    // Get user to verify ownership
+    const user = await User.findById(userId);
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
+    // Find ticket and verify student email matches
+    const ticket = await Ticket.findById(id)
+      .populate('assignedTo', 'firstName lastName email')
+      .populate('threads.createdBy', 'firstName lastName email role');
+
+    if (!ticket) {
+      return res.status(404).json({
+        success: false,
+        message: 'Ticket not found',
+      });
+    }
+
+    // Verify student owns this ticket
+    if (ticket.metadata?.studentEmail !== user.email) {
+      return res.status(403).json({
+        success: false,
+        message: 'You do not have permission to view this ticket',
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: ticket,
+    });
+
+  } catch (error) {
+    console.error('Get ticket by ID error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch ticket',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+};
+
+/**
+ * Add reply to ticket
+ */
+export const replyToTicket = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { message } = req.body;
+    const userId = (req as any).user?.userId;
+    
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Unauthorized',
+      });
+    }
+
+    // Get user to verify ownership
+    const user = await User.findById(userId);
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
+    // Find ticket
+    const ticket = await Ticket.findById(id);
+
+    if (!ticket) {
+      return res.status(404).json({
+        success: false,
+        message: 'Ticket not found',
+      });
+    }
+
+    // Verify student owns this ticket
+    if (ticket.metadata?.studentEmail !== user.email) {
+      return res.status(403).json({
+        success: false,
+        message: 'You do not have permission to reply to this ticket',
+      });
+    }
+
+    // Check if ticket is closed
+    if (ticket.status === 'closed') {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot reply to a closed ticket',
+      });
+    }
+
+    // Handle file attachments
+    const attachments: any[] = [];
+    if (req.files && Array.isArray(req.files)) {
+      req.files.forEach((file: Express.Multer.File) => {
+        attachments.push({
+          filename: file.filename,
+          originalName: file.originalname,
+          path: `/uploads/tickets/${file.filename}`,
+          mimetype: file.mimetype,
+          size: file.size,
+        });
+      });
+    }
+
+    // Add thread to ticket
+    if (!ticket.threads) {
+      ticket.threads = [];
+    }
+
+    ticket.threads.push({
+      message,
+      createdBy: userId,
+      attachments,
+      createdAt: new Date(),
+    } as any);
+
+    ticket.updatedAt = new Date();
+    await ticket.save();
+
+    // Populate the new thread's createdBy field
+    await ticket.populate('threads.createdBy', 'firstName lastName email role');
+
+    console.log(`✅ Reply added to ticket: ${ticket._id} by student: ${user.email}`);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Reply added successfully',
+      data: ticket.threads,
+    });
+
+  } catch (error) {
+    console.error('Reply to ticket error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to add reply',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+};
+
+/**
+ * Close ticket by student
+ */
+export const closeTicket = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const userId = (req as any).user?.userId;
+    
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Unauthorized',
+      });
+    }
+
+    // Get user to verify ownership
+    const user = await User.findById(userId);
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
+    // Find ticket
+    const ticket = await Ticket.findById(id);
+
+    if (!ticket) {
+      return res.status(404).json({
+        success: false,
+        message: 'Ticket not found',
+      });
+    }
+
+    // Verify student owns this ticket
+    if (ticket.metadata?.studentEmail !== user.email) {
+      return res.status(403).json({
+        success: false,
+        message: 'You do not have permission to close this ticket',
+      });
+    }
+
+    // Check if ticket is already closed
+    if (ticket.status === 'closed') {
+      return res.status(400).json({
+        success: false,
+        message: 'Ticket is already closed',
+      });
+    }
+
+    // Get project to check if student can close tickets
+    const project = await Project.findById(ticket.metadata?.projectId);
+
+    if (!project) {
+      return res.status(404).json({
+        success: false,
+        message: 'Project not found',
+      });
+    }
+
+    // Check if student is allowed to close tickets
+    if (!project.configuration?.ticketSubmissionSettings?.allowStudentToCloseTicket) {
+      return res.status(403).json({
+        success: false,
+        message: 'Students are not allowed to close tickets for this project',
+      });
+    }
+
+    // Close the ticket
+    ticket.status = 'closed';
+    ticket.updatedAt = new Date();
+
+    // Add system thread
+    if (!ticket.threads) {
+      ticket.threads = [];
+    }
+
+    ticket.threads.push({
+      message: 'Ticket closed by student',
+      createdBy: userId,
+      isSystemMessage: true,
+      createdAt: new Date(),
+    } as any);
+
+    await ticket.save();
+
+    console.log(`✅ Ticket closed by student: ${ticket._id} by ${user.email}`);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Ticket closed successfully',
+      data: ticket,
+    });
+
+  } catch (error) {
+    console.error('Close ticket error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to close ticket',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+};
