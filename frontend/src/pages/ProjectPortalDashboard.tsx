@@ -102,6 +102,18 @@ const AgentTicketsContent = () => {
   const [tickets, setTickets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [projectId, setProjectId] = useState<string | null>(null);
+  const [selectedTickets, setSelectedTickets] = useState<Set<string>>(new Set());
+  const [allTags, setAllTags] = useState<string[]>([]);
+  const [showBulkActions, setShowBulkActions] = useState(false);
+  const [bulkStatus, setBulkStatus] = useState('');
+  const [bulkReply, setBulkReply] = useState('');
+  const [showBulkReplyModal, setShowBulkReplyModal] = useState(false);
+  const [filterStatus, setFilterStatus] = useState<string[]>([]);
+  const [filterCategory, setFilterCategory] = useState<string[]>([]);
+  const [tagSearchTerm, setTagSearchTerm] = useState('');
+  const [ticketNumberSearch, setTicketNumberSearch] = useState('');
+  const [allCategories, setAllCategories] = useState<string[]>([]);
+  const [allStatuses, setAllStatuses] = useState<Array<{ name: string; value: string }>>([]);
 
   useEffect(() => {
     // Get project context
@@ -115,6 +127,9 @@ const AgentTicketsContent = () => {
   useEffect(() => {
     if (projectId) {
       fetchTickets();
+      fetchTags();
+      fetchCategories();
+      fetchStatuses();
     }
   }, [projectId]);
 
@@ -138,6 +153,181 @@ const AgentTicketsContent = () => {
     }
   };
 
+  const fetchTags = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(
+        'http://localhost:3003/api/tickets/tags',
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { projectId }
+        }
+      );
+      setAllTags(response.data.data || []);
+    } catch (error) {
+      console.error('Error fetching tags:', error);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(
+        `http://localhost:3003/api/categories/project/${projectId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+      setAllCategories(response.data.data?.map((cat: any) => cat.name) || []);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    }
+  };
+
+  const fetchStatuses = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(
+        `http://localhost:3003/api/statuses/project/${projectId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+      // Prefer machine-readable `code` when available, fallback to normalized name
+      const mapped = response.data.data?.map((status: any) => ({
+        name: status.name,
+        value: (status.code ? String(status.code) : String(status.name)).toLowerCase()
+      })) || [];
+      setAllStatuses(mapped);
+    } catch (error) {
+      console.error('Error fetching statuses:', error);
+    }
+  };
+
+  const handleSelectTicket = (ticketId: string) => {
+    const newSelected = new Set(selectedTickets);
+    if (newSelected.has(ticketId)) {
+      newSelected.delete(ticketId);
+    } else {
+      newSelected.add(ticketId);
+    }
+    setSelectedTickets(newSelected);
+    setShowBulkActions(newSelected.size > 0);
+  };
+
+  const handleSelectAll = () => {
+    if (selectedTickets.size === filteredTickets.length) {
+      setSelectedTickets(new Set());
+      setShowBulkActions(false);
+    } else {
+      setSelectedTickets(new Set(filteredTickets.map(t => t._id)));
+      setShowBulkActions(true);
+    }
+  };
+
+  const handleBulkStatusChange = async () => {
+    if (!bulkStatus || selectedTickets.size === 0) return;
+    
+    try {
+      const token = localStorage.getItem('token');
+      for (const ticketId of Array.from(selectedTickets)) {
+        await axios.patch(
+          `http://localhost:3003/api/tickets/${ticketId}/status`,
+          { status: bulkStatus },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      }
+      alert(`Successfully updated ${selectedTickets.size} tickets to ${bulkStatus}`);
+      setSelectedTickets(new Set());
+      setShowBulkActions(false);
+      setBulkStatus('');
+      fetchTickets();
+    } catch (error) {
+      console.error('Error updating tickets:', error);
+      alert('Failed to update some tickets');
+    }
+  };
+
+  const handleBulkReplySubmit = async () => {
+    if (!bulkReply || selectedTickets.size === 0) return;
+    
+    try {
+      const token = localStorage.getItem('token');
+      for (const ticketId of Array.from(selectedTickets)) {
+        await axios.post(
+          `http://localhost:3003/api/tickets/${ticketId}/reply`,
+          { message: bulkReply },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      }
+      alert(`Successfully sent reply to ${selectedTickets.size} tickets`);
+      setSelectedTickets(new Set());
+      setShowBulkActions(false);
+      setBulkReply('');
+      setShowBulkReplyModal(false);
+      fetchTickets();
+    } catch (error) {
+      console.error('Error sending replies:', error);
+      alert('Failed to send replies to some tickets');
+    }
+  };
+
+  const handleBulkClose = async () => {
+    if (selectedTickets.size === 0) return;
+    
+    if (!confirm(`Are you sure you want to close ${selectedTickets.size} tickets?`)) return;
+    
+    try {
+      const token = localStorage.getItem('token');
+      for (const ticketId of Array.from(selectedTickets)) {
+        await axios.patch(
+          `http://localhost:3003/api/tickets/${ticketId}/status`,
+          { status: 'closed' },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      }
+      alert(`Successfully closed ${selectedTickets.size} tickets`);
+      setSelectedTickets(new Set());
+      setShowBulkActions(false);
+      fetchTickets();
+    } catch (error) {
+      console.error('Error closing tickets:', error);
+      alert('Failed to close some tickets');
+    }
+  };
+
+  const filteredTickets = tickets.filter((ticket) => {
+    // Filter by status
+    if (filterStatus.length > 0) {
+      const ticketStatusNorm = String(ticket.status || '').toLowerCase();
+      const normalizedFilters = filterStatus.map(f => String(f).toLowerCase());
+      if (!normalizedFilters.includes(ticketStatusNorm)) return false;
+    }
+    
+    
+    // Filter by category
+    if (filterCategory.length > 0 && !filterCategory.includes(ticket.category)) {
+      return false;
+    }
+
+    // Filter by ticket number
+    if (ticketNumberSearch.trim()) {
+      const search = ticketNumberSearch.trim().toLowerCase();
+      const ticketNum = String(ticket.ticketNumber || '').toLowerCase();
+      if (!ticketNum.includes(search)) return false;
+    }
+    
+    // Filter by tag search term
+    if (tagSearchTerm.trim()) {
+      const hasMatchingTag = ticket.tags?.some((tag: string) => 
+        tag.toLowerCase().includes(tagSearchTerm.toLowerCase())
+      );
+      if (!hasMatchingTag) return false;
+    }
+    
+    return true;
+  });
+
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
       'open': 'background: #fef3c7; color: #92400e; border-color: #fbbf24',
@@ -159,6 +349,15 @@ const AgentTicketsContent = () => {
     };
     return colors[priority.toLowerCase()] || colors.medium;
   };
+
+  const clearAllFilters = () => {
+    setFilterStatus([]);
+    setFilterCategory([]);
+    setTagSearchTerm('');
+    setTicketNumberSearch('');
+  };
+
+  const hasActiveFilters = filterStatus.length > 0 || filterCategory.length > 0 || tagSearchTerm.trim() || ticketNumberSearch.trim();
 
   if (loading) {
     return (
@@ -190,12 +389,370 @@ const AgentTicketsContent = () => {
 
   return (
     <div style={{ padding: '24px' }}>
-      <h1 style={{ fontSize: '28px', fontWeight: '600', marginBottom: '8px' }}>My Tickets</h1>
-      <p style={{ color: '#6b7280', marginBottom: '32px' }}>
-        {tickets.length === 0 ? 'No tickets assigned yet' : `${tickets.length} ticket(s) assigned to you`}
-      </p>
+      <h1 style={{ fontSize: '28px', fontWeight: '600', marginBottom: '24px' }}>My Tickets</h1>
+
+      {/* Filters Section */}
+      <div style={{
+        background: 'white',
+        padding: '24px',
+        borderRadius: '12px',
+        border: '1px solid #e5e7eb',
+        marginBottom: '24px',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+      }}>
+        {/* Filter Row */}
+        <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+          {/* Status Dropdown */}
+          <div style={{ flex: '1', minWidth: '150px' }}>
+            <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>
+              Status
+            </label>
+            <select
+              value={filterStatus[0] || ''}
+              onChange={(e) => setFilterStatus(e.target.value ? [e.target.value] : [])}
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                borderRadius: '6px',
+                border: '1px solid #d1d5db',
+                fontSize: '14px',
+                cursor: 'pointer',
+                background: 'white'
+              }}
+            >
+              <option value=""></option>
+              {allStatuses.map((status) => (
+                <option key={status.value} value={status.value}>
+                  {status.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Category Dropdown */}
+          <div style={{ flex: '1', minWidth: '150px' }}>
+            <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>
+              category
+            </label>
+            <select
+              value={filterCategory[0] || ''}
+              onChange={(e) => setFilterCategory(e.target.value ? [e.target.value] : [])}
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                borderRadius: '6px',
+                border: '1px solid #d1d5db',
+                fontSize: '14px',
+                cursor: 'pointer',
+                background: 'white'
+              }}
+            >
+              <option value=""></option>
+              {allCategories.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Ticket Number Input */}
+          <div style={{ flex: '0 0 160px', minWidth: '140px' }}>
+            <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>
+              Ticket #
+            </label>
+            <input
+              type="text"
+              value={ticketNumberSearch}
+              onChange={(e) => setTicketNumberSearch(e.target.value)}
+              placeholder="Search #"
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                borderRadius: '6px',
+                border: '1px solid #d1d5db',
+                fontSize: '14px'
+              }}
+            />
+          </div>
+
+          {/* Tag Input/Dropdown */}
+          <div style={{ flex: '1', minWidth: '200px' }}>
+            <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>
+              Tag
+            </label>
+            <input
+              type="text"
+              value={tagSearchTerm}
+              onChange={(e) => setTagSearchTerm(e.target.value)}
+              placeholder="Search"
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                borderRadius: '6px',
+                border: '1px solid #d1d5db',
+                fontSize: '14px'
+              }}
+            />
+          </div>
+
+          {/* Filter Button */}
+          <div>
+            <button
+              style={{
+                padding: '10px 32px',
+                borderRadius: '6px',
+                border: 'none',
+                background: '#3b82f6',
+                color: 'white',
+                fontSize: '14px',
+                fontWeight: '500',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              Filter Button
+            </button>
+          </div>
+        </div>
+
+        {/* Clear Filters Link */}
+        {hasActiveFilters && (
+          <div style={{ marginTop: '16px' }}>
+            <button
+              onClick={clearAllFilters}
+              style={{
+                padding: '6px 16px',
+                borderRadius: '6px',
+                border: '1px solid #ef4444',
+                background: 'white',
+                color: '#ef4444',
+                fontSize: '14px',
+                fontWeight: '500',
+                cursor: 'pointer'
+              }}
+            >
+              Clear All Filters
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Results Summary */}
+      <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <p style={{ color: '#6b7280', fontSize: '14px' }}>
+          {filteredTickets.length === 0 ? 'No tickets found' : `Showing ${filteredTickets.length} of ${tickets.length} ticket(s)`}
+        </p>
+      </div>
+
+        {/* Bulk Actions Bar */}
+        {showBulkActions && (
+          <div style={{
+            background: '#3b82f6',
+            color: 'white',
+            padding: '16px',
+            borderRadius: '8px',
+            marginBottom: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '16px',
+            flexWrap: 'wrap'
+          }}>
+            <span style={{ fontWeight: '500' }}>
+              {selectedTickets.size} ticket(s) selected
+            </span>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <select
+                value={bulkStatus}
+                onChange={(e) => setBulkStatus(e.target.value)}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: '6px',
+                  border: '1px solid rgba(0,0,0,0.08)',
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  background: 'white',
+                  color: '#111827',
+                  minWidth: '160px',
+                  boxShadow: '0 1px 2px rgba(0,0,0,0.06)'
+                }}
+              >
+                  <option value="">Change Status...</option>
+                  {allStatuses.map((s) => (
+                    <option key={s.value} style={{ color: '#111827', background: 'white' }} value={s.value}>
+                      {s.name}
+                    </option>
+                  ))}
+              </select>
+              {bulkStatus && (
+                <button
+                  onClick={handleBulkStatusChange}
+                  style={{
+                    padding: '6px 16px',
+                    borderRadius: '6px',
+                    border: 'none',
+                    background: '#10b981',
+                    color: 'white',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Apply
+                </button>
+              )}
+              <button
+                onClick={() => setShowBulkReplyModal(true)}
+                style={{
+                  padding: '6px 16px',
+                  borderRadius: '6px',
+                  border: 'none',
+                  background: 'white',
+                  color: '#3b82f6',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  cursor: 'pointer'
+                }}
+              >
+                Reply to All
+              </button>
+              <button
+                onClick={handleBulkClose}
+                style={{
+                  padding: '6px 16px',
+                  borderRadius: '6px',
+                  border: 'none',
+                  background: '#ef4444',
+                  color: 'white',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  cursor: 'pointer'
+                }}
+              >
+                Close All
+              </button>
+              <button
+                onClick={() => {
+                  setSelectedTickets(new Set());
+                  setShowBulkActions(false);
+                }}
+                style={{
+                  padding: '6px 16px',
+                  borderRadius: '6px',
+                  border: '1px solid white',
+                  background: 'transparent',
+                  color: 'white',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  cursor: 'pointer'
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+
+      {/* Select All Checkbox */}
+      {filteredTickets.length > 0 && (
+        <div style={{ marginBottom: '16px' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              checked={selectedTickets.size === filteredTickets.length && filteredTickets.length > 0}
+              onChange={handleSelectAll}
+              style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+            />
+            <span style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>
+              Select All ({filteredTickets.length})
+            </span>
+          </label>
+        </div>
+      )}
+
+      {/* Bulk Reply Modal */}
+      {showBulkReplyModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: 'white',
+            padding: '24px',
+            borderRadius: '12px',
+            maxWidth: '600px',
+            width: '90%',
+            maxHeight: '80vh',
+            overflow: 'auto'
+          }}>
+            <h2 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '16px' }}>
+              Reply to {selectedTickets.size} Tickets
+            </h2>
+            <textarea
+              value={bulkReply}
+              onChange={(e) => setBulkReply(e.target.value)}
+              placeholder="Type your reply message..."
+              rows={6}
+              style={{
+                width: '100%',
+                padding: '12px',
+                border: '1px solid #d1d5db',
+                borderRadius: '8px',
+                fontSize: '14px',
+                fontFamily: 'inherit',
+                marginBottom: '16px',
+                resize: 'vertical'
+              }}
+            />
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => {
+                  setShowBulkReplyModal(false);
+                  setBulkReply('');
+                }}
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: '8px',
+                  border: '1px solid #d1d5db',
+                  background: 'white',
+                  color: '#374151',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  cursor: 'pointer'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleBulkReplySubmit}
+                disabled={!bulkReply.trim()}
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  background: bulkReply.trim() ? '#3b82f6' : '#d1d5db',
+                  color: 'white',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  cursor: bulkReply.trim() ? 'pointer' : 'not-allowed'
+                }}
+              >
+                Send Reply
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       
-      {tickets.length === 0 ? (
+      {filteredTickets.length === 0 ? (
         <div style={{
           background: 'white',
           padding: '48px',
@@ -207,95 +764,112 @@ const AgentTicketsContent = () => {
           <svg style={{ width: '64px', height: '64px', color: '#d1d5db', margin: '0 auto' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
-          <p style={{ color: '#6b7280', marginTop: '16px' }}>No tickets assigned yet</p>
+          <p style={{ color: '#6b7280', marginTop: '16px' }}>
+            {hasActiveFilters ? 'No tickets match the selected filters' : 'No tickets assigned yet'}
+          </p>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {tickets.map((ticket) => (
+          {filteredTickets.map((ticket) => (
             <div
               key={ticket._id}
-              onClick={() => navigate(`/${customUrlPath}/portal/ticket/${ticket._id}`)}
               style={{
                 background: 'white',
                 padding: '20px',
                 borderRadius: '12px',
-                border: '1px solid #e5e7eb',
+                border: selectedTickets.has(ticket._id) ? '2px solid #3b82f6' : '1px solid #e5e7eb',
                 boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
-                cursor: 'pointer',
                 transition: 'all 0.2s'
               }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
-                e.currentTarget.style.borderColor = '#3b82f6';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.05)';
-                e.currentTarget.style.borderColor = '#e5e7eb';
-              }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '12px' }}>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                    <span style={{ fontFamily: 'monospace', fontSize: '14px', color: '#6b7280' }}>
-                      #{ticket.ticketNumber}
-                    </span>
-                    <span style={{ 
-                      padding: '4px 12px', 
-                      borderRadius: '9999px', 
-                      fontSize: '12px', 
-                      fontWeight: '500',
-                      border: '1px solid',
-                      ...(() => {
-                        const style = getStatusColor(ticket.status);
-                        return Object.fromEntries(style.split('; ').map(s => s.split(': ')));
-                      })()
-                    }}>
-                      {ticket.status}
-                    </span>
-                    <span style={{ 
-                      padding: '4px 12px', 
-                      borderRadius: '9999px', 
-                      fontSize: '12px', 
-                      fontWeight: '500',
-                      ...(() => {
-                        const style = getPriorityColor(ticket.priority);
-                        return Object.fromEntries(style.split('; ').map(s => s.split(': ')));
-                      })()
-                    }}>
-                      {ticket.priority}
-                    </span>
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <input
+                  type="checkbox"
+                  checked={selectedTickets.has(ticket._id)}
+                  onChange={() => handleSelectTicket(ticket._id)}
+                  style={{ width: '20px', height: '20px', cursor: 'pointer', flexShrink: 0, marginTop: '4px' }}
+                />
+                <div 
+                  onClick={() => navigate(`/${customUrlPath}/portal/ticket/${ticket._id}`)}
+                  style={{ flex: 1, cursor: 'pointer' }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '12px' }}>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
+                        <span style={{ fontFamily: 'monospace', fontSize: '14px', color: '#6b7280' }}>
+                          #{ticket.ticketNumber}
+                        </span>
+                        <span style={{ 
+                          padding: '4px 12px', 
+                          borderRadius: '9999px', 
+                          fontSize: '12px', 
+                          fontWeight: '500',
+                          border: '1px solid',
+                          ...(() => {
+                            const style = getStatusColor(ticket.status);
+                            return Object.fromEntries(style.split('; ').map(s => s.split(': ')));
+                          })()
+                        }}>
+                          {ticket.status}
+                        </span>
+                        <span style={{ 
+                          padding: '4px 12px', 
+                          borderRadius: '9999px', 
+                          fontSize: '12px', 
+                          fontWeight: '500',
+                          ...(() => {
+                            const style = getPriorityColor(ticket.priority);
+                            return Object.fromEntries(style.split('; ').map(s => s.split(': ')));
+                          })()
+                        }}>
+                          {ticket.priority}
+                        </span>
+                        {ticket.tags?.map((tag: string) => (
+                          <span key={tag} style={{
+                            padding: '4px 8px',
+                            borderRadius: '4px',
+                            fontSize: '11px',
+                            background: '#f3f4f6',
+                            color: '#374151'
+                          }}>
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                      <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', marginBottom: '8px' }}>
+                        {ticket.title || ticket.subject || 'No subject'}
+                      </h3>
+                      <p style={{ fontSize: '14px', color: '#6b7280', lineHeight: '1.5' }}>
+                        {ticket.description ? 
+                          (ticket.description.length > 150 ? 
+                            ticket.description.substring(0, 150) + '...' : 
+                            ticket.description) 
+                          : 'No description'}
+                      </p>
+                    </div>
                   </div>
-                  <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', marginBottom: '8px' }}>
-                    {ticket.title || ticket.subject || 'No subject'}
-                  </h3>
-                  <p style={{ fontSize: '14px', color: '#6b7280', lineHeight: '1.5' }}>
-                    {ticket.description ? 
-                      (ticket.description.length > 150 ? 
-                        ticket.description.substring(0, 150) + '...' : 
-                        ticket.description) 
-                      : 'No description'}
-                  </p>
+                  <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '16px', 
+                    fontSize: '13px', 
+                    color: '#6b7280',
+                    paddingTop: '12px',
+                    borderTop: '1px solid #f3f4f6',
+                    flexWrap: 'wrap'
+                  }}>
+                    {ticket.category && (
+                      <span>📂 {ticket.category}</span>
+                    )}
+                    {ticket.createdBy && (
+                      <span>👤 {ticket.createdBy.firstName} {ticket.createdBy.lastName}</span>
+                    )}
+                    {ticket.metadata?.studentEmail && (
+                      <span>✉️ {ticket.metadata.studentEmail}</span>
+                    )}
+                    <span>🕒 {new Date(ticket.createdAt).toLocaleDateString()}</span>
+                  </div>
                 </div>
-              </div>
-              <div style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '16px', 
-                fontSize: '13px', 
-                color: '#6b7280',
-                paddingTop: '12px',
-                borderTop: '1px solid #f3f4f6'
-              }}>
-                {ticket.category && (
-                  <span>📂 {ticket.category}</span>
-                )}
-                {ticket.createdBy && (
-                  <span>👤 {ticket.createdBy.firstName} {ticket.createdBy.lastName}</span>
-                )}
-                {ticket.metadata?.studentEmail && (
-                  <span>✉️ {ticket.metadata.studentEmail}</span>
-                )}
-                <span>🕒 {new Date(ticket.createdAt).toLocaleDateString()}</span>
               </div>
             </div>
           ))}

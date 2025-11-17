@@ -7,7 +7,26 @@ import { Role } from '../models/Role';
 // @access  Private
 export const getRoles = async (req: AuthRequest, res: Response) => {
   try {
-    const roles = await Role.find().populate('permissions');
+    const { projectId, includeSystem = 'true', isActive } = req.query as Record<string, string | undefined>;
+
+    const query: any = {};
+
+    if (typeof isActive !== 'undefined') {
+      query.isActive = isActive !== 'false';
+    }
+
+    if (projectId) {
+      const clauses: Record<string, any>[] = [
+        { projects: projectId },
+        { projectId },
+      ];
+      if (includeSystem !== 'false') {
+        clauses.push({ type: 'system' });
+      }
+      query.$or = clauses;
+    }
+
+    const roles = await Role.find(Object.keys(query).length ? query : {}).populate('permissions');
     res.json({
       success: true,
       data: roles,

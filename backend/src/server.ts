@@ -29,6 +29,8 @@ import escalationPolicyRoutes from './routes/sla-module/escalationPolicyRoutes';
 import activityLogRoutes from './routes/activityLogs';
 import accessLogRoutes from './routes/accessLogs';
 import knowledgeBaseRoutes from './routes/knowledgeBase';
+import approvalRoutes from './routes/approvals';
+import approvalMasterRoutes from './routes/approvalMasters';
 // import integrationRoutes from './routes/integrations'; // TODO: Implement
 import { setupSocketHandlers } from './socket/socketHandlers';
 import { initializeDatabase } from './utils/dbInit';
@@ -113,6 +115,10 @@ app.use('/api/access-logs', accessLogRoutes);
 
 // Knowledge Base Routes
 app.use('/api/kb', knowledgeBaseRoutes);
+
+// Approval workflows
+app.use('/api/approvals', approvalRoutes);
+app.use('/api/approval-masters', approvalMasterRoutes);
 
 // Integration Routes (TODO: Implement)
 // app.use('/api/integrations', integrationRoutes);

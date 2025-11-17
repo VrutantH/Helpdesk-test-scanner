@@ -19,6 +19,7 @@ import DashboardLayout from './components/DashboardLayout'
 // import { FieldFormManagement } from './components/FieldFormManagement' // TODO: Implement
 // import { TicketAutomation } from './components/TicketAutomation' // TODO: Implement
 import SLARulesPage from './pages/SLARulesPage'
+import ApprovalWorkflows from './pages/Approvals/ApprovalWorkflows'
 import EscalationMatrixPage from './pages/EscalationMatrixPage'
 import ActivityLogs from './components/ActivityLogs'
 import AccessLogs from './components/AccessLogs'
@@ -91,6 +92,7 @@ function App() {
         {/* <Route path="/fields-forms/*" element={<FieldFormManagement />} /> */}
         {/* <Route path="/ticket-automation/*" element={<TicketAutomation />} /> */}
         <Route path="/sla" element={<SLARulesPage />} />
+        <Route path="/approvals" element={<ApprovalWorkflows />} />
         <Route path="/escalation-matrix" element={<EscalationMatrixPage />} />
         <Route path="/knowledge-base" element={<KnowledgeBaseManagement />} />
         <Route path="/kb/:articleId" element={<KBArticleView />} />

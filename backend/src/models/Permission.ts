@@ -13,9 +13,11 @@ export interface IPermission extends Document {
     | 'user-management'
     | 'fields-forms'
     | 'ticket-automation'
+    | 'ticket-configuration'
     | 'approval-process'
     | 'workflow-role-mapping'
     | 'sla-escalation'
+    | 'knowledge-base'
     | 'integrations'
     | 'reports'
     | 'audit-logs'
@@ -58,9 +60,11 @@ const permissionSchema = new Schema<IPermission>(
         'user-management',
         'fields-forms',
         'ticket-automation',
+        'ticket-configuration',
         'approval-process',
         'workflow-role-mapping',
         'sla-escalation',
+        'knowledge-base',
         'integrations',
         'reports',
         'audit-logs',

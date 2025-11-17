@@ -143,32 +143,8 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     { path: '/rbac', icon: <MdSecurity />, label: 'RBAC Setup', labelMr: 'RBAC सेटअप' },
     { path: '/users', icon: <MdPeople />, label: 'User Management', labelMr: 'वापरकर्ता व्यवस्थापन' },
     { path: '/ticket-config', icon: <MdConfirmationNumber />, label: 'Ticket Configuration', labelMr: 'तिकीट कॉन्फिगरेशन' },
-    { 
-      icon: <MdDescription />, 
-      label: 'Fields & Forms', 
-      labelMr: 'फील्ड आणि फॉर्म',
-      subItems: [
-        { path: '/fields-forms/ticket-fields', icon: <MdConfirmationNumber />, label: 'Ticket Fields', labelMr: 'तिकीट फील्ड' },
-        { path: '/fields-forms/ticket-forms', icon: <MdDynamicForm />, label: 'Ticket Forms', labelMr: 'तिकीट फॉर्म' },
-        { path: '/fields-forms/activity-fields', icon: <MdFlashOn />, label: 'Activity Fields', labelMr: 'अॅक्टिव्हिटी फील्ड' },
-        { path: '/fields-forms/user-fields', icon: <MdPerson />, label: 'User Fields', labelMr: 'वापरकर्ता फील्ड' },
-        { path: '/fields-forms/contact-fields', icon: <MdPhone />, label: 'Contact Group Fields', labelMr: 'संपर्क फील्ड' },
-        { path: '/fields-forms/dependencies', icon: <MdLink />, label: 'Field Dependencies', labelMr: 'फील्ड अवलंबित्व' },
-      ]
-    },
-    { 
-      icon: <MdAutoMode />, 
-      label: 'Ticket Automation', 
-      labelMr: 'तिकीट ऑटोमेशन',
-      subItems: [
-        { path: '/ticket-automation/auto-assignments', icon: <MdAutoMode />, label: 'Auto Assignments', labelMr: 'ऑटो असाइनमेंट' },
-        { path: '/ticket-automation/create-triggers', icon: <MdAdd />, label: 'Create Ticket Triggers', labelMr: 'तिकीट ट्रिगर तयार करा' },
-        { path: '/ticket-automation/update-triggers', icon: <MdUpdate />, label: 'Update Ticket Triggers', labelMr: 'तिकीट ट्रिगर अद्यतनित करा' },
-        { path: '/ticket-automation/time-triggers', icon: <MdTimer />, label: 'Time Triggers', labelMr: 'वेळ ट्रिगर' },
-      ]
-    },
     { path: '/approvals', icon: <MdCheckCircle />, label: 'Approval Process', labelMr: 'मंजूरी प्रक्रिया' },
-    { path: '/workflows', icon: <MdAccountTree />, label: 'Workflow & Role Mapping', labelMr: 'कार्यप्रवाह आणि भूमिका मॅपिंग' },
+    // Removed: Fields & Forms, Ticket Automation, Workflow & Role Mapping (not used)
     { path: '/sla', icon: <MdSchedule />, label: 'SLA & Escalation', labelMr: 'SLA आणि वाढीव प्रक्रिया' },
     { path: '/knowledge-base', icon: <MdBook />, label: 'Knowledge Base', labelMr: 'ज्ञान आधार' },
     { path: '/integrations', icon: <MdIntegrationInstructions />, label: 'Integrations', labelMr: 'इंटिग्रेशन' },
