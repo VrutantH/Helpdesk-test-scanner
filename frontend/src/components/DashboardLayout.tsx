@@ -40,7 +40,11 @@ import {
   MdLogout,
   MdMenu,
   MdChevronLeft,
-  MdExpandMore
+  MdExpandMore,
+  MdLabel,
+  MdPriorityHigh,
+  MdCategory,
+  MdStyle
 } from 'react-icons/md';
 
 interface DashboardLayoutProps {
@@ -138,6 +142,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     { path: '/master-data', icon: <MdSettings />, label: 'Master Data', labelMr: 'मास्टर डेटा' },
     { path: '/rbac', icon: <MdSecurity />, label: 'RBAC Setup', labelMr: 'RBAC सेटअप' },
     { path: '/users', icon: <MdPeople />, label: 'User Management', labelMr: 'वापरकर्ता व्यवस्थापन' },
+    { path: '/ticket-config', icon: <MdConfirmationNumber />, label: 'Ticket Configuration', labelMr: 'तिकीट कॉन्फिगरेशन' },
     { 
       icon: <MdDescription />, 
       label: 'Fields & Forms', 
@@ -194,47 +199,59 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     // Project user - filter based on module access
     const filteredItems: MenuItem[] = [];
 
-    // Always show project dashboard
-    filteredItems.push({ path: '/project-dashboard', icon: <MdDashboard />, label: 'Dashboard', labelMr: 'डॅशबोर्ड' });
+    // Get project custom URL path from localStorage
+    const projectContextStr = localStorage.getItem('projectContext');
+    const customUrlPath = projectContextStr 
+      ? JSON.parse(projectContextStr).customUrlPath 
+      : 'project';
+
+    // Always show project dashboard with correct path
+    filteredItems.push({ 
+      path: `/${customUrlPath}/portal/dashboard`, 
+      icon: <MdDashboard />, 
+      label: 'Dashboard', 
+      labelMr: 'डॅशबोर्ड' 
+    });
 
     // Check each module access
     if (moduleAccess.tickets) {
       filteredItems.push({ 
-        icon: <MdDescription />, 
-        label: 'Fields & Forms', 
-        labelMr: 'फील्ड आणि फॉर्म',
-        subItems: allMenuItems.find(item => item.label === 'Fields & Forms')?.subItems || []
+        path: `/${customUrlPath}/portal/tickets`,
+        icon: projectBranding?.logo ? (
+          <img 
+            src={projectBranding.logo} 
+            alt="Tickets"
+            style={{
+              width: '24px',
+              height: '24px',
+              objectFit: 'contain',
+              borderRadius: '4px'
+            }}
+          />
+        ) : <MdConfirmationNumber />, 
+        label: 'Tickets', 
+        labelMr: 'तिकीटे'
       });
-      filteredItems.push({ 
-        icon: <MdAutoMode />, 
-        label: 'Ticket Automation', 
-        labelMr: 'तिकीट ऑटोमेशन',
-        subItems: allMenuItems.find(item => item.label === 'Ticket Automation')?.subItems || []
-      });
-    }
-
-    if (moduleAccess.userManagement) {
-      filteredItems.push(allMenuItems.find(item => item.path === '/users')!);
-    }
-
-    if (moduleAccess.reports) {
-      filteredItems.push(allMenuItems.find(item => item.path === '/reports')!);
-    }
-
-    if (moduleAccess.analytics) {
-      // Analytics could be added here
-    }
-
-    if (moduleAccess.workflows) {
-      filteredItems.push(allMenuItems.find(item => item.path === '/workflows')!);
-    }
-
-    if (moduleAccess.approvals) {
-      filteredItems.push(allMenuItems.find(item => item.path === '/approvals')!);
     }
 
     if (moduleAccess.knowledgeBase) {
-      // Knowledge base could be added here
+      filteredItems.push({ 
+        path: `/${customUrlPath}/portal/knowledge-base`,
+        icon: projectBranding?.logo ? (
+          <img 
+            src={projectBranding.logo} 
+            alt="Knowledge Base"
+            style={{
+              width: '24px',
+              height: '24px',
+              objectFit: 'contain',
+              borderRadius: '4px'
+            }}
+          />
+        ) : <MdBook />, 
+        label: 'Knowledge Base', 
+        labelMr: 'ज्ञान आधार'
+      });
     }
 
     return filteredItems;
@@ -505,7 +522,8 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                     }}
                     onMouseDown={(e) => {
                       if (!isSubItemActive && !isActive) {
-                        e.currentTarget.style.backgroundColor = 'rgba(63, 65, 209, 0.12)';
+                        const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary-main').trim();
+                        e.currentTarget.style.backgroundColor = primaryColor + '30';
                       }
                     }}
                     onMouseUp={(e) => {
@@ -591,7 +609,8 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                     }}
                     onMouseDown={(e) => {
                       if (!isActive) {
-                        e.currentTarget.style.backgroundColor = 'rgba(63, 65, 209, 0.12)';
+                        const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary-main').trim();
+                        e.currentTarget.style.backgroundColor = primaryColor + '30';
                       }
                     }}
                     onMouseUp={(e) => {
@@ -657,7 +676,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                             marginBottom: '2px',
                             marginLeft: '12px',
                             borderRadius: 'var(--radius-md)',
-                            backgroundColor: isSubActive ? 'rgba(63, 65, 209, 0.08)' : 'transparent',
+                            backgroundColor: isSubActive ? 'var(--primary-light)' : 'transparent',
                             color: isSubActive ? 'var(--primary-main)' : 'var(--text-primary)',
                             textDecoration: 'none',
                             fontSize: '16px',
@@ -684,7 +703,8 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                           }}
                           onMouseDown={(e) => {
                             if (!isSubActive) {
-                              e.currentTarget.style.backgroundColor = 'rgba(63, 65, 209, 0.12)';
+                              const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary-main').trim();
+                              e.currentTarget.style.backgroundColor = primaryColor + '20'; // Add 20% opacity
                             }
                           }}
                           onMouseUp={(e) => {

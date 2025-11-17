@@ -25,6 +25,21 @@ export interface IThread {
   createdAt: Date;
 }
 
+export interface IInternalNote {
+  _id?: mongoose.Types.ObjectId;
+  note: string;
+  createdBy: mongoose.Types.ObjectId;
+  createdAt: Date;
+}
+
+export interface IEscalationRecord {
+  _id?: mongoose.Types.ObjectId;
+  escalatedTo: mongoose.Types.ObjectId;
+  escalatedBy: mongoose.Types.ObjectId;
+  reason: string;
+  escalatedAt: Date;
+}
+
 export interface ITicket extends Document {
   ticketNumber: string;
   title: string;
@@ -36,6 +51,8 @@ export interface ITicket extends Document {
   assignedTo?: mongoose.Types.ObjectId;
   attachments: IAttachment[];
   threads?: IThread[];
+  internalNotes?: IInternalNote[];
+  escalationHistory?: IEscalationRecord[];
   tags: string[];
   metadata?: any;
   createdAt: Date;
@@ -65,6 +82,19 @@ const ThreadSchema = new Schema({
   attachments: [ThreadAttachmentSchema],
   isSystemMessage: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now },
+});
+
+const InternalNoteSchema = new Schema({
+  note: { type: String, required: true },
+  createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  createdAt: { type: Date, default: Date.now },
+});
+
+const EscalationRecordSchema = new Schema({
+  escalatedTo: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  escalatedBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  reason: { type: String, required: true },
+  escalatedAt: { type: Date, default: Date.now },
 });
 
 const TicketSchema: Schema = new Schema(
@@ -112,6 +142,8 @@ const TicketSchema: Schema = new Schema(
     },
     attachments: [AttachmentSchema],
     threads: [ThreadSchema],
+    internalNotes: [InternalNoteSchema],
+    escalationHistory: [EscalationRecordSchema],
     tags: [{
       type: String,
       trim: true,

@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import EscalationPolicy from '../../models/sla-module/EscalationPolicy';
+import { User } from '../../models/User';
 
 // Get all escalation policies
 export const getAllEscalationPolicies = async (req: Request, res: Response): Promise<void> => {
@@ -8,11 +9,17 @@ export const getAllEscalationPolicies = async (req: Request, res: Response): Pro
     const filter: any = {};
 
     if (projectId) {
-      filter.projectId = projectId;
+      // Check both projectId and projectIds array
+      filter.$or = [
+        { projectId: projectId },
+        { projectIds: { $in: [projectId] } }
+      ];
     }
     if (isActive !== undefined) {
       filter.isActive = isActive === 'true';
     }
+
+    console.log('🔍 Fetching escalation policies with filter:', JSON.stringify(filter));
 
     const policies = await EscalationPolicy.find(filter)
       .populate('projectId', 'name code')
@@ -21,13 +28,58 @@ export const getAllEscalationPolicies = async (req: Request, res: Response): Pro
       .populate('updatedBy', 'firstName lastName email')
       .sort({ createdAt: -1 });
 
+    console.log(`✅ Found ${policies.length} escalation policies`);
+
+    // For each policy, populate the users based on role/user in escalateTo
+    const enrichedPolicies = await Promise.all(
+      policies.map(async (policy) => {
+        const policyObj = policy.toObject();
+        
+        // Enrich each level with actual user information
+        if (policyObj.levels && policyObj.levels.length > 0) {
+          policyObj.levels = await Promise.all(
+            policyObj.levels.map(async (level: any) => {
+              if (level.escalateTo?.type === 'role' && level.escalateTo?.targetId) {
+                // Find users with this role in the specified project
+                const users = await User.find({
+                  role: level.escalateTo.targetId,
+                  isActive: true,
+                  ...(projectId && { projects: { $in: [projectId] } })
+                })
+                  .populate('role', 'name code')
+                  .select('firstName lastName email role')
+                  .lean();
+                
+                // Attach users to this level
+                level.users = users;
+              } else if (level.escalateTo?.type === 'user' && level.escalateTo?.targetId) {
+                // Fetch specific user
+                const user = await User.findById(level.escalateTo.targetId)
+                  .populate('role', 'name code')
+                  .select('firstName lastName email role')
+                  .lean();
+                
+                if (user) {
+                  level.users = [user];
+                }
+              }
+              
+              return level;
+            })
+          );
+        }
+        
+        return policyObj;
+      })
+    );
+
     res.status(200).json({
       success: true,
-      data: policies,
+      data: enrichedPolicies,
     });
   } catch (error: any) {
     console.error('Error fetching escalation policies:', error);
-    res.status(500).json({
+    res.status(200).json({
       success: false,
       message: 'Failed to fetch escalation policies',
       error: error.message,
@@ -103,8 +155,10 @@ export const createEscalationPolicy = async (req: Request, res: Response): Promi
 export const updateEscalationPolicy = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
+    // Remove createdBy from request body to prevent overwriting
+    const { createdBy, ...bodyData } = req.body;
     const updateData = {
-      ...req.body,
+      ...bodyData,
       updatedBy: (req as any).user?.userId,
     };
 

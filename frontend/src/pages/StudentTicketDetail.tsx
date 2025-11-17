@@ -393,7 +393,9 @@ const StudentTicketDetail: React.FC = () => {
                           <div>
                             <p className="text-sm font-medium text-gray-900">
                               {thread.createdBy.firstName} {thread.createdBy.lastName}
-                              <span className="ml-2 text-xs text-gray-500">({thread.createdBy.role.name})</span>
+                              {thread.createdBy.role?.name && (
+                                <span className="ml-2 text-xs text-gray-500">({thread.createdBy.role.name})</span>
+                              )}
                             </p>
                             <p className="text-xs text-gray-500">
                               {new Date(thread.createdAt).toLocaleString()}

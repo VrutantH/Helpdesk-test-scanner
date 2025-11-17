@@ -24,6 +24,9 @@ import ActivityLogs from './components/ActivityLogs'
 import AccessLogs from './components/AccessLogs'
 import KnowledgeBaseManagement from './components/KnowledgeBaseManagement'
 import KBArticleView from './pages/KBArticleView'
+import TicketSettings from './components/TicketSettings'
+import TicketConfigurationPage from './pages/TicketConfigurationPage'
+import AgentTicketDetail from './pages/AgentTicketDetail'
 // import BlockedEmailRecipients from './components/BlockedEmailRecipients' // TODO: Implement
 // import EmailFailureLogs from './components/EmailFailureLogs' // TODO: Implement
 // import IntegrationsManagement from './components/IntegrationsManagement' // TODO: Implement
@@ -66,6 +69,7 @@ function App() {
         <Route path="/:customUrlPath/kb" element={<StudentKBPage />} />
         {/* Project Portal Routes */}
         <Route path="/:customUrlPath/portal/login" element={<ProjectPortalLogin />} />
+        <Route path="/:customUrlPath/portal/ticket/:ticketId" element={<AgentTicketDetail />} />
         <Route path="/:customUrlPath/portal/*" element={<ProjectPortalDashboard />} />
         {/* Student Dashboard Routes */}
         <Route path="/:customUrlPath/student/dashboard" element={<StudentDashboard />} />
@@ -81,6 +85,8 @@ function App() {
         <Route path="/master-data" element={<MasterDataManagement />} />
         <Route path="/rbac" element={<RoleManagement />} />
         <Route path="/users" element={<UserManagement />} />
+        <Route path="/ticket-config" element={<TicketConfigurationPage />} />
+        <Route path="/ticket-config/settings/:projectId" element={<TicketSettings />} />
         {/* TODO: Implement these components */}
         {/* <Route path="/fields-forms/*" element={<FieldFormManagement />} /> */}
         {/* <Route path="/ticket-automation/*" element={<TicketAutomation />} /> */}

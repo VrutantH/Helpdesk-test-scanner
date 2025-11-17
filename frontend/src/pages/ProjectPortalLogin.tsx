@@ -36,6 +36,7 @@ const ProjectPortalLogin: React.FC = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [projectBranding, setProjectBranding] = useState<ProjectBranding | null>(null);
   const [brandingLoading, setBrandingLoading] = useState(true);
+  const [retryCount, setRetryCount] = useState(0);
 
   // Validation schema
   const loginSchema = yup.object({
@@ -79,9 +80,13 @@ const ProjectPortalLogin: React.FC = () => {
   const fetchProjectBranding = async () => {
     try {
       setBrandingLoading(true);
+      setErrorMessage(''); // Clear any previous errors
       const response = await axios.get(
         `http://localhost:3003/api/projects/branding/${customUrlPath}`
       );
+      
+      console.log('Project branding response:', response.data);
+      
       if (response.data.success) {
         setProjectBranding(response.data.data);
         
@@ -92,13 +97,64 @@ const ProjectPortalLogin: React.FC = () => {
           document.documentElement.style.setProperty('--primary-dark', secondary);
           document.documentElement.style.setProperty('--accent-main', accent);
         }
+      } else {
+        console.error('Failed to fetch project branding:', response.data);
+        // Use default branding if API fails
+        setProjectBranding({
+          projectId: '',
+          name: 'Portal',
+          code: '',
+          branding: {
+            logo: null,
+            colorTheme: {
+              primary: '#667eea',
+              secondary: '#1f2937',
+              accent: '#764ba2',
+              background: '#ffffff',
+            },
+          },
+        });
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error fetching project branding:', err);
-      setErrorMessage('Failed to load project information');
+      console.error('Error details:', {
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status,
+      });
+      
+      // Use default branding on error
+      setProjectBranding({
+        projectId: '',
+        name: 'Portal',
+        code: '',
+        branding: {
+          logo: null,
+          colorTheme: {
+            primary: '#667eea',
+            secondary: '#1f2937',
+            accent: '#764ba2',
+            background: '#ffffff',
+          },
+        },
+      });
+      
+      // Only show error if it's not a connection issue
+      if (err.response) {
+        setErrorMessage(`Failed to load project information: ${err.response.data?.message || err.message}`);
+      } else if (err.request) {
+        setErrorMessage('Cannot connect to server. Please check if the backend is running on port 3003.');
+      } else {
+        setErrorMessage('Failed to load project information. Using default settings.');
+      }
     } finally {
       setBrandingLoading(false);
     }
+  };
+
+  const handleRetry = () => {
+    setRetryCount(prev => prev + 1);
+    fetchProjectBranding();
   };
 
   const handleLogin = async (data: LoginFormData) => {
@@ -172,6 +228,7 @@ const ProjectPortalLogin: React.FC = () => {
   }
 
   const primaryColor = projectBranding?.branding?.colorTheme?.primary || '#667eea';
+  const secondaryColor = projectBranding?.branding?.colorTheme?.secondary || '#1f2937';
   const accentColor = projectBranding?.branding?.colorTheme?.accent || '#764ba2';
 
   return (
@@ -210,13 +267,12 @@ const ProjectPortalLogin: React.FC = () => {
               justifyContent: 'center',
             }}>
               <img
-                src={`http://localhost:3003${projectBranding.branding.logo}`}
+                src={projectBranding.branding.logo}
                 alt={projectBranding.name}
                 style={{
                   maxWidth: '200px',
                   maxHeight: '120px',
                   height: 'auto',
-                  filter: 'brightness(0) invert(1)',
                 }}
               />
             </div>
@@ -259,36 +315,45 @@ const ProjectPortalLogin: React.FC = () => {
             opacity: 0.95,
             lineHeight: 1.6,
           }}>
-            {projectBranding?.code || 'Helpdesk'}
+            Streamline your support operations with our comprehensive ticketing and management system
           </p>
 
           {/* Features List */}
-          <div style={{
-            textAlign: 'left',
-            display: 'inline-block',
-            marginTop: '3rem',
-          }}>
+          <div style={{ textAlign: 'left', marginTop: '3rem' }}>
             {[
-              'Secure authentication',
-              'Role-based access control',
-              'Real-time updates',
-              'Complete audit trail'
+              { icon: '🎫', text: 'Efficient Ticket Management' },
+              { icon: '📊', text: 'Real-time Analytics Dashboard' },
+              { icon: '🔔', text: 'Smart Notifications & Alerts' },
+              { icon: '🛡️', text: 'Enterprise-grade Security' },
             ].map((feature, index) => (
               <div key={index} style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.75rem',
-                marginBottom: '1rem',
-                fontSize: '1rem',
-                opacity: 0.9,
+                gap: '1rem',
+                padding: '1rem',
+                marginBottom: '0.75rem',
+                background: 'rgba(255, 255, 255, 0.1)',
+                backdropFilter: 'blur(10px)',
+                borderRadius: '12px',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
               }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20 6L9 17l-5-5"/>
-                </svg>
-                <span>{feature}</span>
+                <span style={{ fontSize: '1.5rem' }}>{feature.icon}</span>
+                <span style={{ fontSize: '0.95rem', fontWeight: 500 }}>{feature.text}</span>
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Bottom Decoration */}
+        <div style={{
+          position: 'absolute',
+          bottom: '2rem',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          fontSize: '0.875rem',
+          opacity: 0.8,
+        }}>
+          © 2025 {projectBranding?.name || 'Portal'}. All rights reserved.
         </div>
       </div>
 
@@ -341,7 +406,26 @@ const ProjectPortalLogin: React.FC = () => {
               role="alert"
               aria-live="polite"
             >
-              <p style={{ fontSize: '0.875rem', color: '#DC2626', margin: 0 }}>{errorMessage}</p>
+              <p style={{ fontSize: '0.875rem', color: '#DC2626', margin: '0 0 0.5rem 0' }}>{errorMessage}</p>
+              {errorMessage.includes('Cannot connect') && (
+                <button
+                  onClick={handleRetry}
+                  style={{
+                    marginTop: '0.5rem',
+                    padding: '0.5rem 1rem',
+                    background: '#DC2626',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '6px',
+                    fontSize: '0.75rem',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
+                  }}
+                >
+                  Retry Connection
+                </button>
+              )}
             </div>
           )}
 
@@ -359,16 +443,14 @@ const ProjectPortalLogin: React.FC = () => {
                 justifyContent: 'center',
               }}>
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
-                  <polyline points="10 17 15 12 10 7"/>
-                  <line x1="15" y1="12" x2="3" y2="12"/>
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                 </svg>
               </div>
               <h1 style={{ fontSize: '1.875rem', fontWeight: 600, color: '#111827', marginBottom: '0.5rem' }}>
-                Welcome back
+                Welcome to Helpdesk
               </h1>
-              <p style={{ fontSize: '0.875rem', color: '#6B7280' }}>
-                Sign in to access your portal
+              <p style={{ fontSize: '0.875rem', color: primaryColor, fontWeight: 500 }}>
+                {projectBranding?.name || 'Portal'}
               </p>
             </div>
 
@@ -494,6 +576,24 @@ const ProjectPortalLogin: React.FC = () => {
                 )}
               </div>
 
+              {/* Forgot Password Link */}
+              <div style={{ textAlign: 'right' }}>
+                <button
+                  type="button"
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    fontSize: '0.875rem',
+                    color: primaryColor,
+                    cursor: 'pointer',
+                    textDecoration: 'underline',
+                    fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
+                  }}
+                >
+                  Forgot your password?
+                </button>
+              </div>
+
               {/* Submit Button */}
               <button
                 type="submit"
@@ -545,11 +645,22 @@ const ProjectPortalLogin: React.FC = () => {
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
               </svg>
-              <span>Secure & Encrypted</span>
+              <span>Secured with 256-bit SSL encryption</span>
             </div>
-            <p style={{ fontSize: '0.75rem', color: '#9CA3AF', margin: 0 }}>
-              For assistance, please contact your system administrator
-            </p>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '1rem',
+              fontSize: '0.75rem',
+              color: '#9CA3AF',
+            }}>
+              <a href="#" style={{ color: '#9CA3AF', textDecoration: 'none' }}>Privacy Policy</a>
+              <span>•</span>
+              <a href="#" style={{ color: '#9CA3AF', textDecoration: 'none' }}>Terms of Service</a>
+              <span>•</span>
+              <a href="#" style={{ color: '#9CA3AF', textDecoration: 'none' }}>Help & Support</a>
+            </div>
           </div>
         </main>
       </div>

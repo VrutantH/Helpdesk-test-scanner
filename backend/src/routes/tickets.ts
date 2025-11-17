@@ -1,5 +1,23 @@
 import { Router } from 'express';
-import { submitTicket, upload, getMyTickets, getTicketById, replyToTicket, closeTicket, getAgentAssignedTickets } from '../controllers/ticketController';
+import { 
+  submitTicket, 
+  upload, 
+  getMyTickets, 
+  getTicketById, 
+  replyToTicket, 
+  closeTicket, 
+  getAgentAssignedTickets,
+  updateTicketStatus,
+  updateTicketCategory,
+  updateTicketPriority,
+  addTicketTag,
+  removeTicketTag,
+  addInternalNote,
+  escalateTicket,
+  getAllTags,
+  bulkUpdateByTags,
+  getDashboardStats
+} from '../controllers/ticketController';
 import { authMiddleware } from '../middleware/auth';
 
 const router = Router();
@@ -19,6 +37,21 @@ router.get('/my-tickets', authMiddleware, getMyTickets);
 // @route   GET /api/tickets/agent/assigned
 // @access  Private (Agent)
 router.get('/agent/assigned', authMiddleware, getAgentAssignedTickets);
+
+// @desc    Get dashboard statistics
+// @route   GET /api/tickets/dashboard-stats
+// @access  Private
+router.get('/dashboard-stats', authMiddleware, getDashboardStats);
+
+// @desc    Get all tags (MUST be before /:id route)
+// @route   GET /api/tickets/tags
+// @access  Private (Agent)
+router.get('/tags', authMiddleware, getAllTags);
+
+// @desc    Bulk update tickets by tags (MUST be before /:id route)
+// @route   POST /api/tickets/bulk-update
+// @access  Private (Agent)
+router.post('/bulk-update', authMiddleware, bulkUpdateByTags);
 
 // @desc    Get all tickets
 // @route   GET /api/tickets
@@ -64,5 +97,40 @@ router.put('/:id', (req, res) => {
     message: `Update ticket ${req.params.id} endpoint - to be implemented`,
   });
 });
+
+// @desc    Update ticket status
+// @route   PATCH /api/tickets/:id/status
+// @access  Private (Agent)
+router.patch('/:id/status', authMiddleware, updateTicketStatus);
+
+// @desc    Update ticket category
+// @route   PATCH /api/tickets/:id/category
+// @access  Private (Agent)
+router.patch('/:id/category', authMiddleware, updateTicketCategory);
+
+// @desc    Update ticket priority
+// @route   PATCH /api/tickets/:id/priority
+// @access  Private (Agent)
+router.patch('/:id/priority', authMiddleware, updateTicketPriority);
+
+// @desc    Add tag to ticket
+// @route   POST /api/tickets/:id/tags
+// @access  Private (Agent)
+router.post('/:id/tags', authMiddleware, addTicketTag);
+
+// @desc    Remove tag from ticket
+// @route   DELETE /api/tickets/:id/tags/:tag
+// @access  Private (Agent)
+router.delete('/:id/tags/:tag', authMiddleware, removeTicketTag);
+
+// @desc    Add internal note to ticket
+// @route   POST /api/tickets/:id/notes
+// @access  Private (Agent)
+router.post('/:id/notes', authMiddleware, addInternalNote);
+
+// @desc    Escalate ticket
+// @route   POST /api/tickets/:id/escalate
+// @access  Private (Agent)
+router.post('/:id/escalate', authMiddleware, escalateTicket);
 
 export default router;

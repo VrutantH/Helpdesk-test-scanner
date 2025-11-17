@@ -1,6 +1,18 @@
 import { useEffect, useState } from 'react';
 import DashboardLayout from '../components/DashboardLayout';
 
+interface TicketStats {
+  total: number;
+  pending: number;
+  resolved: number;
+  recentActivity: Array<{
+    ticketId: string;
+    title: string;
+    status: string;
+    updatedAt: string;
+  }>;
+}
+
 const Dashboard = () => {
   const [userData, setUserData] = useState({
     email: '',
@@ -8,6 +20,15 @@ const Dashboard = () => {
     firstName: '',
     lastName: ''
   });
+
+  const [ticketStats, setTicketStats] = useState<TicketStats>({
+    total: 0,
+    pending: 0,
+    resolved: 0,
+    recentActivity: []
+  });
+
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Get user data from localStorage
@@ -17,136 +38,125 @@ const Dashboard = () => {
     const lastName = localStorage.getItem('userLastName') || '';
 
     setUserData({ email, role, firstName, lastName });
+
+    // Fetch ticket statistics
+    fetchTicketStats();
   }, []);
+
+  const fetchTicketStats = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:3003/api/tickets/dashboard-stats', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setTicketStats(data);
+      }
+    } catch (error) {
+      console.error('Error fetching ticket stats:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <DashboardLayout title="Dashboard">
-      <div style={{ padding: '2rem' }}>
+      <div style={{ padding: '20px' }}>
+        <h1 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '8px', color: '#111827' }}>
+          Dashboard
+        </h1>
+        <p style={{ fontSize: '14px', color: '#6b7280', marginBottom: '24px' }}>
+          Overview of your work
+        </p>
+
+        {/* Stats Cards */}
         <div style={{
-          background: 'white',
-          borderRadius: '8px',
-          padding: '2rem',
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+          gap: '20px',
+          marginBottom: '24px'
         }}>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1.5rem', color: '#111827' }}>
-            Welcome to SAC Helpdesk
-          </h2>
-          
-          <div style={{ marginBottom: '2rem' }}>
-            <p style={{ fontSize: '1rem', color: '#6B7280', marginBottom: '0.5rem' }}>
-              Logged in as: <strong style={{ color: '#111827' }}>{userData.firstName} {userData.lastName}</strong>
-            </p>
-            <p style={{ fontSize: '0.875rem', color: '#6B7280' }}>
-              Email: {userData.email}
-            </p>
-            <p style={{ fontSize: '0.875rem', color: '#6B7280' }}>
-              Role: {userData.role}
+          <div style={{
+            background: 'white',
+            borderRadius: '8px',
+            padding: '20px',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+          }}>
+            <p style={{ fontSize: '14px', color: '#6b7280', marginBottom: '8px' }}>Total Tickets</p>
+            <p style={{ fontSize: '32px', fontWeight: 'bold', color: '#111827' }}>
+              {loading ? '-' : ticketStats.total}
             </p>
           </div>
 
           <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-            gap: '1.5rem',
-            marginTop: '2rem'
+            background: 'white',
+            borderRadius: '8px',
+            padding: '20px',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
           }}>
-            <div style={{
-              padding: '1.5rem',
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              borderRadius: '8px',
-              color: 'white'
-            }}>
-              <h3 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem' }}>Total Tickets</h3>
-              <p style={{ fontSize: '2rem', fontWeight: 'bold' }}>0</p>
-            </div>
-
-            <div style={{
-              padding: '1.5rem',
-              background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-              borderRadius: '8px',
-              color: 'white'
-            }}>
-              <h3 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem' }}>Open Tickets</h3>
-              <p style={{ fontSize: '2rem', fontWeight: 'bold' }}>0</p>
-            </div>
-
-            <div style={{
-              padding: '1.5rem',
-              background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-              borderRadius: '8px',
-              color: 'white'
-            }}>
-              <h3 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem' }}>Resolved</h3>
-              <p style={{ fontSize: '2rem', fontWeight: 'bold' }}>0</p>
-            </div>
-
-            <div style={{
-              padding: '1.5rem',
-              background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
-              borderRadius: '8px',
-              color: 'white'
-            }}>
-              <h3 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem' }}>In Progress</h3>
-              <p style={{ fontSize: '2rem', fontWeight: 'bold' }}>0</p>
-            </div>
+            <p style={{ fontSize: '14px', color: '#6b7280', marginBottom: '8px' }}>Pending</p>
+            <p style={{ fontSize: '32px', fontWeight: 'bold', color: '#f59e0b' }}>
+              {loading ? '-' : ticketStats.pending}
+            </p>
           </div>
 
-          <div style={{ marginTop: '2rem' }}>
-            <h3 style={{ fontSize: '1.25rem', fontWeight: '600', marginBottom: '1rem', color: '#111827' }}>
-              Quick Actions
-            </h3>
-            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-              <a
-                href="/form-builder"
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  background: '#2563EB',
-                  color: 'white',
-                  borderRadius: '6px',
-                  textDecoration: 'none',
-                  fontSize: '0.875rem',
-                  fontWeight: '500',
-                  transition: 'background 0.2s'
-                }}
-              >
-                Form Builder
-              </a>
-              <a
-                href="/rbac"
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  background: '#2563EB',
-                  color: 'white',
-                  borderRadius: '6px',
-                  textDecoration: 'none',
-                  fontSize: '0.875rem',
-                  fontWeight: '500',
-                  transition: 'background 0.2s'
-                }}
-              >
-                Role Management
-              </a>
-              <button
-                onClick={() => {
-                  localStorage.clear();
-                  window.location.href = '/login';
-                }}
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  background: '#EF4444',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '6px',
-                  fontSize: '0.875rem',
-                  fontWeight: '500',
-                  cursor: 'pointer',
-                  transition: 'background 0.2s'
-                }}
-              >
-                Logout
-              </button>
-            </div>
+          <div style={{
+            background: 'white',
+            borderRadius: '8px',
+            padding: '20px',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+          }}>
+            <p style={{ fontSize: '14px', color: '#6b7280', marginBottom: '8px' }}>Resolved</p>
+            <p style={{ fontSize: '32px', fontWeight: 'bold', color: '#10b981' }}>
+              {loading ? '-' : ticketStats.resolved}
+            </p>
           </div>
+        </div>
+
+        {/* Recent Activity */}
+        <div style={{
+          background: 'white',
+          borderRadius: '8px',
+          padding: '20px',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+        }}>
+          <h2 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '16px', color: '#111827' }}>
+            Recent Activity
+          </h2>
+          {loading ? (
+            <p style={{ color: '#6b7280' }}>Loading...</p>
+          ) : ticketStats.recentActivity.length > 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {ticketStats.recentActivity.map((activity) => (
+                <div
+                  key={activity.ticketId}
+                  style={{
+                    padding: '12px',
+                    borderRadius: '6px',
+                    background: '#f9fafb',
+                    border: '1px solid #e5e7eb'
+                  }}
+                >
+                  <p style={{ fontSize: '14px', fontWeight: '500', color: '#111827', marginBottom: '4px' }}>
+                    {activity.title}
+                  </p>
+                  <div style={{ display: 'flex', gap: '12px', fontSize: '12px', color: '#6b7280' }}>
+                    <span>Ticket #{activity.ticketId.slice(-6)}</span>
+                    <span>•</span>
+                    <span>{activity.status}</span>
+                    <span>•</span>
+                    <span>{new Date(activity.updatedAt).toLocaleDateString()}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p style={{ color: '#6b7280' }}>No recent activity</p>
+          )}
         </div>
       </div>
     </DashboardLayout>

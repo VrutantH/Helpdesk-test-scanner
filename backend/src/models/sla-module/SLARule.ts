@@ -81,6 +81,7 @@ const SLARuleSchema = new Schema<ISLARule>(
   },
   {
     timestamps: true,
+    collection: 'slarules', // Explicitly set collection name
   }
 );
 

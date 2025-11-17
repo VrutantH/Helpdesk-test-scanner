@@ -408,7 +408,7 @@ export const getTicketById = async (req: Request, res: Response) => {
       });
     }
 
-    // Get user to verify ownership
+    // Get user to verify permissions
     const user = await User.findById(userId);
     
     if (!user) {
@@ -418,10 +418,17 @@ export const getTicketById = async (req: Request, res: Response) => {
       });
     }
 
-    // Find ticket and verify student email matches
+    // Find ticket
     const ticket = await Ticket.findById(id)
       .populate('assignedTo', 'firstName lastName email')
-      .populate('threads.createdBy', 'firstName lastName email role');
+      .populate({
+        path: 'threads.createdBy',
+        select: 'firstName lastName email role',
+        populate: {
+          path: 'role',
+          select: 'name code'
+        }
+      });
 
     if (!ticket) {
       return res.status(404).json({
@@ -430,8 +437,23 @@ export const getTicketById = async (req: Request, res: Response) => {
       });
     }
 
-    // Verify student owns this ticket
-    if (ticket.metadata?.studentEmail !== user.email) {
+    // Check permissions:
+    // 1. Student can view their own ticket (email matches)
+    // 2. Agent can view tickets assigned to them
+    // 3. Admin/Super Admin can view any ticket
+    const isStudent = (user.role as any)?.code === 'STUDENT';
+    const isAgent = ['AGENT', 'ADMIN', 'SUPERADMIN'].includes((user.role as any)?.code);
+    const isAssignedAgent = ticket.assignedTo && ticket.assignedTo._id.toString() === userId;
+    const ownsTicket = ticket.metadata?.studentEmail === user.email;
+
+    if (isStudent && !ownsTicket) {
+      return res.status(403).json({
+        success: false,
+        message: 'You do not have permission to view this ticket',
+      });
+    }
+
+    if (isAgent && !isAssignedAgent && !['ADMIN', 'SUPERADMIN'].includes((user.role as any)?.code)) {
       return res.status(403).json({
         success: false,
         message: 'You do not have permission to view this ticket',
@@ -480,7 +502,7 @@ export const replyToTicket = async (req: Request, res: Response) => {
     }
 
     // Find ticket
-    const ticket = await Ticket.findById(id);
+    const ticket = await Ticket.findById(id).populate('assignedTo', '_id email');
 
     if (!ticket) {
       return res.status(404).json({
@@ -489,8 +511,20 @@ export const replyToTicket = async (req: Request, res: Response) => {
       });
     }
 
-    // Verify student owns this ticket
-    if (ticket.metadata?.studentEmail !== user.email) {
+    // Check if user has permission to reply:
+    // 1. Student who created the ticket
+    // 2. Assigned agent
+    // 3. User with appropriate role permissions (Super Admin, Support Manager, etc.)
+    const isTicketCreator = ticket.metadata?.studentEmail === user.email;
+    const isAssignedAgent = ticket.assignedTo && ticket.assignedTo._id.toString() === userId;
+    const userRole = user.role?.toString();
+    
+    // Get user's role to check permissions
+    const populatedUser = await User.findById(userId).populate('role', 'code');
+    const roleCode = (populatedUser?.role as any)?.code;
+    const hasAgentPermission = ['SUPER_ADMIN', 'SUPPORT_MANAGER', 'AGENT', 'SUPPORT_AGENT'].includes(roleCode || '');
+    
+    if (!isTicketCreator && !isAssignedAgent && !hasAgentPermission) {
       return res.status(403).json({
         success: false,
         message: 'You do not have permission to reply to this ticket',
@@ -534,10 +568,17 @@ export const replyToTicket = async (req: Request, res: Response) => {
     ticket.updatedAt = new Date();
     await ticket.save();
 
-    // Populate the new thread's createdBy field
-    await ticket.populate('threads.createdBy', 'firstName lastName email role');
+    // Populate the new thread's createdBy field with role information
+    await ticket.populate({
+      path: 'threads.createdBy',
+      select: 'firstName lastName email role',
+      populate: {
+        path: 'role',
+        select: 'name code'
+      }
+    });
 
-    console.log(`✅ Reply added to ticket: ${ticket._id} by student: ${user.email}`);
+    console.log(`✅ Reply added to ticket: ${ticket._id} by user: ${user.email}`);
 
     return res.status(200).json({
       success: true,
@@ -656,6 +697,456 @@ export const closeTicket = async (req: Request, res: Response) => {
       success: false,
       message: 'Failed to close ticket',
       error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+};
+
+/**
+ * Update ticket status
+ */
+export const updateTicketStatus = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    const userId = (req as any).user?.userId;
+
+    const ticket = await Ticket.findById(id);
+    if (!ticket) {
+      return res.status(404).json({
+        success: false,
+        message: 'Ticket not found',
+      });
+    }
+
+    ticket.status = status;
+    ticket.updatedAt = new Date();
+    await ticket.save();
+
+    return res.status(200).json({
+      success: true,
+      data: ticket,
+    });
+  } catch (error) {
+    console.error('Update status error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to update status',
+    });
+  }
+};
+
+/**
+ * Update ticket category
+ */
+export const updateTicketCategory = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { category } = req.body;
+
+    const ticket = await Ticket.findById(id);
+    if (!ticket) {
+      return res.status(404).json({
+        success: false,
+        message: 'Ticket not found',
+      });
+    }
+
+    ticket.category = category;
+    ticket.updatedAt = new Date();
+    await ticket.save();
+
+    return res.status(200).json({
+      success: true,
+      data: ticket,
+    });
+  } catch (error) {
+    console.error('Update category error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to update category',
+    });
+  }
+};
+
+/**
+ * Update ticket priority
+ */
+export const updateTicketPriority = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { priority } = req.body;
+
+    const ticket = await Ticket.findById(id);
+    if (!ticket) {
+      return res.status(404).json({
+        success: false,
+        message: 'Ticket not found',
+      });
+    }
+
+    ticket.priority = priority;
+    ticket.updatedAt = new Date();
+    await ticket.save();
+
+    return res.status(200).json({
+      success: true,
+      data: ticket,
+    });
+  } catch (error) {
+    console.error('Update priority error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to update priority',
+    });
+  }
+};
+
+/**
+ * Add tag to ticket
+ */
+export const addTicketTag = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { tag } = req.body;
+
+    const ticket = await Ticket.findById(id);
+    if (!ticket) {
+      return res.status(404).json({
+        success: false,
+        message: 'Ticket not found',
+      });
+    }
+
+    if (!ticket.tags) {
+      ticket.tags = [];
+    }
+
+    if (!ticket.tags.includes(tag)) {
+      ticket.tags.push(tag);
+      ticket.updatedAt = new Date();
+      await ticket.save();
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: ticket,
+    });
+  } catch (error) {
+    console.error('Add tag error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to add tag',
+    });
+  }
+};
+
+/**
+ * Remove tag from ticket
+ */
+export const removeTicketTag = async (req: Request, res: Response) => {
+  try {
+    const { id, tag } = req.params;
+
+    const ticket = await Ticket.findById(id);
+    if (!ticket) {
+      return res.status(404).json({
+        success: false,
+        message: 'Ticket not found',
+      });
+    }
+
+    if (ticket.tags) {
+      ticket.tags = ticket.tags.filter(t => t !== tag);
+      ticket.updatedAt = new Date();
+      await ticket.save();
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: ticket,
+    });
+  } catch (error) {
+    console.error('Remove tag error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to remove tag',
+    });
+  }
+};
+
+/**
+ * Add internal note to ticket
+ */
+export const addInternalNote = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { note } = req.body;
+    const userId = (req as any).user?.userId;
+
+    const ticket = await Ticket.findById(id);
+    if (!ticket) {
+      return res.status(404).json({
+        success: false,
+        message: 'Ticket not found',
+      });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
+    if (!ticket.internalNotes) {
+      ticket.internalNotes = [];
+    }
+
+    ticket.internalNotes.push({
+      _id: new mongoose.Types.ObjectId(),
+      note,
+      createdBy: {
+        firstName: user.firstName,
+        lastName: user.lastName,
+      },
+      createdAt: new Date(),
+    } as any);
+
+    ticket.updatedAt = new Date();
+    await ticket.save();
+
+    return res.status(200).json({
+      success: true,
+      data: ticket,
+    });
+  } catch (error) {
+    console.error('Add note error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to add internal note',
+    });
+  }
+};
+
+/**
+ * Escalate ticket
+ */
+export const escalateTicket = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { escalateTo, reason } = req.body;
+    const userId = (req as any).user?.userId;
+
+    const ticket = await Ticket.findById(id);
+    if (!ticket) {
+      return res.status(404).json({
+        success: false,
+        message: 'Ticket not found',
+      });
+    }
+
+    const escalatedUser = await User.findById(escalateTo);
+    if (!escalatedUser) {
+      return res.status(404).json({
+        success: false,
+        message: 'Escalation user not found',
+      });
+    }
+
+    const currentUser = await User.findById(userId);
+    if (!currentUser) {
+      return res.status(404).json({
+        success: false,
+        message: 'Current user not found',
+      });
+    }
+
+    if (!ticket.escalationHistory) {
+      ticket.escalationHistory = [];
+    }
+
+    ticket.escalationHistory.push({
+      _id: new mongoose.Types.ObjectId(),
+      escalatedTo: {
+        firstName: escalatedUser.firstName,
+        lastName: escalatedUser.lastName,
+        email: escalatedUser.email,
+      },
+      escalatedBy: {
+        firstName: currentUser.firstName,
+        lastName: currentUser.lastName,
+      },
+      reason,
+      escalatedAt: new Date(),
+    } as any);
+
+    // Update assigned agent
+    ticket.assignedTo = new mongoose.Types.ObjectId(escalateTo);
+    ticket.updatedAt = new Date();
+    await ticket.save();
+
+    return res.status(200).json({
+      success: true,
+      message: 'Ticket escalated successfully',
+      data: ticket,
+    });
+  } catch (error) {
+    console.error('Escalate ticket error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to escalate ticket',
+    });
+  }
+};
+
+/**
+ * Get all available tags
+ */
+export const getAllTags = async (req: Request, res: Response) => {
+  try {
+    const tickets = await Ticket.find({ tags: { $exists: true, $ne: [] } }).select('tags');
+    const tagsSet = new Set<string>();
+    
+    tickets.forEach(ticket => {
+      if (ticket.tags) {
+        ticket.tags.forEach(tag => tagsSet.add(tag));
+      }
+    });
+
+    const tags = Array.from(tagsSet).sort();
+
+    return res.status(200).json({
+      success: true,
+      data: tags,
+    });
+  } catch (error) {
+    console.error('Get tags error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch tags',
+    });
+  }
+};
+
+/**
+ * Bulk update tickets by tags
+ */
+export const bulkUpdateByTags = async (req: Request, res: Response) => {
+  try {
+    const { tags, updates } = req.body;
+
+    const result = await Ticket.updateMany(
+      { tags: { $in: tags } },
+      { 
+        $set: { 
+          ...updates,
+          updatedAt: new Date()
+        }
+      }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: `Updated ${result.modifiedCount} tickets`,
+      data: result,
+    });
+  } catch (error) {
+    console.error('Bulk update error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to bulk update tickets',
+    });
+  }
+};
+
+/**
+ * Get dashboard statistics for the logged-in user
+ */
+export const getDashboardStats = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.id;
+    const user = await User.findById(userId).populate('role');
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
+    const roleCode = (user.role as any)?.code;
+
+    // Build query based on user role
+    let query: any = {};
+    
+    // For students, show only their tickets
+    if (roleCode === 'STUDENT') {
+      query['metadata.studentEmail'] = user.email;
+    } else {
+      // For agents/admins, check based on role and project mapping
+      const hasFullAccess = ['SUPER_ADMIN', 'SUPPORT_MANAGER'].includes(roleCode);
+      
+      if (hasFullAccess) {
+        // SUPER_ADMIN and SUPPORT_MANAGER see all tickets (no query filter)
+      } else {
+        // Regular agents see tickets from their mapped projects OR assigned to them
+        const userProjects = user.projects || [];
+        
+        if (userProjects.length > 0) {
+          // Agent mapped to specific projects - show tickets from those projects
+          const projectIds = userProjects.map(p => p.toString());
+          query.$or = [
+            { 'metadata.projectId': { $in: projectIds } },
+            { assignedTo: userId }
+          ];
+        } else {
+          // Agent not mapped to any project - show only assigned tickets
+          query.assignedTo = userId;
+        }
+      }
+    }
+
+    // Get total tickets count
+    const total = await Ticket.countDocuments(query);
+
+    // Get pending tickets count (open, in-progress, pending statuses)
+    const pending = await Ticket.countDocuments({
+      ...query,
+      status: { $in: ['open', 'in-progress', 'pending'] }
+    });
+
+    // Get resolved tickets count
+    const resolved = await Ticket.countDocuments({
+      ...query,
+      status: 'resolved'
+    });
+
+    // Get recent activity (last 5 tickets)
+    const recentActivity = await Ticket.find(query)
+      .sort({ updatedAt: -1 })
+      .limit(5)
+      .select('ticketNumber title status updatedAt')
+      .lean();
+
+    const formattedActivity = recentActivity.map(ticket => ({
+      ticketId: ticket._id.toString(),
+      title: ticket.title,
+      status: ticket.status,
+      updatedAt: ticket.updatedAt,
+    }));
+
+    return res.status(200).json({
+      total,
+      pending,
+      resolved,
+      recentActivity: formattedActivity,
+    });
+  } catch (error) {
+    console.error('Dashboard stats error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch dashboard statistics',
     });
   }
 };

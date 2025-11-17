@@ -124,22 +124,42 @@ const UserManagement: React.FC = () => {
   // Fetch roles and projects
   const fetchRolesAndProjects = async () => {
     try {
+      const token = localStorage.getItem('authToken');
       const [rolesRes, projectsRes] = await Promise.all([
-        fetch('http://localhost:3003/api/roles', { credentials: 'include' }),
-        fetch('http://localhost:3003/api/projects', { credentials: 'include' }),
+        fetch('http://localhost:3003/api/roles', { 
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+          credentials: 'include' 
+        }),
+        fetch('http://localhost:3003/api/projects', { 
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+          credentials: 'include' 
+        }),
       ]);
       
       const rolesData = await rolesRes.json();
       const projectsData = await projectsRes.json();
       
+      console.log('🔍 Roles response:', rolesData);
+      console.log('🔍 Projects response:', projectsData);
+      
       if (rolesData.success && Array.isArray(rolesData.data)) {
+        console.log('✅ Setting roles:', rolesData.data.length, 'roles');
         setRoles(rolesData.data);
+      } else {
+        console.error('❌ Invalid roles response:', rolesData);
       }
       if (projectsData.success && projectsData.data && Array.isArray(projectsData.data.projects)) {
+        console.log('✅ Setting projects:', projectsData.data.projects.length, 'projects');
         setProjects(projectsData.data.projects);
+      } else {
+        console.error('❌ Invalid projects response:', projectsData);
       }
     } catch (error) {
-      console.error('Error fetching roles/projects:', error);
+      console.error('❌ Error fetching roles/projects:', error);
     }
   };
 
@@ -235,9 +255,13 @@ const UserManagement: React.FC = () => {
         payload.password = formData.password;
       }
       
+      const token = localStorage.getItem('authToken');
       const response = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
         credentials: 'include',
         body: JSON.stringify(payload),
       });
@@ -285,7 +309,11 @@ const UserManagement: React.FC = () => {
         queryParam = 'emp';
       }
       
+      const token = localStorage.getItem('authToken');
       const response = await fetch(`http://localhost:3003/api/users/hrms/search?query=${encodeURIComponent(queryParam)}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
         credentials: 'include',
       });
       
@@ -343,9 +371,13 @@ const UserManagement: React.FC = () => {
         if (!employee) continue;
 
         try {
+          const token = localStorage.getItem('authToken');
           const response = await fetch('http://localhost:3003/api/users', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+            },
             credentials: 'include',
             body: JSON.stringify({
               employeeCode: employee.employeeCode,
@@ -398,8 +430,12 @@ const UserManagement: React.FC = () => {
     }
 
     try {
+      const token = localStorage.getItem('authToken');
       const response = await fetch(`http://localhost:3003/api/users/${userId}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
         credentials: 'include',
       });
       
@@ -420,8 +456,12 @@ const UserManagement: React.FC = () => {
   // Handle toggle status
   const handleToggleStatus = async (userId: string) => {
     try {
+      const token = localStorage.getItem('authToken');
       const response = await fetch(`http://localhost:3003/api/users/${userId}/toggle-status`, {
         method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
         credentials: 'include',
       });
       
@@ -442,10 +482,12 @@ const UserManagement: React.FC = () => {
     if (!roleId) return;
     
     try {
+      const token = localStorage.getItem('authToken');
       const response = await fetch(`http://localhost:3003/api/users/${userId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
         credentials: 'include',
         body: JSON.stringify({ role: roleId }),

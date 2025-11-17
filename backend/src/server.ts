@@ -21,6 +21,8 @@ import projectRoutes from './routes/projects';
 import roleRoutes from './routes/roleRoutes';
 import masterDataRoutes from './routes/masterData'; // Old generic routes (kept for backward compatibility)
 import newMasterDataRoutes from './routes/master-data'; // New separate collection routes
+import categoryRoutes from './routes/categories';
+import statusRoutes from './routes/statuses';
 // import { ticketFieldRoutes, autoAssignmentRoutes } from './routes/ticket-module'; // TODO: Implement
 import slaRuleRoutes from './routes/sla-module/slaRuleRoutes';
 import escalationPolicyRoutes from './routes/sla-module/escalationPolicyRoutes';
@@ -94,6 +96,8 @@ app.use('/api/projects', projectRoutes);
 app.use('/api/roles', roleRoutes);
 app.use('/api/master-data', masterDataRoutes); // Old generic routes (backward compatibility)
 app.use('/api/masters', newMasterDataRoutes); // New separate collection routes
+app.use('/api/categories', categoryRoutes);
+app.use('/api/statuses', statusRoutes);
 
 // Ticket Module Routes (TODO: Implement)
 // app.use('/api/ticket-fields', ticketFieldRoutes);

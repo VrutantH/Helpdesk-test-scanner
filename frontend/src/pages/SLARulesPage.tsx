@@ -31,6 +31,7 @@ const SLARulesPage: React.FC = () => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
+    priority: 'Normal' as 'Critical' | 'Urgent' | 'High' | 'Normal' | 'Low',
     responseTimeValue: '',
     responseTimeUnit: 'minutes' as 'minutes' | 'hours' | 'days',
     resolutionTimeValue: '',
@@ -173,6 +174,7 @@ const SLARulesPage: React.FC = () => {
       const slaRuleData = {
         name: formData.name,
         description: formData.description,
+        priority: formData.priority,
         responseTime: {
           value: parseInt(formData.responseTimeValue),
           unit: formData.responseTimeUnit,
@@ -209,6 +211,7 @@ const SLARulesPage: React.FC = () => {
         setFormData({
           name: '',
           description: '',
+          priority: 'Normal',
           responseTimeValue: '',
           responseTimeUnit: 'minutes',
           resolutionTimeValue: '',
@@ -239,6 +242,7 @@ const SLARulesPage: React.FC = () => {
     setFormData({
       name: rule.name,
       description: rule.description || '',
+      priority: rule.priority || 'Normal',
       responseTimeValue: rule.responseTime.value.toString(),
       responseTimeUnit: rule.responseTime.unit,
       resolutionTimeValue: rule.resolutionTime.value.toString(),
@@ -641,6 +645,31 @@ const SLARulesPage: React.FC = () => {
                   />
                 </div>
 
+                {/* Priority */}
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 500, color: '#374151' }}>
+                    Priority <span style={{ color: '#dc2626' }}>*</span>
+                  </label>
+                  <select
+                    required
+                    value={formData.priority}
+                    onChange={(e) => setFormData({ ...formData, priority: e.target.value as any })}
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                    }}
+                  >
+                    <option value="Low">Low</option>
+                    <option value="Normal">Normal</option>
+                    <option value="High">High</option>
+                    <option value="Urgent">Urgent</option>
+                    <option value="Critical">Critical</option>
+                  </select>
+                </div>
+
                 {/* Response Time */}
                 <div style={{ marginBottom: '20px' }}>
                   <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 500, color: '#374151' }}>
@@ -814,6 +843,7 @@ const SLARulesPage: React.FC = () => {
                       setFormData({
                         name: '',
                         description: '',
+                        priority: 'Normal',
                         responseTimeValue: '',
                         responseTimeUnit: 'minutes',
                         resolutionTimeValue: '',

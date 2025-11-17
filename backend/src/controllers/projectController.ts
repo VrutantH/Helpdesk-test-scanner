@@ -1,6 +1,9 @@
 import { Request, Response } from 'express';
 import { Project } from '../models/Project';
 import { User } from '../models/User';
+import { Category } from '../models/Category';
+import { Status } from '../models/Status';
+import SLARule from '../models/sla-module/SLARule';
 
 /**
  * Get all projects with optional filtering
@@ -375,16 +378,24 @@ export const getProjectBranding = async (req: Request, res: Response) => {
     const brandingData = {
       projectId: project._id.toString(),
       name: project.name,
-      customUrlPath: project.branding?.customUrlPath,
-      primaryColor: project.branding?.colorTheme?.primary || '#2563EB',
-      secondaryColor: project.branding?.colorTheme?.secondary || '#764ba2',
-      logoUrl: project.branding?.logo,
-      welcomeText: project.branding?.headerText,
-      footerText: project.branding?.footerText,
+      code: project.code,
+      branding: {
+        customUrlPath: project.branding?.customUrlPath,
+        logo: project.branding?.logo,
+        favicon: project.branding?.favicon,
+        headerText: project.branding?.headerText,
+        footerText: project.branding?.footerText,
+        colorTheme: {
+          primary: project.branding?.colorTheme?.primary || '#667eea',
+          secondary: project.branding?.colorTheme?.secondary || '#1f2937',
+          accent: project.branding?.colorTheme?.accent || '#764ba2',
+          background: project.branding?.colorTheme?.background || '#ffffff',
+        },
+      },
       knowledgeBase: (project as any).knowledgeBase ?? true, // Enable KB by default
     };
     
-    console.log(`✅ Found project branding: ${project.name}`);
+    console.log(`✅ Found project branding: ${project.name}`, brandingData);
     
     return res.json({
       success: true,
@@ -437,11 +448,53 @@ export const getProjectTicketSettings = async (req: Request, res: Response) => {
       allowAttachments: project.configuration?.ticketSubmissionSettings?.allowAttachments !== false,
       maxAttachmentSize: project.configuration?.ticketSubmissionSettings?.maxAttachmentSize || 10,
       allowedFileTypes: project.configuration?.ticketSubmissionSettings?.allowedFileTypes || ['.pdf', '.doc', '.docx', '.jpg', '.jpeg', '.png'],
+      // Fetch categories from Category model (master)
+      categories: await (async () => {
+        const categories = await Category.find({ 
+          projectId: project._id, 
+          isActive: true 
+        }).select('name').sort({ order: 1, name: 1 });
+        return categories.map(cat => cat.name);
+      })(),
+      // Fetch allowed statuses from Status model (master)
+      allowedStatuses: await (async () => {
+        const statuses = await Status.find({ 
+          projectId: project._id, 
+          isActive: true 
+        }).select('name code color isDefault isClosed').sort({ displayOrder: 1 });
+        return statuses;
+      })(),
+      // Fetch priorities from SLA Rules
+      allowedPriorities: await (async () => {
+        console.log('🔍 Querying SLA rules:');
+        console.log('  Project ID:', project._id);
+        console.log('  Project ID type:', typeof project._id);
+        console.log('  SLARule collection:', SLARule.collection.name);
+        
+        const query = {
+          projectIds: { $in: [project._id] },  // Use $in because projectIds is an array
+          isActive: true,
+          priority: { $exists: true, $ne: null }
+        };
+        console.log('  Query:', JSON.stringify(query));
+        
+        const slaRules = await SLARule.find(query).select('priority');
+        console.log('  Raw results:', JSON.stringify(slaRules, null, 2));
+        
+        // Extract unique priorities
+        const uniquePriorities = [...new Set(slaRules.map(rule => rule.priority))];
+        console.log(`📊 Found ${uniquePriorities.length} unique priorities from ${slaRules.length} SLA rules for project ${project.name}:`, uniquePriorities);
+        
+        return uniquePriorities;
+      })(),
     };
     
     console.log(`✅ Found ticket settings for project: ${project.name}`);
     
-    return res.json(settings);
+    return res.json({
+      success: true,
+      data: settings,
+    });
     
   } catch (error) {
     console.error('Get project ticket settings error:', error);

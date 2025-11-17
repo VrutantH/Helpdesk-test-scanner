@@ -1,0 +1,463 @@
+import React, { useState, useEffect } from 'react';
+import { MdSearch, MdVisibility, MdThumbUp, MdThumbDown } from 'react-icons/md';
+
+interface KBArticle {
+  _id: string;
+  projectId: string;
+  title: string;
+  content: string;
+  category?: string;
+  tags?: string[];
+  status: 'draft' | 'published' | 'archived';
+  displayOrder: number;
+  viewCount: number;
+  helpfulCount: number;
+  notHelpfulCount: number;
+  author: { name: string; email: string };
+  publishedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+const KnowledgeBaseViewer: React.FC = () => {
+  const [articles, setArticles] = useState<KBArticle[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedArticle, setSelectedArticle] = useState<KBArticle | null>(null);
+
+  // Get project context from localStorage
+  const projectContext = localStorage.getItem('projectContext');
+  const projectId = projectContext ? JSON.parse(projectContext).projectId : null;
+
+  useEffect(() => {
+    if (projectId) {
+      fetchArticles();
+    }
+  }, [projectId]);
+
+  const fetchArticles = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      const response = await fetch(
+        `http://localhost:3003/api/kb/project/${projectId}?status=published`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+          credentials: 'include',
+        }
+      );
+      const data = await response.json();
+      if (data.success) {
+        setArticles(data.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching articles:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleArticleClick = async (article: KBArticle) => {
+    setSelectedArticle(article);
+    
+    // Increment view count
+    try {
+      const token = localStorage.getItem('token');
+      await fetch(`http://localhost:3003/api/kb/${article._id}/view`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        credentials: 'include',
+      });
+    } catch (error) {
+      console.error('Error incrementing view count:', error);
+    }
+  };
+
+  const handleFeedback = async (articleId: string, isHelpful: boolean) => {
+    try {
+      const token = localStorage.getItem('token');
+      await fetch(`http://localhost:3003/api/kb/${articleId}/feedback`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ isHelpful }),
+        credentials: 'include',
+      });
+      
+      // Update local state
+      setArticles(prev => prev.map(article => {
+        if (article._id === articleId) {
+          return {
+            ...article,
+            helpfulCount: isHelpful ? article.helpfulCount + 1 : article.helpfulCount,
+            notHelpfulCount: !isHelpful ? article.notHelpfulCount + 1 : article.notHelpfulCount,
+          };
+        }
+        return article;
+      }));
+      
+      if (selectedArticle && selectedArticle._id === articleId) {
+        setSelectedArticle(prev => prev ? {
+          ...prev,
+          helpfulCount: isHelpful ? prev.helpfulCount + 1 : prev.helpfulCount,
+          notHelpfulCount: !isHelpful ? prev.notHelpfulCount + 1 : prev.notHelpfulCount,
+        } : null);
+      }
+    } catch (error) {
+      console.error('Error submitting feedback:', error);
+    }
+  };
+
+  const categories = ['all', ...new Set(articles.map(a => a.category).filter(Boolean))];
+  
+  const filteredArticles = articles.filter(article => {
+    const matchesSearch = article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         article.content.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === 'all' || article.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
+
+  if (loading) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        minHeight: '400px',
+      }}>
+        <div style={{
+          width: '48px',
+          height: '48px',
+          border: '4px solid #e5e7eb',
+          borderTopColor: 'var(--primary-main)',
+          borderRadius: '50%',
+          animation: 'spin 1s linear infinite'
+        }} />
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ 
+      padding: '24px',
+      maxWidth: '1400px',
+      margin: '0 auto'
+    }}>
+      <div style={{
+        marginBottom: '32px'
+      }}>
+        <h1 style={{
+          fontSize: '28px',
+          fontWeight: '600',
+          color: 'var(--text-primary)',
+          marginBottom: '8px'
+        }}>
+          Knowledge Base
+        </h1>
+        <p style={{
+          fontSize: '14px',
+          color: 'var(--text-secondary)'
+        }}>
+          Browse articles and find answers to common questions
+        </p>
+      </div>
+
+      {/* Search and Filter */}
+      <div style={{
+        display: 'flex',
+        gap: '16px',
+        marginBottom: '24px',
+        flexWrap: 'wrap'
+      }}>
+        <div style={{
+          flex: '1',
+          minWidth: '250px',
+          position: 'relative'
+        }}>
+          <MdSearch style={{
+            position: 'absolute',
+            left: '12px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            fontSize: '20px',
+            color: 'var(--text-secondary)'
+          }} />
+          <input
+            type="text"
+            placeholder="Search articles..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '10px 12px 10px 40px',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: '8px',
+              fontSize: '14px',
+              outline: 'none'
+            }}
+          />
+        </div>
+
+        <select
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
+          style={{
+            padding: '10px 12px',
+            border: '1px solid var(--border-subtle)',
+            borderRadius: '8px',
+            fontSize: '14px',
+            outline: 'none',
+            minWidth: '150px'
+          }}
+        >
+          {categories.map(category => (
+            <option key={category} value={category}>
+              {category === 'all' ? 'All Categories' : category}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Articles Grid/List */}
+      {!selectedArticle ? (
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+          gap: '20px'
+        }}>
+          {filteredArticles.length === 0 ? (
+            <div style={{
+              gridColumn: '1 / -1',
+              textAlign: 'center',
+              padding: '40px',
+              color: 'var(--text-secondary)'
+            }}>
+              No articles found
+            </div>
+          ) : (
+            filteredArticles.map(article => (
+              <div
+                key={article._id}
+                onClick={() => handleArticleClick(article)}
+                style={{
+                  padding: '20px',
+                  background: 'white',
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: '12px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+                }}
+              >
+                <h3 style={{
+                  fontSize: '18px',
+                  fontWeight: '600',
+                  color: 'var(--text-primary)',
+                  marginBottom: '8px'
+                }}>
+                  {article.title}
+                </h3>
+                
+                {article.category && (
+                  <span style={{
+                    display: 'inline-block',
+                    padding: '4px 12px',
+                    background: 'var(--primary-light)',
+                    color: 'var(--primary-main)',
+                    borderRadius: '12px',
+                    fontSize: '12px',
+                    fontWeight: '500',
+                    marginBottom: '12px'
+                  }}>
+                    {article.category}
+                  </span>
+                )}
+
+                <div style={{
+                  display: 'flex',
+                  gap: '16px',
+                  fontSize: '13px',
+                  color: 'var(--text-secondary)',
+                  marginTop: '12px'
+                }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <MdVisibility /> {article.viewCount}
+                  </span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <MdThumbUp /> {article.helpfulCount}
+                  </span>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      ) : (
+        // Article Detail View
+        <div>
+          <button
+            onClick={() => setSelectedArticle(null)}
+            style={{
+              padding: '8px 16px',
+              background: 'var(--surface-secondary)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: '8px',
+              fontSize: '14px',
+              cursor: 'pointer',
+              marginBottom: '20px'
+            }}
+          >
+            ← Back to Articles
+          </button>
+
+          <div style={{
+            background: 'white',
+            border: '1px solid var(--border-subtle)',
+            borderRadius: '12px',
+            padding: '32px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+          }}>
+            <h1 style={{
+              fontSize: '32px',
+              fontWeight: '600',
+              color: 'var(--text-primary)',
+              marginBottom: '16px'
+            }}>
+              {selectedArticle.title}
+            </h1>
+
+            {selectedArticle.category && (
+              <span style={{
+                display: 'inline-block',
+                padding: '6px 16px',
+                background: 'var(--primary-light)',
+                color: 'var(--primary-main)',
+                borderRadius: '16px',
+                fontSize: '13px',
+                fontWeight: '500',
+                marginBottom: '16px'
+              }}>
+                {selectedArticle.category}
+              </span>
+            )}
+
+            <div style={{
+              display: 'flex',
+              gap: '24px',
+              fontSize: '14px',
+              color: 'var(--text-secondary)',
+              marginBottom: '24px',
+              paddingBottom: '24px',
+              borderBottom: '1px solid var(--border-subtle)'
+            }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <MdVisibility /> {selectedArticle.viewCount} views
+              </span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <MdThumbUp /> {selectedArticle.helpfulCount} helpful
+              </span>
+            </div>
+
+            <div 
+              style={{
+                fontSize: '16px',
+                lineHeight: '1.7',
+                color: 'var(--text-primary)',
+                marginBottom: '32px'
+              }}
+              dangerouslySetInnerHTML={{ __html: selectedArticle.content }}
+            />
+
+            {/* Feedback Section */}
+            <div style={{
+              marginTop: '32px',
+              paddingTop: '32px',
+              borderTop: '1px solid var(--border-subtle)'
+            }}>
+              <p style={{
+                fontSize: '16px',
+                fontWeight: '500',
+                color: 'var(--text-primary)',
+                marginBottom: '12px'
+              }}>
+                Was this article helpful?
+              </p>
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button
+                  onClick={() => handleFeedback(selectedArticle._id, true)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '10px 20px',
+                    background: 'white',
+                    border: '2px solid var(--primary-main)',
+                    color: 'var(--primary-main)',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'var(--primary-main)';
+                    e.currentTarget.style.color = 'white';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'white';
+                    e.currentTarget.style.color = 'var(--primary-main)';
+                  }}
+                >
+                  <MdThumbUp /> Yes
+                </button>
+                <button
+                  onClick={() => handleFeedback(selectedArticle._id, false)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '10px 20px',
+                    background: 'white',
+                    border: '2px solid var(--text-secondary)',
+                    color: 'var(--text-secondary)',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'var(--text-secondary)';
+                    e.currentTarget.style.color = 'white';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'white';
+                    e.currentTarget.style.color = 'var(--text-secondary)';
+                  }}
+                >
+                  <MdThumbDown /> No
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default KnowledgeBaseViewer;
