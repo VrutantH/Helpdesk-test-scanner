@@ -49,6 +49,7 @@ import {
 
 interface DashboardLayoutProps {
   children: ReactNode;
+  logoutRedirectPath?: string; // Optional custom logout redirect path
 }
 
 interface MenuItem {
@@ -60,7 +61,7 @@ interface MenuItem {
   subItems?: MenuItem[];
 }
 
-const DashboardLayout = ({ children }: DashboardLayoutProps) => {
+const DashboardLayout = ({ children, logoutRedirectPath }: DashboardLayoutProps) => {
   const location = useLocation();
   const { i18n } = useTranslation();
   const [expandedMenu, setExpandedMenu] = useState<string | null>(null);
@@ -143,6 +144,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     { path: '/rbac', icon: <MdSecurity />, label: 'RBAC Setup', labelMr: 'RBAC सेटअप' },
     { path: '/users', icon: <MdPeople />, label: 'User Management', labelMr: 'वापरकर्ता व्यवस्थापन' },
     { path: '/ticket-config', icon: <MdConfirmationNumber />, label: 'Ticket Configuration', labelMr: 'तिकीट कॉन्फिगरेशन' },
+    { path: '/offline-module', icon: <MdSettings />, label: 'Offline Module Setup', labelMr: 'ऑफलाइन मॉड्यूल सेटअप' },
     { path: '/approvals', icon: <MdCheckCircle />, label: 'Approval Process', labelMr: 'मंजूरी प्रक्रिया' },
     // Removed: Fields & Forms, Ticket Automation, Workflow & Role Mapping (not used)
     { path: '/sla', icon: <MdSchedule />, label: 'SLA & Escalation', labelMr: 'SLA आणि वाढीव प्रक्रिया' },
@@ -227,6 +229,15 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         ) : <MdBook />, 
         label: 'Knowledge Base', 
         labelMr: 'ज्ञान आधार'
+      });
+    }
+
+    if (moduleAccess.offline) {
+      filteredItems.push({ 
+        path: `/${customUrlPath}/portal/offline`,
+        icon: <MdSettings />, 
+        label: 'Offline Support', 
+        labelMr: 'ऑफलाइन सहाय्य'
       });
     }
 
@@ -389,8 +400,45 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           {menuItems.map((item, index) => {
             const hasSubItems = item.subItems && item.subItems.length > 0;
             const isExpanded = expandedMenu === item.label && !isSidebarCollapsed;
-            const isActive = item.path ? location.pathname === item.path : false;
-            const isSubItemActive = hasSubItems && item.subItems?.some(sub => sub.path === location.pathname);
+            
+            // Smart path matching that handles dynamic route prefixes
+            const isActive = item.path ? (() => {
+              const currentPath = location.pathname;
+              const menuPath = item.path;
+              
+              // Exact match - fastest check
+              if (currentPath === menuPath) return true;
+              
+              // Check if both paths contain 'portal' - indicates project-specific route
+              if (currentPath.includes('/portal/') && menuPath.includes('/portal/')) {
+                // Compare everything after 'portal/'
+                const currentAfterPortal = currentPath.substring(currentPath.indexOf('/portal/'));
+                const menuAfterPortal = menuPath.substring(menuPath.indexOf('/portal/'));
+                return currentAfterPortal === menuAfterPortal;
+              }
+              
+              return false;
+            })() : false;
+            
+            const isSubItemActive = hasSubItems && item.subItems?.some(sub => {
+              if (!sub.path) return false;
+              const currentPath = location.pathname;
+              const subPath = sub.path;
+              
+              // Exact match
+              if (currentPath === subPath) return true;
+              
+              // For nested routes (like audit/*), check if current path ends with the sub-path
+              // Example: /audit/activity-logs should match regardless of prefix
+              if (subPath.includes('/') && currentPath.endsWith(subPath.substring(subPath.lastIndexOf('/')))) {
+                // Additional check: ensure the parent path also matches
+                const subParent = subPath.substring(0, subPath.lastIndexOf('/'));
+                return currentPath.includes(subParent);
+              }
+              
+              return false;
+            });
+            
             const showTooltip = isSidebarCollapsed && hoveredItem === item.label;
             
             return (
@@ -637,7 +685,24 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                     }}
                   >
                     {item.subItems!.map((subItem) => {
-                      const isSubActive = location.pathname === subItem.path;
+                      // Smart matching for sub-items
+                      const isSubActive = subItem.path ? (() => {
+                        const currentPath = location.pathname;
+                        const subPath = subItem.path;
+                        
+                        // Exact match
+                        if (currentPath === subPath) return true;
+                        
+                        // For nested routes, check if path ends with the route
+                        // Example: /audit/activity-logs should match regardless of prefix
+                        if (subPath.includes('/') && currentPath.endsWith(subPath.substring(subPath.lastIndexOf('/')))) {
+                          const subParent = subPath.substring(0, subPath.lastIndexOf('/'));
+                          return currentPath.includes(subParent);
+                        }
+                        
+                        return false;
+                      })() : false;
+                      
                       return (
                         <Link
                           key={subItem.path}
@@ -753,7 +818,8 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 localStorage.removeItem('userEmail');
                 localStorage.removeItem('userId');
                 localStorage.removeItem('userRole');
-                window.location.href = '/login';
+                localStorage.removeItem('projectContext');
+                window.location.href = logoutRedirectPath || '/login';
               }
             }}
             className="btn btn-outline"

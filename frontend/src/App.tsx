@@ -28,6 +28,8 @@ import KBArticleView from './pages/KBArticleView'
 import TicketSettings from './components/TicketSettings'
 import TicketConfigurationPage from './pages/TicketConfigurationPage'
 import AgentTicketDetail from './pages/AgentTicketDetail'
+import OfflineModuleSettings from './pages/OfflineModuleSettings'
+import OfflineModuleConfigPage from './pages/OfflineModuleConfigPage'
 // import BlockedEmailRecipients from './components/BlockedEmailRecipients' // TODO: Implement
 // import EmailFailureLogs from './components/EmailFailureLogs' // TODO: Implement
 // import IntegrationsManagement from './components/IntegrationsManagement' // TODO: Implement
@@ -88,6 +90,8 @@ function App() {
         <Route path="/users" element={<UserManagement />} />
         <Route path="/ticket-config" element={<TicketConfigurationPage />} />
         <Route path="/ticket-config/settings/:projectId" element={<TicketSettings />} />
+        <Route path="/offline-module" element={<OfflineModuleConfigPage />} />
+        <Route path="/offline-module/settings/:projectId" element={<OfflineModuleSettings />} />
         {/* TODO: Implement these components */}
         {/* <Route path="/fields-forms/*" element={<FieldFormManagement />} /> */}
         {/* <Route path="/ticket-automation/*" element={<TicketAutomation />} /> */}

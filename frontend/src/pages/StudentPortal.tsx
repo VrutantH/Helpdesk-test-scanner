@@ -23,6 +23,16 @@ interface ProjectBranding {
   welcomeText: string;
   footerText: string;
   knowledgeBase?: boolean;
+  branding?: {
+    colorTheme?: {
+      primary: string;
+      secondary: string;
+      accent?: string;
+      background?: string;
+    };
+    logo?: string;
+    headerText?: string;
+  };
 }
 
 interface OnlineFormField {
@@ -98,9 +108,38 @@ const StudentPortal: React.FC = () => {
         );
         
         // Extract branding data from response
-        const branding = brandingResponse.data.success 
+        const brandingData = brandingResponse.data.success 
           ? brandingResponse.data.data 
           : brandingResponse.data;
+        
+        // Parse colorTheme if it's a string
+        let colorTheme = brandingData.branding?.colorTheme;
+        if (typeof colorTheme === 'string') {
+          // Parse string like "@{primary=#49bc8f; secondary=#64748b; accent=#3b82f6; background=#ffffff}"
+          const parsed: any = {};
+          const matches = colorTheme.match(/(\w+)=#([a-zA-Z0-9]+)/g);
+          if (matches) {
+            matches.forEach((match: string) => {
+              const [key, value] = match.split('=');
+              parsed[key] = '#' + value;
+            });
+            colorTheme = parsed;
+          }
+        }
+        
+        // Map the branding colors from nested structure
+        const branding: ProjectBranding = {
+          projectId: brandingData.projectId,
+          name: brandingData.name,
+          customUrlPath: brandingData.customUrlPath,
+          logoUrl: brandingData.branding?.logo || null,
+          welcomeText: brandingData.branding?.headerText || 'Welcome!',
+          footerText: brandingData.branding?.footerText || '© 2025. All rights reserved.',
+          knowledgeBase: brandingData.knowledgeBase,
+          primaryColor: colorTheme?.primary || '#49bc8f',
+          secondaryColor: colorTheme?.secondary || '#64748b',
+          branding: { ...brandingData.branding, colorTheme },
+        };
         
         setProjectBranding(branding);
 
@@ -108,22 +147,25 @@ const StudentPortal: React.FC = () => {
         const settingsResponse = await axios.get(
           `http://localhost:3003/api/projects/${branding.projectId}/ticket-settings`
         );
-        setTicketSettings(settingsResponse.data);
+        const ticketSettings = settingsResponse.data.success 
+          ? settingsResponse.data.data 
+          : settingsResponse.data;
+        setTicketSettings(ticketSettings);
 
         // Set default tab based on mode
-        if (settingsResponse.data.mode === 'online') {
+        if (ticketSettings.mode === 'online') {
           setActiveTab('online');
-        } else if (settingsResponse.data.mode === 'offline') {
+        } else if (ticketSettings.mode === 'offline') {
           setActiveTab('offline');
         }
 
         // Initialize filtered centers
-        setFilteredCenters(settingsResponse.data.offlineCenters || []);
+        setFilteredCenters(ticketSettings.offlineCenters || []);
 
         // Extract unique states and cities for filters
-        if (settingsResponse.data.offlineCenters) {
-          const states = [...new Set(settingsResponse.data.offlineCenters.map((c: OfflineCenter) => c.state))] as string[];
-          const cities = [...new Set(settingsResponse.data.offlineCenters.map((c: OfflineCenter) => c.city))] as string[];
+        if (ticketSettings.offlineCenters) {
+          const states = [...new Set(ticketSettings.offlineCenters.map((c: OfflineCenter) => c.state))] as string[];
+          const cities = [...new Set(ticketSettings.offlineCenters.map((c: OfflineCenter) => c.city))] as string[];
           setUniqueStates(states.sort());
           setUniqueCities(cities.sort());
         }

@@ -19,7 +19,9 @@ import {
   ChatBubbleBottomCenterTextIcon,
   HandThumbUpIcon,
   HandThumbDownIcon,
+  BuildingOfficeIcon,
 } from '@heroicons/react/24/outline';
+import AgentOfflineModule from './AgentOfflineModule';
 
 interface ProjectBranding {
   projectId: string;
@@ -37,6 +39,7 @@ interface User {
     name: string;
     code: string;
   };
+  projects?: Array<string | { _id: string }>;
 }
 
 interface Ticket {
@@ -87,7 +90,7 @@ interface TicketStats {
   avgResolutionTime: number; // in hours
 }
 
-type ActiveModule = 'dashboard' | 'tickets' | 'knowledge-base';
+type ActiveModule = 'dashboard' | 'tickets' | 'knowledge-base' | 'offline';
 
 const AgentDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -409,6 +412,21 @@ const AgentDashboard: React.FC = () => {
             <BookOpenIcon className="h-5 w-5" />
             <span>Knowledge Base</span>
           </button>
+
+          <button
+            onClick={() => {
+              setActiveModule('offline');
+              setSidebarOpen(false);
+            }}
+            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg mb-2 transition-colors ${
+              activeModule === 'offline'
+                ? 'bg-blue-50 text-blue-600 font-medium'
+                : 'text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            <BuildingOfficeIcon className="h-5 w-5" />
+            <span>Offline Support</span>
+          </button>
         </nav>
 
         {/* User Info */}
@@ -450,11 +468,13 @@ const AgentDashboard: React.FC = () => {
                 {activeModule === 'dashboard' && 'Dashboard'}
                 {activeModule === 'tickets' && 'My Tickets'}
                 {activeModule === 'knowledge-base' && 'Knowledge Base'}
+                {activeModule === 'offline' && 'Offline Support Center'}
               </h2>
               <p className="text-sm text-gray-600">
                 {activeModule === 'dashboard' && 'Overview of your ticket assignments'}
                 {activeModule === 'tickets' && 'Tickets assigned to you'}
                 {activeModule === 'knowledge-base' && 'Browse help articles and documentation'}
+                {activeModule === 'offline' && 'Register students and create tickets for walk-in support'}
               </p>
             </div>
           </div>
@@ -818,6 +838,17 @@ const AgentDashboard: React.FC = () => {
                 </div>
               )}
             </div>
+          )}
+
+          {/* Offline Support Module */}
+          {activeModule === 'offline' && user && (
+            <AgentOfflineModule 
+              projectId={
+                user.projects && user.projects.length > 0 
+                  ? (typeof user.projects[0] === 'string' ? user.projects[0] : user.projects[0]._id)
+                  : ''
+              } 
+            />
           )}
         </main>
       </div>

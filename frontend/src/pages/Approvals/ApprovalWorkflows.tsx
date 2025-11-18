@@ -36,7 +36,9 @@ const ApprovalWorkflows: React.FC = () => {
   const [roleOptions, setRoleOptions] = useState<{ _id: string; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
+  const [viewModalOpen, setViewModalOpen] = useState(false);
   const [editingWorkflow, setEditingWorkflow] = useState<any>(null);
+  const [viewingWorkflow, setViewingWorkflow] = useState<any>(null);
   const [saving, setSaving] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [categorySearch, setCategorySearch] = useState('');
@@ -255,6 +257,11 @@ const ApprovalWorkflows: React.FC = () => {
     setModalOpen(true);
   };
 
+  const handleViewWorkflow = (workflow: any) => {
+    setViewingWorkflow(workflow);
+    setViewModalOpen(true);
+  };
+
   const handleLevelRoleChange = (tempId: string, value: string) => {
     setLevels((prev) => prev.map((level) => (level.tempId === tempId ? { ...level, role: value } : level)));
   };
@@ -354,34 +361,6 @@ const ApprovalWorkflows: React.FC = () => {
     if (typeof workflow.categoryId === 'object') return workflow.categoryId.name || '—';
     const fallback = masters.categories.find((c) => c._id === workflow.categoryId);
     return fallback?.name || '—';
-  };
-
-  const resolveRequestTypeName = (workflow: any) => {
-    if (!workflow?.requestTypeId) return '—';
-    if (typeof workflow.requestTypeId === 'object') return workflow.requestTypeId.name || '—';
-    const fallback = masters.requestTypes.find((r) => r._id === workflow.requestTypeId);
-    return fallback?.name || '—';
-  };
-
-  const getLevelSummary = (level: any) => {
-    if (!level) return 'Unassigned';
-    if (Array.isArray(level.roles) && level.roles.length) {
-      return level.roles
-        .map((role: any) => (typeof role === 'string' ? role : role?.name))
-        .filter(Boolean)
-        .join(', ');
-    }
-    if (Array.isArray(level.approvers) && level.approvers.length) {
-      return level.approvers
-        .map((user: any) => {
-          if (!user) return null;
-          if (typeof user === 'string') return user;
-          return [user.firstName, user.lastName].filter(Boolean).join(' ') || user.email;
-        })
-        .filter(Boolean)
-        .join(', ');
-    }
-    return 'Unassigned';
   };
 
   const renderBadge = (label: string, tone: 'green' | 'red' | 'blue' | 'gray' | 'purple') => {
@@ -727,15 +706,6 @@ const ApprovalWorkflows: React.FC = () => {
                       textAlign: 'left',
                       textTransform: 'uppercase',
                       letterSpacing: '0.05em',
-                    }}>Request Type</th>
-                    <th style={{ 
-                      padding: '12px 16px', 
-                      fontSize: '12px', 
-                      fontWeight: 600,
-                      color: '#6B7280',
-                      textAlign: 'left',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.05em',
                     }}>Approval Flow</th>
                     <th style={{ 
                       padding: '12px 16px', 
@@ -796,12 +766,6 @@ const ApprovalWorkflows: React.FC = () => {
                         fontSize: '14px',
                         color: '#374151',
                       }}>{resolveCategoryName(workflow)}</td>
-                      <td style={{ 
-                        padding: '12px 16px',
-                        fontSize: '14px',
-                        color: '#2563EB',
-                        fontWeight: 500,
-                      }}>{resolveRequestTypeName(workflow)}</td>
                       <td style={{ padding: '12px 16px' }}>
                         <div style={{ 
                           fontSize: '13px', 
@@ -883,10 +847,7 @@ const ApprovalWorkflows: React.FC = () => {
                             </svg>
                           </button>
                           <button
-                            onClick={() => {
-                              console.log('View workflow:', workflow);
-                              alert(`Workflow: ${workflow.name}\nLevels: ${workflow.levels?.length || 0}\nLogic: ${workflow.approvalLogic}`);
-                            }}
+                            onClick={() => handleViewWorkflow(workflow)}
                             style={{
                               padding: '6px 8px',
                               background: 'transparent',
@@ -1093,7 +1054,6 @@ const ApprovalWorkflows: React.FC = () => {
                             transition: 'border-color 0.2s',
                             fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
                           }}
-                          onFocus={(e) => e.target.style.borderColor = '#2563EB'}
                           onBlur={(e) => {
                             e.target.style.borderColor = '#D1D5DB';
                             setTimeout(() => setShowCategoryDropdown(false), 200);
@@ -1342,184 +1302,41 @@ const ApprovalWorkflows: React.FC = () => {
                               </button>
                             </div>
 
-                            <div style={{ marginBottom: '12px' }}>
+                            <div>
                               <label style={{ 
                                 display: 'block',
                                 fontSize: '13px', 
                                 fontWeight: 600,
                                 color: '#374151',
-                                marginBottom: '8px',
-                              }}>Approver Type</label>
-                              <div style={{ display: 'flex', gap: '16px' }}>
-                                <label style={{ 
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: '6px',
-                                  fontSize: '13px',
-                                  color: '#374151',
-                                  cursor: 'pointer',
-                                }}>
-                                  <input
-                                    type="radio"
-                                    name={`approver-type-${level.tempId}`}
-                                    value="role"
-                                    checked={level.approverType === 'role'}
-                                    onChange={(e) => {
-                                      const updated = levels.map((l) =>
-                                        l.tempId === level.tempId ? { ...l, approverType: 'role' as const } : l
-                                      );
-                                      setLevels(updated);
-                                    }}
-                                    style={{ cursor: 'pointer' }}
-                                  />
-                                  By Role
-                                </label>
-                                <label style={{ 
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: '6px',
-                                  fontSize: '13px',
-                                  color: '#374151',
-                                  cursor: 'pointer',
-                                }}>
-                                  <input
-                                    type="radio"
-                                    name={`approver-type-${level.tempId}`}
-                                    value="designation"
-                                    checked={level.approverType === 'designation'}
-                                    onChange={(e) => {
-                                      const updated = levels.map((l) =>
-                                        l.tempId === level.tempId ? { ...l, approverType: 'designation' as const } : l
-                                      );
-                                      setLevels(updated);
-                                    }}
-                                    style={{ cursor: 'pointer' }}
-                                  />
-                                  By Designation
-                                </label>
-                                <label style={{ 
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: '6px',
-                                  fontSize: '13px',
-                                  color: '#374151',
-                                  cursor: 'pointer',
-                                }}>
-                                  <input
-                                    type="radio"
-                                    name={`approver-type-${level.tempId}`}
-                                    value="region"
-                                    checked={level.approverType === 'region'}
-                                    onChange={(e) => {
-                                      const updated = levels.map((l) =>
-                                        l.tempId === level.tempId ? { ...l, approverType: 'region' as const } : l
-                                      );
-                                      setLevels(updated);
-                                    }}
-                                    style={{ cursor: 'pointer' }}
-                                  />
-                                  By Region
-                                </label>
-                              </div>
+                                marginBottom: '6px',
+                              }}>Role</label>
+                              <select
+                                value={level.role}
+                                onChange={(event) => {
+                                  handleLevelRoleChange(level.tempId, event.target.value);
+                                }}
+                                style={{ 
+                                  width: '100%', 
+                                  padding: '9px 12px', 
+                                  fontSize: '14px',
+                                  borderRadius: '6px', 
+                                  border: '1px solid #D1D5DB',
+                                  background: 'white',
+                                  outline: 'none',
+                                  transition: 'border-color 0.2s',
+                                  fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
+                                }}
+                                onFocus={(e) => e.target.style.borderColor = '#2563EB'}
+                                onBlur={(e) => e.target.style.borderColor = '#D1D5DB'}
+                              >
+                                <option value="">Select role</option>
+                                {roleOptions.map((role) => (
+                                  <option key={role._id} value={role._id}>
+                                    {role.name}
+                                  </option>
+                                ))}
+                              </select>
                             </div>
-
-                            {level.approverType === 'role' && (
-                              <div>
-                                <label style={{ 
-                                  display: 'block',
-                                  fontSize: '13px', 
-                                  fontWeight: 600,
-                                  color: '#374151',
-                                  marginBottom: '6px',
-                                }}>Role</label>
-                                <select
-                                  value={level.role}
-                                  onChange={(event) => {
-                                    handleLevelRoleChange(level.tempId, event.target.value);
-                                  }}
-                                  style={{ 
-                                    width: '100%', 
-                                    padding: '9px 12px', 
-                                    fontSize: '14px',
-                                    borderRadius: '6px', 
-                                    border: '1px solid #D1D5DB',
-                                    background: 'white',
-                                    outline: 'none',
-                                    transition: 'border-color 0.2s',
-                                    fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
-                                  }}
-                                  onFocus={(e) => e.target.style.borderColor = '#2563EB'}
-                                  onBlur={(e) => e.target.style.borderColor = '#D1D5DB'}
-                                >
-                                  <option value="">Select role</option>
-                                  {roleOptions.map((role) => (
-                                    <option key={role._id} value={role._id}>
-                                      {role.name}
-                                    </option>
-                                  ))}
-                                </select>
-                              </div>
-                            )}
-
-                            {level.approverType === 'designation' && (
-                              <div>
-                                <label style={{ 
-                                  display: 'block',
-                                  fontSize: '13px', 
-                                  fontWeight: 600,
-                                  color: '#374151',
-                                  marginBottom: '6px',
-                                }}>Designation</label>
-                                <select
-                                  style={{ 
-                                    width: '100%', 
-                                    padding: '9px 12px', 
-                                    fontSize: '14px',
-                                    borderRadius: '6px', 
-                                    border: '1px solid #D1D5DB',
-                                    background: 'white',
-                                    outline: 'none',
-                                    transition: 'border-color 0.2s',
-                                    fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
-                                  }}
-                                  onFocus={(e) => e.target.style.borderColor = '#2563EB'}
-                                  onBlur={(e) => e.target.style.borderColor = '#D1D5DB'}
-                                >
-                                  <option value="">Select designation</option>
-                                  {/* TODO: Add designation options */}
-                                </select>
-                              </div>
-                            )}
-
-                            {level.approverType === 'region' && (
-                              <div>
-                                <label style={{ 
-                                  display: 'block',
-                                  fontSize: '13px', 
-                                  fontWeight: 600,
-                                  color: '#374151',
-                                  marginBottom: '6px',
-                                }}>Region</label>
-                                <select
-                                  style={{ 
-                                    width: '100%', 
-                                    padding: '9px 12px', 
-                                    fontSize: '14px',
-                                    borderRadius: '6px', 
-                                    border: '1px solid #D1D5DB',
-                                    background: 'white',
-                                    outline: 'none',
-                                    transition: 'border-color 0.2s',
-                                    fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
-                                  }}
-                                  onFocus={(e) => e.target.style.borderColor = '#2563EB'}
-                                  onBlur={(e) => e.target.style.borderColor = '#D1D5DB'}
-                                >
-                                  <option value="">Select region</option>
-                                  {/* TODO: Add region options */}
-                                </select>
-                              </div>
-                            )}
                           </div>
                         ))}
                       </div>
@@ -1577,7 +1394,349 @@ const ApprovalWorkflows: React.FC = () => {
                     if (!saving) e.currentTarget.style.background = '#2563EB';
                   }}
                 >
-                  {saving ? 'Creating…' : 'Create Workflow'}
+                  {saving ? (editingWorkflow ? 'Updating…' : 'Creating…') : (editingWorkflow ? 'Update Workflow' : 'Create Workflow')}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* View Workflow Modal */}
+        {viewModalOpen && viewingWorkflow && (
+          <div
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'rgba(0, 0, 0, 0.5)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 1000,
+              padding: '20px',
+            }}
+            onClick={() => setViewModalOpen(false)}
+          >
+            <div
+              style={{
+                background: 'white',
+                borderRadius: '12px',
+                maxWidth: '700px',
+                width: '100%',
+                maxHeight: '85vh',
+                overflow: 'auto',
+                boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div style={{
+                padding: '24px',
+                borderBottom: '1px solid #E5E7EB',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}>
+                <h3 style={{
+                  margin: 0,
+                  fontSize: '20px',
+                  fontWeight: 600,
+                  color: '#111827',
+                  fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
+                }}>
+                  View Approval Workflow
+                </h3>
+                <button
+                  onClick={() => setViewModalOpen(false)}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    fontSize: '24px',
+                    cursor: 'pointer',
+                    color: '#6B7280',
+                    padding: '0',
+                    lineHeight: 1,
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+
+              {/* Content */}
+              <div style={{ padding: '24px' }}>
+                {/* Workflow Name */}
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    color: '#374151',
+                    marginBottom: '8px',
+                    fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
+                  }}>
+                    Workflow Name
+                  </label>
+                  <div style={{
+                    padding: '10px 12px',
+                    background: '#F9FAFB',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    color: '#111827',
+                    fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
+                  }}>
+                    {viewingWorkflow.name}
+                  </div>
+                </div>
+
+                {/* Description */}
+                {viewingWorkflow.description && (
+                  <div style={{ marginBottom: '20px' }}>
+                    <label style={{
+                      display: 'block',
+                      fontSize: '13px',
+                      fontWeight: 600,
+                      color: '#374151',
+                      marginBottom: '8px',
+                      fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
+                    }}>
+                      Description
+                    </label>
+                    <div style={{
+                      padding: '10px 12px',
+                      background: '#F9FAFB',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      color: '#111827',
+                      fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
+                    }}>
+                      {viewingWorkflow.description}
+                    </div>
+                  </div>
+                )}
+
+                {/* Category */}
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    color: '#374151',
+                    marginBottom: '8px',
+                    fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
+                  }}>
+                    Category
+                  </label>
+                  <div style={{
+                    padding: '10px 12px',
+                    background: '#F9FAFB',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    color: '#111827',
+                    fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
+                  }}>
+                    {viewingWorkflow.categoryId?.name || 'N/A'}
+                    {viewingWorkflow.categoryId?.module && (
+                      <span style={{ color: '#6B7280', marginLeft: '8px' }}>
+                        ({viewingWorkflow.categoryId.module})
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Approval Logic */}
+                <div style={{ marginBottom: '20px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <div>
+                    <label style={{
+                      display: 'block',
+                      fontSize: '13px',
+                      fontWeight: 600,
+                      color: '#374151',
+                      marginBottom: '8px',
+                      fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
+                    }}>
+                      Approval Logic
+                    </label>
+                    <div style={{
+                      padding: '10px 12px',
+                      background: '#F9FAFB',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      color: '#111827',
+                      fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
+                      textTransform: 'capitalize',
+                    }}>
+                      {viewingWorkflow.approvalLogic}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label style={{
+                      display: 'block',
+                      fontSize: '13px',
+                      fontWeight: 600,
+                      color: '#374151',
+                      marginBottom: '8px',
+                      fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
+                    }}>
+                      Status
+                    </label>
+                    <div style={{
+                      padding: '10px 12px',
+                      background: '#F9FAFB',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
+                    }}>
+                      <span style={{
+                        display: 'inline-block',
+                        padding: '4px 10px',
+                        borderRadius: '12px',
+                        fontSize: '12px',
+                        fontWeight: 500,
+                        background: viewingWorkflow.status === 'active' ? '#DCFCE7' : '#FEE2E2',
+                        color: viewingWorkflow.status === 'active' ? '#166534' : '#991B1B',
+                      }}>
+                        {viewingWorkflow.status === 'active' ? 'Active' : 'Inactive'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Approval Hierarchy */}
+                {viewingWorkflow.levels && viewingWorkflow.levels.length > 0 && (
+                  <div style={{ marginBottom: '20px' }}>
+                    <label style={{
+                      display: 'block',
+                      fontSize: '13px',
+                      fontWeight: 600,
+                      color: '#374151',
+                      marginBottom: '12px',
+                      fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
+                    }}>
+                      Approval Hierarchy ({viewingWorkflow.levels.length} Level{viewingWorkflow.levels.length !== 1 ? 's' : ''})
+                    </label>
+                    <div style={{
+                      border: '1px solid #E5E7EB',
+                      borderRadius: '8px',
+                      overflow: 'hidden',
+                    }}>
+                      {viewingWorkflow.levels.map((level: any, index: number) => (
+                        <div
+                          key={index}
+                          style={{
+                            padding: '16px',
+                            background: index % 2 === 0 ? '#F9FAFB' : 'white',
+                            borderBottom: index < viewingWorkflow.levels.length - 1 ? '1px solid #E5E7EB' : 'none',
+                          }}
+                        >
+                          <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '12px',
+                            marginBottom: '8px',
+                          }}>
+                            <div style={{
+                              width: '28px',
+                              height: '28px',
+                              borderRadius: '50%',
+                              background: '#2563EB',
+                              color: 'white',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: '13px',
+                              fontWeight: 600,
+                              flexShrink: 0,
+                            }}>
+                              {index + 1}
+                            </div>
+                            <div style={{ flex: 1 }}>
+                              <div style={{
+                                fontSize: '14px',
+                                fontWeight: 600,
+                                color: '#111827',
+                                fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
+                              }}>
+                                Level {index + 1}
+                              </div>
+                            </div>
+                          </div>
+                          <div style={{
+                            marginLeft: '40px',
+                            fontSize: '14px',
+                            color: '#374151',
+                            fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
+                          }}>
+                            <div style={{ marginBottom: '4px' }}>
+                              <span style={{ fontWeight: 500 }}>Role:</span>{' '}
+                              {Array.isArray(level.roles) && level.roles.length > 0
+                                ? level.roles.map((r: any) => typeof r === 'object' ? r.name : r).join(', ')
+                                : 'Not specified'}
+                            </div>
+                            <div>
+                              <span style={{ fontWeight: 500 }}>Type:</span>{' '}
+                              <span style={{
+                                display: 'inline-block',
+                                padding: '2px 8px',
+                                borderRadius: '4px',
+                                fontSize: '12px',
+                                background: '#E0E7FF',
+                                color: '#3730A3',
+                                textTransform: 'capitalize',
+                              }}>
+                                {level.approverType || 'role'}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Auto Approve */}
+                {viewingWorkflow.autoApprove && (
+                  <div style={{
+                    padding: '12px 16px',
+                    background: '#FEF3C7',
+                    border: '1px solid #FCD34D',
+                    borderRadius: '8px',
+                    fontSize: '13px',
+                    color: '#92400E',
+                    fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
+                  }}>
+                    <strong>Auto-approval enabled:</strong> Requests will be automatically approved if no action is taken.
+                  </div>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div style={{
+                padding: '16px 24px',
+                borderTop: '1px solid #E5E7EB',
+                display: 'flex',
+                justifyContent: 'flex-end',
+              }}>
+                <button
+                  onClick={() => setViewModalOpen(false)}
+                  style={{
+                    padding: '9px 16px',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    color: 'white',
+                    background: '#2563EB',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = '#1D4ED8'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = '#2563EB'}
+                >
+                  Close
                 </button>
               </div>
             </div>

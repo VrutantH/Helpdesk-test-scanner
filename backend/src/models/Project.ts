@@ -178,6 +178,46 @@ export interface IProject extends Document {
       allowedFileTypes?: string[];
       allowStudentToCloseTicket?: boolean; // Allow students to close their own tickets
     };
+    offlineModuleSettings?: {
+      registrationFields?: Array<{
+        id: string;
+        fieldName: string;
+        fieldType: 'text' | 'email' | 'phone' | 'number' | 'textarea' | 'dropdown' | 'date';
+        required: boolean;
+        placeholder: string;
+        options?: string[];
+        validation?: {
+          minLength?: number;
+          maxLength?: number;
+          pattern?: string;
+        };
+        isParentMobile?: boolean;
+        order: number;
+      }>;
+      ticketFields?: Array<{
+        id: string;
+        fieldName: string;
+        fieldType: 'text' | 'textarea' | 'dropdown' | 'number' | 'date' | 'file' | 'category';
+        required: boolean;
+        placeholder: string;
+        options?: string[];
+        allowMultiple?: boolean;
+        maxFiles?: number;
+        allowedFileTypes?: string[];
+        isFixed?: boolean;
+        isEnabled?: boolean;
+        order: number;
+      }>;
+      allowAgentToMarkResolved?: boolean;
+      allowAgentToEscalate?: boolean;
+      autoAssignToCreatingAgent?: boolean;
+      requireStudentVerification?: boolean;
+      notificationSettings?: {
+        notifyStudentOnRegistration?: boolean;
+        notifyStudentOnTicketCreation?: boolean;
+        sendWelcomeEmail?: boolean;
+      };
+    };
   };
   
   // Status and Metadata
@@ -399,6 +439,46 @@ const projectSchema = new Schema<IProject>({
       allowAttachments: { type: Boolean, default: true },
       maxAttachmentSize: { type: Number, default: 10 }, // 10 MB
       allowedFileTypes: [{ type: String }],
+    },
+    offlineModuleSettings: {
+      registrationFields: [{
+        id: { type: String },
+        fieldName: { type: String },
+        fieldType: { type: String, enum: ['text', 'email', 'phone', 'number', 'textarea', 'dropdown', 'date'] },
+        required: { type: Boolean, default: false },
+        placeholder: { type: String },
+        options: [{ type: String }],
+        validation: {
+          minLength: { type: Number },
+          maxLength: { type: Number },
+          pattern: { type: String },
+        },
+        isParentMobile: { type: Boolean, default: false },
+        order: { type: Number },
+      }],
+      ticketFields: [{
+        id: { type: String },
+        fieldName: { type: String },
+        fieldType: { type: String, enum: ['text', 'textarea', 'dropdown', 'number', 'date', 'file', 'category'] },
+        required: { type: Boolean, default: false },
+        placeholder: { type: String },
+        options: [{ type: String }],
+        allowMultiple: { type: Boolean },
+        maxFiles: { type: Number },
+        allowedFileTypes: [{ type: String }],
+        isFixed: { type: Boolean, default: false },
+        isEnabled: { type: Boolean, default: true },
+        order: { type: Number },
+      }],
+      allowAgentToMarkResolved: { type: Boolean, default: true },
+      allowAgentToEscalate: { type: Boolean, default: true },
+      autoAssignToCreatingAgent: { type: Boolean, default: false },
+      requireStudentVerification: { type: Boolean, default: false },
+      notificationSettings: {
+        notifyStudentOnRegistration: { type: Boolean, default: true },
+        notifyStudentOnTicketCreation: { type: Boolean, default: true },
+        sendWelcomeEmail: { type: Boolean, default: true },
+      },
     },
   },
   

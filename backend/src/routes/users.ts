@@ -10,6 +10,10 @@ import {
   getUserPermissions,
   searchHRMSEmployees,
   validateEmployeeCode,
+  searchUserByEmail,
+  registerStudent,
+  searchStudents,
+  getEscalationAgents,
 } from '../controllers/userController';
 
 const router = Router();
@@ -27,6 +31,27 @@ router.get('/hrms/search', searchHRMSEmployees);
 // @route   GET /api/users/hrms/validate/:employeeCode
 // @access  Private
 router.get('/hrms/validate/:employeeCode', validateEmployeeCode);
+
+// Offline module routes
+// @desc    Search user by email
+// @route   GET /api/users/search
+// @access  Private
+router.get('/search', searchUserByEmail);
+
+// @desc    Search students/users by name, phone, or unique ID
+// @route   GET /api/users/search-students
+// @access  Private
+router.get('/search-students', searchStudents);
+
+// @desc    Get agents from escalation policies for a project
+// @route   GET /api/users/escalation-agents
+// @access  Private
+router.get('/escalation-agents', getEscalationAgents);
+
+// @desc    Register student (offline module)
+// @route   POST /api/users/register-student
+// @access  Private
+router.post('/register-student', registerStudent);
 
 // @desc    Get all users
 // @route   GET /api/users

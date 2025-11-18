@@ -7,6 +7,8 @@ import DashboardLayout from '../components/DashboardLayout';
 import ActivityLogs from '../components/ActivityLogs';
 import AccessLogs from '../components/AccessLogs';
 import KnowledgeBaseViewer from '../components/KnowledgeBaseViewer';
+import AgentOfflineModule from './AgentOfflineModule';
+import AgentStudentWorkflow from './AgentStudentWorkflow';
 
 interface ProjectBranding {
   projectId: string;
@@ -21,6 +23,7 @@ interface ProjectBranding {
       background: string;
     };
   };
+  ticketSubmissionMode?: 'online' | 'offline' | 'both';
 }
 
 interface User {
@@ -96,7 +99,11 @@ const AgentDashboardContent = () => {
 };
 
 // Tickets component for agents
-const AgentTicketsContent = () => {
+interface AgentTicketsContentProps {
+  projectBranding?: ProjectBranding | null;
+}
+
+const AgentTicketsContent = ({ projectBranding }: AgentTicketsContentProps) => {
   const { customUrlPath } = useParams();
   const navigate = useNavigate();
   const [tickets, setTickets] = useState<any[]>([]);
@@ -114,6 +121,19 @@ const AgentTicketsContent = () => {
   const [ticketNumberSearch, setTicketNumberSearch] = useState('');
   const [allCategories, setAllCategories] = useState<string[]>([]);
   const [allStatuses, setAllStatuses] = useState<Array<{ name: string; value: string }>>([]);
+  const [ticketTab, setTicketTab] = useState<'online' | 'offline'>('online');
+
+  // Update default tab based on project submission mode
+  useEffect(() => {
+    if (projectBranding?.ticketSubmissionMode) {
+      const mode = projectBranding.ticketSubmissionMode;
+      // If only offline mode is available, default to offline tab
+      if (mode === 'offline') {
+        setTicketTab('offline');
+      }
+      // For 'online' or 'both', keep 'online' as default
+    }
+  }, [projectBranding?.ticketSubmissionMode]);
 
   useEffect(() => {
     // Get project context
@@ -144,7 +164,6 @@ const AgentTicketsContent = () => {
           params: { projectId },
         }
       );
-      console.log('Fetched tickets:', response.data);
       setTickets(response.data.data || []);
     } catch (error) {
       console.error('Error fetching tickets:', error);
@@ -297,11 +316,18 @@ const AgentTicketsContent = () => {
   };
 
   const filteredTickets = tickets.filter((ticket) => {
-    // Filter by status
+    // Filter by online/offline tab
+    const ticketSource = ticket.submissionSource || 'online';
+    if (ticketSource !== ticketTab) return false;
+
+    // DON'T exclude resolved and closed tickets from the list - show all tickets
+    // They are only excluded from the count
+
+    // Filter by status dropdown
     if (filterStatus.length > 0) {
-      const ticketStatusNorm = String(ticket.status || '').toLowerCase();
+      const ticketStatusLower = String(ticket.status || '').toLowerCase();
       const normalizedFilters = filterStatus.map(f => String(f).toLowerCase());
-      if (!normalizedFilters.includes(ticketStatusNorm)) return false;
+      if (!normalizedFilters.includes(ticketStatusLower)) return false;
     }
     
     
@@ -328,13 +354,33 @@ const AgentTicketsContent = () => {
     return true;
   });
 
+  const getTicketCountsByTab = () => {
+    return {
+      online: tickets.filter(t => {
+        const source = t.submissionSource || 'online';
+        const status = String(t.status || '').toLowerCase();
+        return source === 'online' && status !== 'resolved' && status !== 'closed';
+      }).length,
+      offline: tickets.filter(t => {
+        const source = t.submissionSource || 'online';
+        const status = String(t.status || '').toLowerCase();
+        return source === 'offline' && status !== 'resolved' && status !== 'closed';
+      }).length,
+    };
+  };
+
+  // Determine which tabs to show based on project configuration
+  const submissionMode = projectBranding?.ticketSubmissionMode || 'both';
+  const showOnlineTab = submissionMode === 'online' || submissionMode === 'both';
+  const showOfflineTab = submissionMode === 'offline' || submissionMode === 'both';
+
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
-      'open': 'background: #fef3c7; color: #92400e; border-color: #fbbf24',
-      'in-progress': 'background: #dbeafe; color: #1e40af; border-color: #3b82f6',
-      'pending': 'background: #fce7f3; color: #9f1239; border-color: #ec4899',
-      'resolved': 'background: #d1fae5; color: #065f46; border-color: #10b981',
-      'closed': 'background: #e5e7eb; color: #374151; border-color: #6b7280',
+      'open': 'background: #fef3c7; color: #92400e; borderColor: #fbbf24',
+      'in-progress': 'background: #dbeafe; color: #1e40af; borderColor: #3b82f6',
+      'pending': 'background: #fce7f3; color: #9f1239; borderColor: #ec4899',
+      'resolved': 'background: #d1fae5; color: #065f46; borderColor: #10b981',
+      'closed': 'background: #e5e7eb; color: #374151; borderColor: #6b7280',
     };
     return colors[status.toLowerCase()] || colors.open;
   };
@@ -392,6 +438,58 @@ const AgentTicketsContent = () => {
       <h1 style={{ fontSize: '28px', fontWeight: '600', marginBottom: '24px' }}>My Tickets</h1>
 
       {/* Filters Section */}
+      {/* Online/Offline Tabs */}
+      <div style={{
+        background: 'white',
+        padding: '8px',
+        borderRadius: '12px',
+        border: '1px solid #e5e7eb',
+        marginBottom: '24px',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+      }}>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          {showOnlineTab && (
+            <button
+              onClick={() => setTicketTab('online')}
+              style={{
+                flex: 1,
+                padding: '12px 16px',
+                borderRadius: '8px',
+                border: 'none',
+                background: ticketTab === 'online' ? '#3b82f6' : 'transparent',
+                color: ticketTab === 'online' ? 'white' : '#6b7280',
+                fontSize: '14px',
+                fontWeight: '500',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+            >
+              Online Tickets ({getTicketCountsByTab().online})
+            </button>
+          )}
+          {showOfflineTab && (
+            <button
+              onClick={() => setTicketTab('offline')}
+              style={{
+                flex: 1,
+                padding: '12px 16px',
+                borderRadius: '8px',
+                border: 'none',
+                background: ticketTab === 'offline' ? '#3b82f6' : 'transparent',
+                color: ticketTab === 'offline' ? 'white' : '#6b7280',
+                fontSize: '14px',
+                fontWeight: '500',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+            >
+              Offline Tickets ({getTicketCountsByTab().offline})
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Filters */}
       <div style={{
         background: 'white',
         padding: '24px',
@@ -973,11 +1071,11 @@ const ProjectPortalDashboard = () => {
   const getModuleAccessForRole = (roleCode: string) => {
     // Define which modules each role can access
     const roleModules: Record<string, Record<string, boolean>> = {
-      'SUPERADMIN': { dashboard: true, tickets: true, knowledgeBase: true, users: true, audit: true, all: true },
-      'AGENT': { dashboard: true, tickets: true, knowledgeBase: true },
-      'HELPDESK': { dashboard: true, tickets: true, knowledgeBase: true },
-      'MANAGER': { dashboard: true, tickets: true, knowledgeBase: true, users: true, audit: true },
-      'SUPERVISOR': { dashboard: true, tickets: true, knowledgeBase: true, users: true },
+      'SUPERADMIN': { dashboard: true, tickets: true, knowledgeBase: true, users: true, audit: true, offline: true, all: true },
+      'AGENT': { dashboard: true, tickets: true, knowledgeBase: true, offline: true },
+      'HELPDESK': { dashboard: true, tickets: true, knowledgeBase: true, offline: true },
+      'MANAGER': { dashboard: true, tickets: true, knowledgeBase: true, users: true, audit: true, offline: true },
+      'SUPERVISOR': { dashboard: true, tickets: true, knowledgeBase: true, users: true, offline: true },
     };
 
     return roleModules[roleCode] || { dashboard: true };
@@ -1005,11 +1103,14 @@ const ProjectPortalDashboard = () => {
   }
 
   return (
-    <DashboardLayout>
+    <DashboardLayout logoutRedirectPath={`/${customUrlPath}/portal/login`}>
       <Routes>
         <Route path="/dashboard" element={<AgentDashboardContent />} />
-        <Route path="/tickets" element={<AgentTicketsContent />} />
+        <Route path="/tickets" element={<AgentTicketsContent projectBranding={projectBranding} />} />
         <Route path="/knowledge-base" element={<KnowledgeBaseViewer />} />
+        {/* NEW: Student Workflow replaces old Offline Module */}
+        <Route path="/offline" element={<AgentStudentWorkflow projectId={projectBranding?.projectId || ''} />} />
+        <Route path="/student-workflow" element={<AgentStudentWorkflow projectId={projectBranding?.projectId || ''} />} />
         <Route path="/audit/activity-logs" element={<ActivityLogs />} />
         <Route path="/audit/access-logs" element={<AccessLogs />} />
         <Route path="/" element={<AgentDashboardContent />} />

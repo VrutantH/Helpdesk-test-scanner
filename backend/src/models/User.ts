@@ -4,15 +4,20 @@ import bcrypt from 'bcryptjs';
 export interface IUser extends Document {
   email: string;
   password: string;
-  firstName: string;
-  lastName: string;
+  firstName?: string;
+  lastName?: string;
+  fullName?: string; // Combined first + last name for easier searching
+  phone?: string; // Phone number (can be different from mobile for OTP)
+  uniqueId?: string; // Student ID, Roll Number, Employee ID, etc.
   mobile?: string; // Mobile number for OTP verification
+  parentMobile?: string; // Parent mobile number for parent login (for students)
   role: mongoose.Types.ObjectId; // Reference to Role model
   isActive: boolean;
   lastLogin?: Date;
   eulaAccepted?: boolean; // EULA acceptance status
   eulaAcceptedAt?: Date; // When EULA was accepted
   requirePasswordSetup?: boolean; // Flag for first-time student users who need to set password via OTP
+  registrationSource?: 'online' | 'offline' | 'hrms' | 'manual'; // Track where user was created from
   createdAt: Date;
   updatedAt: Date;
   
@@ -57,13 +62,36 @@ const userSchema = new Schema<IUser>({
   },
   firstName: {
     type: String,
-    required: true,
+    required: false,
     trim: true,
   },
   lastName: {
     type: String,
-    required: true,
+    required: false,
     trim: true,
+  },
+  fullName: {
+    type: String,
+    trim: true,
+    index: true, // For text search
+  },
+  phone: {
+    type: String,
+    trim: true,
+    sparse: true, // Allow multiple null values but unique non-null
+    validate: {
+      validator: function(v: string) {
+        return !v || /^\d{10,15}$/.test(v); // 10-15 digit phone number
+      },
+      message: 'Please enter a valid phone number'
+    }
+  },
+  uniqueId: {
+    type: String,
+    trim: true,
+    sparse: true, // Allow multiple null values but unique non-null
+    unique: true,
+    index: true,
   },
   mobile: {
     type: String,
@@ -73,6 +101,16 @@ const userSchema = new Schema<IUser>({
         return !v || /^[6-9]\d{9}$/.test(v); // Indian mobile number validation
       },
       message: 'Please enter a valid 10-digit mobile number'
+    }
+  },
+  parentMobile: {
+    type: String,
+    trim: true,
+    validate: {
+      validator: function(v: string) {
+        return !v || /^[6-9]\d{9}$/.test(v); // Indian mobile number validation
+      },
+      message: 'Please enter a valid 10-digit parent mobile number'
     }
   },
   role: {
@@ -97,6 +135,11 @@ const userSchema = new Schema<IUser>({
   requirePasswordSetup: {
     type: Boolean,
     default: false,
+  },
+  registrationSource: {
+    type: String,
+    enum: ['online', 'offline', 'hrms', 'manual'],
+    default: 'manual',
   },
   // HRMS Integration fields
   hrmsId: {
@@ -178,6 +221,9 @@ userSchema.methods.isResetPasswordLocked = function(): boolean {
 
 // Create indexes
 userSchema.index({ email: 1 });
+userSchema.index({ phone: 1 });
+userSchema.index({ uniqueId: 1 });
+userSchema.index({ fullName: 1 });
 userSchema.index({ mobile: 1 });
 userSchema.index({ employeeCode: 1 });
 userSchema.index({ role: 1 });

@@ -4,6 +4,7 @@ import { User } from '../models/User';
 import { Category } from '../models/Category';
 import { Status } from '../models/Status';
 import SLARule from '../models/sla-module/SLARule';
+import { AuthRequest } from '../middleware/auth';
 
 /**
  * Get all projects with optional filtering
@@ -393,6 +394,7 @@ export const getProjectBranding = async (req: Request, res: Response) => {
         },
       },
       knowledgeBase: (project as any).knowledgeBase ?? true, // Enable KB by default
+      ticketSubmissionMode: (project as any).ticketSubmissionSettings?.mode || 'both', // online, offline, or both
     };
     
     console.log(`✅ Found project branding: ${project.name}`, brandingData);
@@ -498,6 +500,137 @@ export const getProjectTicketSettings = async (req: Request, res: Response) => {
     
   } catch (error) {
     console.error('Get project ticket settings error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+    });
+  }
+};
+
+/**
+ * Get offline module settings for a project
+ */
+export const getOfflineSettings = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const project = await Project.findById(id);
+
+    if (!project) {
+      return res.status(404).json({
+        success: false,
+        message: 'Project not found',
+      });
+    }
+
+    let settings = project.configuration?.offlineModuleSettings || {
+      registrationFields: [
+        { id: '1', fieldName: 'First Name', fieldType: 'text', required: true, placeholder: 'Enter first name', order: 1 },
+        { id: '2', fieldName: 'Last Name', fieldType: 'text', required: true, placeholder: 'Enter last name', order: 2 },
+        { id: '3', fieldName: 'Email', fieldType: 'email', required: true, placeholder: 'student@example.com', order: 3 },
+        { id: '4', fieldName: 'Phone', fieldType: 'phone', required: false, placeholder: '+91 98765 43210', order: 4 },
+      ],
+      ticketFields: [
+        { id: 'category-fixed', fieldName: 'Category', fieldType: 'category', required: true, placeholder: 'Select category', isFixed: true, isEnabled: true, order: 1 },
+        { id: '1', fieldName: 'Title', fieldType: 'text', required: true, placeholder: 'Brief description of issue', order: 2 },
+        { id: '2', fieldName: 'Description', fieldType: 'textarea', required: true, placeholder: 'Detailed description...', order: 3 },
+        { id: '3', fieldName: 'Attachments', fieldType: 'file', required: false, placeholder: '', allowMultiple: true, maxFiles: 5, allowedFileTypes: ['pdf', 'jpg', 'png', 'doc', 'docx'], order: 4 },
+      ],
+      allowAgentToMarkResolved: true,
+      allowAgentToEscalate: true,
+      autoAssignToCreatingAgent: false,
+      requireStudentVerification: false,
+      notificationSettings: {
+        notifyStudentOnRegistration: true,
+        notifyStudentOnTicketCreation: true,
+        sendWelcomeEmail: true,
+      },
+    };
+
+    // Convert to plain object to remove Mongoose metadata
+    if (project.configuration?.offlineModuleSettings) {
+      settings = JSON.parse(JSON.stringify(settings));
+      
+      // Ensure category field exists in ticket fields
+      if (settings.ticketFields) {
+        const hasCategoryField = settings.ticketFields.some((f: any) => f.fieldType === 'category');
+        if (!hasCategoryField) {
+          settings.ticketFields = [
+            { id: 'category-fixed', fieldName: 'Category', fieldType: 'category', required: true, placeholder: 'Select category', isFixed: true, isEnabled: true, order: 1 },
+            ...settings.ticketFields.map((f: any) => ({ ...f, order: (f.order || 0) + 1 }))
+          ];
+        }
+      }
+    }
+
+    return res.json({
+      success: true,
+      data: settings,
+    });
+  } catch (error) {
+    console.error('Get offline settings error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+    });
+  }
+};
+
+/**
+ * Update offline module settings for a project
+ */
+export const updateOfflineSettings = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    let settings = req.body;
+
+    // Clean the settings - remove MongoDB _id fields from nested arrays
+    if (settings.registrationFields) {
+      settings.registrationFields = settings.registrationFields.map((field: any) => {
+        const { _id, ...cleanField } = field;
+        return cleanField;
+      });
+    }
+
+    if (settings.ticketFields) {
+      settings.ticketFields = settings.ticketFields.map((field: any) => {
+        const { _id, ...cleanField } = field;
+        return cleanField;
+      });
+    }
+
+    const project = await Project.findById(id);
+
+    if (!project) {
+      return res.status(404).json({
+        success: false,
+        message: 'Project not found',
+      });
+    }
+
+    // Initialize configuration if it doesn't exist
+    if (!project.configuration) {
+      project.configuration = {};
+    }
+
+    // Update offline module settings
+    project.configuration.offlineModuleSettings = settings;
+    project.updatedAt = new Date();
+    if (req.user?.userId) {
+      project.updatedBy = req.user.userId as any;
+    }
+
+    await project.save();
+
+    console.log(`✅ Offline module settings updated for project: ${project.name}`);
+
+    return res.json({
+      success: true,
+      message: 'Offline module settings updated successfully',
+      data: settings,
+    });
+  } catch (error) {
+    console.error('Update offline settings error:', error);
     return res.status(500).json({
       success: false,
       message: 'Internal server error',

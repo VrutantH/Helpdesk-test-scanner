@@ -21,7 +21,8 @@ export interface IPermission extends Document {
     | 'integrations'
     | 'reports'
     | 'audit-logs'
-    | 'tickets';
+    | 'tickets'
+    | 'offline-module';
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -68,7 +69,8 @@ const permissionSchema = new Schema<IPermission>(
         'integrations',
         'reports',
         'audit-logs',
-        'tickets'
+        'tickets',
+        'offline-module'
       ],
       required: true,
     },

@@ -24,6 +24,7 @@ interface Ticket {
   category: string;
   createdAt: string;
   updatedAt: string;
+  submissionSource?: 'online' | 'offline';
   createdBy?: {
     firstName: string;
     lastName: string;
@@ -73,6 +74,7 @@ const ProjectAgentDashboard: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [ticketTab, setTicketTab] = useState<'online' | 'offline'>('online');
   const [loading, setLoading] = useState(true);
   const [projectBranding, setProjectBranding] = useState<ProjectBranding | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -243,18 +245,42 @@ const ProjectAgentDashboard: React.FC = () => {
   };
 
   const getFilteredTickets = () => {
-    if (!searchQuery.trim()) return tickets;
-    
-    const query = searchQuery.toLowerCase();
-    return tickets.filter(
-      (ticket) =>
-        ticket.ticketNumber.toLowerCase().includes(query) ||
-        ticket.title.toLowerCase().includes(query) ||
-        ticket.description.toLowerCase().includes(query) ||
-        ticket.category.toLowerCase().includes(query) ||
-        ticket.metadata?.studentName?.toLowerCase().includes(query) ||
-        ticket.metadata?.studentEmail?.toLowerCase().includes(query)
-    );
+    // Filter by tab (online/offline) - show all tickets, don't exclude resolved/closed from list
+    let filteredTickets = tickets.filter(ticket => {
+      const ticketSource = ticket.submissionSource || 'online';
+      return ticketSource === ticketTab;
+    });
+
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filteredTickets = filteredTickets.filter(
+        (ticket) =>
+          ticket.ticketNumber.toLowerCase().includes(query) ||
+          ticket.title.toLowerCase().includes(query) ||
+          ticket.description.toLowerCase().includes(query) ||
+          ticket.category.toLowerCase().includes(query) ||
+          ticket.metadata?.studentName?.toLowerCase().includes(query) ||
+          ticket.metadata?.studentEmail?.toLowerCase().includes(query)
+      );
+    }
+
+    return filteredTickets;
+  };
+
+  const getTicketCountsByTab = () => {
+    return {
+      online: tickets.filter(t => {
+        const source = t.submissionSource || 'online';
+        const status = String(t.status || '').toLowerCase();
+        return source === 'online' && status !== 'resolved' && status !== 'closed';
+      }).length,
+      offline: tickets.filter(t => {
+        const source = t.submissionSource || 'online';
+        const status = String(t.status || '').toLowerCase();
+        return source === 'offline' && status !== 'resolved' && status !== 'closed';
+      }).length,
+    };
   };
 
   if (loading) {
@@ -503,10 +529,36 @@ const ProjectAgentDashboard: React.FC = () => {
                 </div>
               </div>
 
+              {/* Online/Offline Tabs */}
+              <div className="bg-white rounded-xl shadow-sm p-2">
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => setTicketTab('online')}
+                    className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                      ticketTab === 'online'
+                        ? 'bg-blue-600 text-white'
+                        : 'text-gray-600 hover:bg-gray-100'
+                    }`}
+                  >
+                    Online Tickets ({getTicketCountsByTab().online})
+                  </button>
+                  <button
+                    onClick={() => setTicketTab('offline')}
+                    className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                      ticketTab === 'offline'
+                        ? 'bg-blue-600 text-white'
+                        : 'text-gray-600 hover:bg-gray-100'
+                    }`}
+                  >
+                    Offline Tickets ({getTicketCountsByTab().offline})
+                  </button>
+                </div>
+              </div>
+
               {getFilteredTickets().length === 0 ? (
                 <div className="bg-white rounded-xl shadow-sm p-12 text-center">
                   <TicketIcon className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500">No tickets found</p>
+                  <p className="text-gray-500">No {ticketTab} tickets found</p>
                 </div>
               ) : (
                 <div className="grid gap-4">

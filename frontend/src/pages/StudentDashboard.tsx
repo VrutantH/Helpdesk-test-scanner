@@ -219,7 +219,33 @@ const StudentDashboard: React.FC = () => {
       const brandingRes = await axios.get(
         `http://localhost:3003/api/projects/branding/${customUrlPath}`
       );
-      const branding = brandingRes.data.success ? brandingRes.data.data : brandingRes.data;
+      const brandingData = brandingRes.data.success ? brandingRes.data.data : brandingRes.data;
+      
+      // Parse colorTheme if it's a string
+      let colorTheme = brandingData.branding?.colorTheme;
+      if (typeof colorTheme === 'string') {
+        // Parse string like "@{primary=#49bc8f; secondary=#64748b; accent=#3b82f6; background=#ffffff}"
+        const parsed: any = {};
+        const matches = colorTheme.match(/(\w+)=#([a-zA-Z0-9]+)/g);
+        if (matches) {
+          matches.forEach((match: string) => {
+            const [key, value] = match.split('=');
+            parsed[key] = '#' + value;
+          });
+          colorTheme = parsed;
+        }
+      }
+      
+      // Add parsed colors to branding
+      const branding = {
+        ...brandingData,
+        branding: {
+          ...brandingData.branding,
+          colorTheme,
+        },
+        primaryColor: colorTheme?.primary || '#49bc8f',
+        secondaryColor: colorTheme?.secondary || '#64748b',
+      };
       setProjectBranding(branding);
 
       // Fetch ticket settings for submit ticket and find center

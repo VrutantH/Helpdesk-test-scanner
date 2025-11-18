@@ -10,6 +10,8 @@ import {
   getProjectStats,
   getProjectBranding,
   getProjectTicketSettings,
+  getOfflineSettings,
+  updateOfflineSettings,
 } from '../controllers/projectController';
 
 const router = express.Router();
@@ -25,6 +27,12 @@ router.get('/branding/:urlPath', getProjectBranding);
 
 // Get project ticket submission settings
 router.get('/:projectId/ticket-settings', getProjectTicketSettings);
+
+// Get offline module settings
+router.get('/:id/offline-settings', getOfflineSettings);
+
+// Update offline module settings
+router.put('/:id/offline-settings', updateOfflineSettings);
 
 // Get single project by ID
 router.get('/:id', getProjectById);

@@ -31,6 +31,7 @@ import accessLogRoutes from './routes/accessLogs';
 import knowledgeBaseRoutes from './routes/knowledgeBase';
 import approvalRoutes from './routes/approvals';
 import approvalMasterRoutes from './routes/approvalMasters';
+import offlineModuleRoutes from './routes/offlineModule';
 // import integrationRoutes from './routes/integrations'; // TODO: Implement
 import { setupSocketHandlers } from './socket/socketHandlers';
 import { initializeDatabase } from './utils/dbInit';
@@ -119,6 +120,9 @@ app.use('/api/kb', knowledgeBaseRoutes);
 // Approval workflows
 app.use('/api/approvals', approvalRoutes);
 app.use('/api/approval-masters', approvalMasterRoutes);
+
+// Offline Module Routes (Agent features for walk-in student support)
+app.use('/api/offline-module', offlineModuleRoutes);
 
 // Integration Routes (TODO: Implement)
 // app.use('/api/integrations', integrationRoutes);

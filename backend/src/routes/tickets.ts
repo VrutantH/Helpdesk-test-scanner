@@ -16,7 +16,8 @@ import {
   escalateTicket,
   getAllTags,
   bulkUpdateByTags,
-  getDashboardStats
+  getDashboardStats,
+  createOfflineTicket,
 } from '../controllers/ticketController';
 import { authMiddleware } from '../middleware/auth';
 
@@ -27,6 +28,11 @@ const router = Router();
 // @access  Public
 // Accept any file field names from the student portal (we'll map files by their fieldnames in the controller)
 router.post('/submit', upload.any(), submitTicket);
+
+// @desc    Create offline ticket submission (by agent on behalf of student)
+// @route   POST /api/tickets/offline-submission
+// @access  Private (Agent)
+router.post('/offline-submission', authMiddleware, upload.any(), createOfflineTicket);
 
 // @desc    Get tickets for logged-in student
 // @route   GET /api/tickets/my-tickets

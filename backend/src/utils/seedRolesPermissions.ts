@@ -863,6 +863,58 @@ export const helpDeskPermissions: HelpDeskPermission[] = [
     category: 'tickets',
   },
   // =====================================================
+  // OFFLINE MODULE CATEGORY (Student Registration & Offline Ticket Creation)
+  // =====================================================
+  {
+    module: 'Offline Module',
+    name: 'Access Offline Module',
+    code: 'OFFLINE_MODULE_ACCESS',
+    description: 'Can access offline module for walk-in student support',
+    category: 'offline-module',
+  },
+  {
+    module: 'Offline Module',
+    name: 'Register Student',
+    code: 'OFFLINE_STUDENT_REGISTER',
+    description: 'Can register students on their behalf when they walk in',
+    category: 'offline-module',
+  },
+  {
+    module: 'Offline Module',
+    name: 'Create Offline Ticket',
+    code: 'OFFLINE_TICKET_CREATE',
+    description: 'Can create tickets on behalf of students during walk-in',
+    category: 'offline-module',
+  },
+  {
+    module: 'Offline Module',
+    name: 'Mark Ticket Resolved',
+    code: 'OFFLINE_TICKET_RESOLVE',
+    description: 'Can mark offline tickets as resolved immediately',
+    category: 'offline-module',
+  },
+  {
+    module: 'Offline Module',
+    name: 'Escalate at Creation',
+    code: 'OFFLINE_TICKET_ESCALATE',
+    description: 'Can escalate offline tickets during creation',
+    category: 'offline-module',
+  },
+  {
+    module: 'Offline Module',
+    name: 'View Student Records',
+    code: 'OFFLINE_STUDENT_VIEW',
+    description: 'Can view registered student information',
+    category: 'offline-module',
+  },
+  {
+    module: 'Offline Module',
+    name: 'Edit Student Records',
+    code: 'OFFLINE_STUDENT_EDIT',
+    description: 'Can edit student information registered through offline module',
+    category: 'offline-module',
+  },
+  // =====================================================
   // FORM BUILDER CATEGORY
   // =====================================================
   {
@@ -966,10 +1018,11 @@ const defaultRoles = [
     module: 'Agent',
     name: 'Agent',
     code: 'AGENT',
-    description: 'Handles day-to-day ticket support',
+    description: 'Handles day-to-day ticket support and offline student registration',
     type: 'custom',
     permissions: [
       'TICKET_VIEW_OWN', 'TICKET_CREATE', 'TICKET_EDIT', 'TICKET_CHANGE_STATUS', 'TICKET_ADD_COMMENT', 'TICKET_ADD_ATTACHMENT',
+      'OFFLINE_MODULE_ACCESS', 'OFFLINE_STUDENT_REGISTER', 'OFFLINE_TICKET_CREATE', 'OFFLINE_TICKET_RESOLVE', 'OFFLINE_TICKET_ESCALATE', 'OFFLINE_STUDENT_VIEW', 'OFFLINE_STUDENT_EDIT',
     ],
   },
 ];

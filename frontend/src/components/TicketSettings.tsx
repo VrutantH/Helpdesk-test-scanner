@@ -332,7 +332,7 @@ const TicketSettings: React.FC = () => {
 
   return (
     <DashboardLayout>
-      <div style={{ padding: '24px', maxWidth: '1400px', margin: '0 auto' }}>
+      <div style={{ padding: '24px', maxWidth: '1600px', margin: '0 auto' }}>
         {/* Header */}
         <div style={{ 
           display: 'flex', 
@@ -388,36 +388,40 @@ const TicketSettings: React.FC = () => {
           </div>
         </div>
 
-        {/* Tabs */}
-        <div style={{ 
-          display: 'flex', 
-          gap: '8px', 
-          borderBottom: '2px solid var(--border-subtle)',
-          marginBottom: '24px',
-          overflowX: 'auto',
-          paddingBottom: '0'
-        }}>
-          {tabs.map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              style={{
-                padding: '12px 20px',
-                background: 'transparent',
-                border: 'none',
-                borderBottom: activeTab === tab.id ? '3px solid var(--primary-main)' : '3px solid transparent',
-                fontSize: '14px',
-                fontWeight: activeTab === tab.id ? '600' : '500',
-                color: activeTab === tab.id ? 'var(--primary-main)' : 'var(--text-secondary)',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+        {/* Two Column Layout */}
+        <div style={{ display: 'grid', gridTemplateColumns: '60% 38%', gap: '24px' }}>
+          {/* Left Column - Configuration */}
+          <div>
+            {/* Tabs */}
+            <div style={{ 
+              display: 'flex', 
+              gap: '8px', 
+              borderBottom: '2px solid var(--border-subtle)',
+              marginBottom: '24px',
+              overflowX: 'auto',
+              paddingBottom: '0'
+            }}>
+              {tabs.map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  style={{
+                    padding: '12px 20px',
+                    background: 'transparent',
+                    border: 'none',
+                    borderBottom: activeTab === tab.id ? '3px solid var(--primary-main)' : '3px solid transparent',
+                    fontSize: '14px',
+                    fontWeight: activeTab === tab.id ? '600' : '500',
+                    color: activeTab === tab.id ? 'var(--primary-main)' : 'var(--text-secondary)',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
 
         {/* Tab Content */}
         <div style={{ 
@@ -1016,6 +1020,176 @@ const TicketSettings: React.FC = () => {
               )}
             </div>
           )}
+        </div>
+          </div>
+
+          {/* Right Column - Preview Panel */}
+          <div>
+            <div style={{ position: 'sticky', top: '24px' }}>
+              <div style={{ 
+                background: 'white', 
+                border: '1px solid var(--border-subtle)', 
+                borderRadius: '12px',
+                padding: '24px'
+              }}>
+                <h3 style={{ 
+                  fontSize: '18px', 
+                  fontWeight: '600', 
+                  color: 'var(--text-primary)',
+                  marginBottom: '16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}>
+                  <MdInfo style={{ color: 'var(--primary-main)' }} />
+                  Configuration Summary
+                </h3>
+
+                {activeTab === 'numbering' && (
+                  <div>
+                    <h4 style={{ 
+                      fontSize: '14px', 
+                      fontWeight: '600', 
+                      color: 'var(--text-secondary)',
+                      marginBottom: '12px'
+                    }}>
+                      Preview Format
+                    </h4>
+                    <div style={{
+                      background: '#f3f4f6',
+                      padding: '16px',
+                      borderRadius: '8px',
+                      fontFamily: 'monospace',
+                      fontSize: '16px',
+                      fontWeight: '600',
+                      textAlign: 'center',
+                      color: 'var(--primary-main)',
+                      marginBottom: '16px'
+                    }}>
+                      {generatePreview()}
+                    </div>
+                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
+                      <p><strong>Format:</strong> {numbering.format}</p>
+                      <p><strong>Prefix:</strong> {numbering.prefix || 'None'}</p>
+                      <p><strong>Starting Number:</strong> {numbering.startingNumber}</p>
+                      <p><strong>Reset:</strong> {numbering.resetFrequency}</p>
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === 'statuses' && (
+                  <div>
+                    <h4 style={{ 
+                      fontSize: '14px', 
+                      fontWeight: '600', 
+                      color: 'var(--text-secondary)',
+                      marginBottom: '12px'
+                    }}>
+                      Configured Statuses
+                    </h4>
+                    <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
+                      <table style={{ width: '100%', fontSize: '13px', borderCollapse: 'collapse' }}>
+                        <thead style={{ background: '#f9fafb', position: 'sticky', top: 0 }}>
+                          <tr>
+                            <th style={{ padding: '8px', textAlign: 'left', fontWeight: '600' }}>#</th>
+                            <th style={{ padding: '8px', textAlign: 'left', fontWeight: '600' }}>Name</th>
+                            <th style={{ padding: '8px', textAlign: 'center', fontWeight: '600' }}>Type</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {statuses.sort((a, b) => a.displayOrder - b.displayOrder).map((status, index) => (
+                            <tr key={status._id} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                              <td style={{ padding: '8px' }}>{index + 1}</td>
+                              <td style={{ padding: '8px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <span style={{
+                                    width: '12px',
+                                    height: '12px',
+                                    borderRadius: '50%',
+                                    background: status.color,
+                                    display: 'inline-block'
+                                  }}></span>
+                                  {status.name}
+                                </div>
+                              </td>
+                              <td style={{ padding: '8px', textAlign: 'center' }}>
+                                {status.isDefault && <span style={{ color: '#10b981' }}>✓ Default</span>}
+                                {status.isClosed && <span style={{ color: '#6b7280' }}>Closed</span>}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                      {statuses.length === 0 && (
+                        <div style={{ textAlign: 'center', padding: '32px', color: 'var(--text-tertiary)' }}>
+                          No statuses configured yet
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === 'types' && (
+                  <div>
+                    <h4 style={{ 
+                      fontSize: '14px', 
+                      fontWeight: '600', 
+                      color: 'var(--text-secondary)',
+                      marginBottom: '12px'
+                    }}>
+                      Configured Types
+                    </h4>
+                    <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
+                      <table style={{ width: '100%', fontSize: '13px', borderCollapse: 'collapse' }}>
+                        <thead style={{ background: '#f9fafb', position: 'sticky', top: 0 }}>
+                          <tr>
+                            <th style={{ padding: '8px', textAlign: 'left', fontWeight: '600' }}>#</th>
+                            <th style={{ padding: '8px', textAlign: 'left', fontWeight: '600' }}>Name</th>
+                            <th style={{ padding: '8px', textAlign: 'left', fontWeight: '600' }}>Priority</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {types.map((type, index) => (
+                            <tr key={type._id} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                              <td style={{ padding: '8px' }}>{index + 1}</td>
+                              <td style={{ padding: '8px' }}>
+                                <div>
+                                  <div style={{ fontWeight: '500' }}>{type.name}</div>
+                                  <div style={{ fontSize: '11px', color: '#6b7280' }}>{type.description}</div>
+                                </div>
+                              </td>
+                              <td style={{ padding: '8px' }}>
+                                <span style={{
+                                  display: 'inline-block',
+                                  padding: '2px 8px',
+                                  borderRadius: '4px',
+                                  fontSize: '11px',
+                                  fontWeight: '500',
+                                  background: type.defaultPriority === 'CRITICAL' ? '#fee2e2' :
+                                             type.defaultPriority === 'HIGH' ? '#fed7aa' :
+                                             type.defaultPriority === 'MEDIUM' ? '#fef3c7' : '#dbeafe',
+                                  color: type.defaultPriority === 'CRITICAL' ? '#991b1b' :
+                                         type.defaultPriority === 'HIGH' ? '#9a3412' :
+                                         type.defaultPriority === 'MEDIUM' ? '#92400e' : '#1e40af'
+                                }}>
+                                  {type.defaultPriority}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                      {types.length === 0 && (
+                        <div style={{ textAlign: 'center', padding: '32px', color: 'var(--text-tertiary)' }}>
+                          No types configured yet
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </DashboardLayout>

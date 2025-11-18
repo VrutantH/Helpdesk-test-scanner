@@ -785,3 +785,383 @@ export const getUserPermissions = async (req: Request, res: Response): Promise<v
     });
   }
 };
+
+/**
+ * Search user by email (for offline module)
+ */
+export const searchUserByEmail = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { email, projectId } = req.query;
+
+    if (!email) {
+      res.status(400).json({
+        success: false,
+        error: 'Email is required',
+      });
+      return;
+    }
+
+    const filter: any = { email: email as string };
+    
+    if (projectId) {
+      filter.projects = projectId;
+    }
+
+    const user = await User.findOne(filter).select('firstName lastName email phone role');
+    
+    res.json({
+      success: true,
+      data: user,
+    });
+
+  } catch (error: any) {
+    console.error('Search user error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to search user',
+      message: error.message,
+    });
+  }
+};
+
+/**
+ * Register student for offline support
+ * Creates a full user account with STUDENT role that can login to student portal
+ */
+export const registerStudent = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { projectId, ...studentData } = req.body;
+    
+    // Field mapping to normalize various field name formats to expected backend fields
+    const fieldMapping: Record<string, string> = {
+      'First Name': 'firstName',
+      'firstname': 'firstName',
+      'first_name': 'firstName',
+      'Last Name': 'lastName',
+      'lastname': 'lastName',
+      'last_name': 'lastName',
+      'Email': 'email',
+      'Email ID': 'email',
+      'email_id': 'email',
+      'Phone': 'phone',
+      'Mobile': 'phone',
+      'Mobile number': 'phone',
+      'mobile_number': 'phone',
+      'phone_number': 'phone',
+      'Parent Mobile': 'parentMobile',
+      'Parent Contact': 'parentMobile',
+      'parent_mobile': 'parentMobile',
+      'parent_contact': 'parentMobile',
+      'parentmobile': 'parentMobile',
+      'Unique ID': 'uniqueId',
+      'unique_id': 'uniqueId',
+      'uniqueid': 'uniqueId',
+      'Student ID': 'uniqueId',
+      'Full Name': 'fullName',
+      'fullname': 'fullName',
+      'full_name': 'fullName',
+    };
+
+    // Normalize field names
+    const normalizedData: Record<string, any> = {};
+    Object.keys(studentData).forEach(key => {
+      const normalizedKey = fieldMapping[key] || key;
+      normalizedData[normalizedKey] = studentData[key];
+    });
+
+    const { firstName, lastName, fullName, email, phone, parentMobile, uniqueId } = normalizedData;
+
+    // Validate required fields
+    if (!email || !projectId) {
+      res.status(400).json({
+        success: false,
+        error: 'Email and project ID are required',
+      });
+      return;
+    }
+
+    if (!phone) {
+      res.status(400).json({
+        success: false,
+        error: 'Phone number is required',
+      });
+      return;
+    }
+
+    if (!parentMobile) {
+      res.status(400).json({
+        success: false,
+        error: 'Parent mobile number is required',
+      });
+      return;
+    }
+
+    // Check if user already exists with this email
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      res.status(400).json({
+        success: false,
+        error: 'User with this email already exists',
+        existingUser: {
+          _id: existingUser._id,
+          firstName: existingUser.firstName,
+          lastName: existingUser.lastName,
+          email: existingUser.email,
+        }
+      });
+      return;
+    }
+
+    // Check if uniqueId already exists (if provided)
+    if (uniqueId) {
+      const existingUserByUniqueId = await User.findOne({ uniqueId });
+      if (existingUserByUniqueId) {
+        res.status(400).json({
+          success: false,
+          error: 'User with this Unique ID already exists',
+        });
+        return;
+      }
+    }
+
+    // Get STUDENT role
+    const studentRole = await Role.findOne({ code: 'STUDENT' });
+    if (!studentRole) {
+      res.status(500).json({
+        success: false,
+        error: 'Student role not found in system. Please run seed-student-role.js',
+      });
+      return;
+    }
+
+    // Generate default password from phone or email
+    // Format: first 4 chars of email + last 4 digits of phone
+    const defaultPassword = `${email.substring(0, 4)}${phone.slice(-4)}`;
+
+    // Prepare user data with all fields from the form
+    const userData: any = {
+      email,
+      phone,
+      parentMobile,
+      password: defaultPassword, // Will be hashed by User model pre-save hook
+      role: studentRole._id,
+      projects: [projectId],
+      isActive: true,
+      requirePasswordSetup: true, // Student needs to change password on first login
+      registrationSource: 'offline', // Mark as offline registration
+      eulaAccepted: false,
+    };
+
+    // Add firstName, lastName, fullName if provided
+    if (firstName) userData.firstName = firstName;
+    if (lastName) userData.lastName = lastName;
+    if (fullName) {
+      userData.fullName = fullName;
+    } else if (firstName && lastName) {
+      userData.fullName = `${firstName} ${lastName}`;
+    } else if (firstName) {
+      userData.fullName = firstName;
+    }
+
+    // Add uniqueId if provided
+    if (uniqueId) userData.uniqueId = uniqueId;
+
+    // Store ALL additional dynamic fields from offline settings (using normalized data)
+    Object.keys(normalizedData).forEach(key => {
+      if (!['firstName', 'lastName', 'fullName', 'email', 'phone', 'parentMobile', 'uniqueId', 'projectId'].includes(key)) {
+        userData[key] = normalizedData[key];
+      }
+    });
+
+    // Create student user
+    const newStudent = await User.create(userData);
+
+    console.log(`✅ Student registered: ${email} (ID: ${newStudent._id})`);
+    console.log(`🔑 Default password: ${defaultPassword} (user must change on first login)`);
+
+    res.status(201).json({
+      success: true,
+      message: 'Student registered successfully. Default password sent to student.',
+      data: {
+        _id: newStudent._id,
+        firstName: newStudent.firstName || '',
+        lastName: newStudent.lastName || '',
+        fullName: newStudent.fullName || '',
+        email: newStudent.email,
+        phone: newStudent.phone,
+        parentMobile: (newStudent as any).parentMobile,
+        uniqueId: newStudent.uniqueId,
+        defaultPassword: defaultPassword, // Return for agent to communicate to student
+      },
+    });
+
+  } catch (error: any) {
+    console.error('Register student error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to register student',
+      message: error.message,
+    });
+  }
+};
+
+/**
+ * Advanced search for students/users by name, phone, or unique ID
+ */
+export const searchStudents = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { query, projectId, searchType } = req.query;
+
+    if (!query) {
+      res.status(400).json({
+        success: false,
+        error: 'Search query is required',
+      });
+      return;
+    }
+
+    const filter: any = {};
+    
+    if (projectId) {
+      filter.projects = projectId;
+    }
+
+    // Build search filter based on searchType
+    // searchType can be: 'name', 'email', 'phone', 'all'
+    if (searchType === 'name' || searchType === 'all') {
+      filter.$or = [
+        { firstName: { $regex: query as string, $options: 'i' } },
+        { lastName: { $regex: query as string, $options: 'i' } },
+        { fullName: { $regex: query as string, $options: 'i' } },
+      ];
+    }
+
+    if (searchType === 'email') {
+      filter.email = { $regex: query as string, $options: 'i' };
+    }
+
+    if (searchType === 'phone' || (searchType === 'all' && !filter.$or)) {
+      filter.phone = query as string;
+    }
+
+    // If searchType is 'all', combine all search criteria
+    if (searchType === 'all' && filter.$or) {
+      filter.$or.push(
+        { email: { $regex: query as string, $options: 'i' } },
+        { phone: query as string }
+      );
+    }
+
+    const users = await User.find(filter)
+      .select('_id firstName lastName fullName email phone parentMobile')
+      .limit(20); // Limit to 20 results
+
+    res.json({
+      success: true,
+      data: users,
+      count: users.length,
+    });
+
+  } catch (error: any) {
+    console.error('Search students error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to search students',
+      message: error.message,
+    });
+  }
+};
+
+/**
+ * Get agents from escalation policies for a project
+ */
+export const getEscalationAgents = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { projectId } = req.query;
+
+    if (!projectId) {
+      res.status(400).json({
+        success: false,
+        error: 'Project ID is required',
+      });
+      return;
+    }
+
+    // Import EscalationPolicy model
+    const EscalationPolicy = require('../models/sla-module/EscalationPolicy').default;
+
+    // Get all active escalation policies for this project
+    const policies = await EscalationPolicy.find({
+      $or: [
+        { projectId: projectId },
+        { projectIds: projectId }
+      ],
+      isActive: true,
+    });
+
+    // Extract agents with their escalation level info
+    const agentsMap = new Map<string, any>();
+    
+    policies.forEach((policy: any) => {
+      policy.levels?.forEach((level: any) => {
+        if (level.escalateTo?.type === 'user') {
+          const userId = level.escalateTo.targetId;
+          const targetName = level.escalateTo.targetName;
+          
+          // Store agent with escalation level info
+          if (!agentsMap.has(userId)) {
+            agentsMap.set(userId, {
+              userId,
+              targetName,
+              escalationLevel: `Level ${level.level}`,
+              escalationLevelNumber: level.level,
+            });
+          } else {
+            // If agent appears in multiple levels, use the lowest level
+            const existing = agentsMap.get(userId);
+            if (level.level < existing.escalationLevelNumber) {
+              existing.escalationLevel = `Level ${level.level}`;
+              existing.escalationLevelNumber = level.level;
+            }
+          }
+        }
+      });
+    });
+
+    // Fetch user details for all unique user IDs
+    const userIds = Array.from(agentsMap.keys());
+    const users = await User.find({
+      _id: { $in: userIds },
+      isActive: true,
+    })
+      .select('_id firstName lastName email')
+      .sort({ firstName: 1 });
+
+    // Combine user details with escalation info
+    const agents = users.map((user: any) => {
+      const escalationInfo = agentsMap.get(user._id.toString());
+      return {
+        _id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        escalationLevel: escalationInfo?.escalationLevel || 'Unknown',
+        escalationLevelNumber: escalationInfo?.escalationLevelNumber || 999,
+      };
+    }).sort((a, b) => a.escalationLevelNumber - b.escalationLevelNumber);
+
+    res.json({
+      success: true,
+      data: agents,
+      count: agents.length,
+    });
+
+  } catch (error: any) {
+    console.error('Get escalation agents error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch escalation agents',
+      message: error.message,
+    });
+  }
+};

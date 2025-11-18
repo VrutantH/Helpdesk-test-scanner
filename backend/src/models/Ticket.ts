@@ -54,6 +54,7 @@ export interface ITicket extends Document {
   internalNotes?: IInternalNote[];
   escalationHistory?: IEscalationRecord[];
   tags: string[];
+  submissionSource?: 'online' | 'offline'; // Track where ticket was created
   metadata?: any;
   createdAt: Date;
   updatedAt: Date;
@@ -148,6 +149,12 @@ const TicketSchema: Schema = new Schema(
       type: String,
       trim: true,
     }],
+    submissionSource: {
+      type: String,
+      enum: ['online', 'offline'],
+      default: 'online',
+      index: true,
+    },
     metadata: {
       type: Schema.Types.Mixed,
     },

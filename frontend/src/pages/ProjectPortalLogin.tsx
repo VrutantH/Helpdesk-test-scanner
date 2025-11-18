@@ -175,7 +175,7 @@ const ProjectPortalLogin: React.FC = () => {
         const { token, user } = response.data.data;
 
         // Store authentication data
-        localStorage.setItem('authToken', token);
+        localStorage.setItem('token', token); // Fixed: was 'authToken', should be 'token'
         localStorage.setItem('userId', user._id);
         localStorage.setItem('userEmail', user.email);
         localStorage.setItem('userName', user.name);

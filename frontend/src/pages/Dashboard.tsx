@@ -64,7 +64,7 @@ const Dashboard = () => {
   };
 
   return (
-    <DashboardLayout title="Dashboard">
+    <DashboardLayout>
       <div style={{ padding: '20px' }}>
         <h1 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '8px', color: '#111827' }}>
           Dashboard

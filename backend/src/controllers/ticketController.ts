@@ -189,6 +189,7 @@ export const submitTicket = async (req: Request, res: Response) => {
       category: ticketData.Category || 'General',
       createdBy: systemUserId, // Required field
       assignedTo: assignedAgent, // Auto-assigned agent (if enabled)
+      submissionSource: 'online', // Mark as online submission
       attachments,
       tags: [`student-submission`, `project-${projectId}`],
       // Store student contact info in custom metadata
@@ -232,6 +233,7 @@ export const submitTicket = async (req: Request, res: Response) => {
             projects: [projectId],
             isActive: true,
             requirePasswordSetup: true, // Flag for first-time password setup via OTP
+            registrationSource: 'online', // Mark as online registration
           });
           
           console.log(`✅ Student user created: ${studentUser._id} | ${studentEmail}`);
@@ -337,6 +339,7 @@ export const getAgentAssignedTickets = async (req: Request, res: Response) => {
 
     // Find all tickets assigned to this agent
     const tickets = await Ticket.find(query)
+      .select('+submissionSource') // Explicitly select submissionSource field
       .populate('assignedTo', 'firstName lastName email')
       .populate('createdBy', 'firstName lastName email')
       .sort({ createdAt: -1 });
@@ -1147,6 +1150,171 @@ export const getDashboardStats = async (req: Request, res: Response) => {
     return res.status(500).json({
       success: false,
       message: 'Failed to fetch dashboard statistics',
+    });
+  }
+};
+
+/**
+ * Create offline ticket submission (by agent on behalf of student)
+ */
+export const createOfflineTicket = async (req: Request, res: Response) => {
+  try {
+    const agent = (req as any).user;
+    
+    const {
+      studentId,
+      title,
+      description,
+      category,
+      priority,
+      projectId,
+      submissionType,
+      status: initialStatus,
+      resolvedAtCreation,
+      escalateTo,
+      escalationReason,
+    } = req.body;
+
+    // Validate required fields (priority is optional, will be set by agent later)
+    if (!studentId || !title || !description || !category || !projectId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields',
+      });
+    }
+
+    // Verify student exists
+    const student = await User.findById(studentId);
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: 'Student not found',
+      });
+    }
+
+    // Generate ticket number
+    const ticketCount = await Ticket.countDocuments();
+    const ticketNumber = `TKT-${String(ticketCount + 1).padStart(6, '0')}`;
+
+    // Handle file attachments
+    const attachments: any[] = [];
+    if (req.files && Array.isArray(req.files)) {
+      for (const file of req.files) {
+        attachments.push({
+          fieldName: 'offline-attachment',
+          filename: file.filename,
+          originalName: file.originalname,
+          mimetype: file.mimetype,
+          size: file.size,
+          uploadedAt: new Date(),
+        });
+      }
+    }
+
+    // Determine initial status
+    const ticketStatus = resolvedAtCreation === 'true' ? 'resolved' : (initialStatus || 'open');
+
+    // Determine assignment: If escalated, assign to escalateTo; otherwise assign to creating agent
+    const assignedToAgentId = escalateTo || agent.userId;
+
+    // Create ticket (priority defaults to 'medium' if not provided - agent will set it later based on SLA)
+    const ticket = await Ticket.create({
+      ticketNumber,
+      title,
+      description,
+      category,
+      priority: priority || 'medium', // Default to medium, agent will update based on SLA rules
+      status: ticketStatus,
+      createdBy: new mongoose.Types.ObjectId(studentId), // Ticket owned by student
+      assignedTo: new mongoose.Types.ObjectId(assignedToAgentId), // Assign to escalated agent or creating agent
+      submissionSource: 'offline', // Mark as offline submission
+      attachments,
+      metadata: {
+        projectId,
+        submissionType: submissionType || 'offline',
+        studentEmail: student.email,
+        studentName: `${student.firstName} ${student.lastName}`,
+        studentPhone: (student as any).phone,
+        createdByAgent: agent.userId,
+        createdByAgentEmail: agent.email,
+        resolvedAtCreation: resolvedAtCreation === 'true',
+      },
+      threads: [],
+      escalationHistory: [],
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    // Add system message about offline creation
+    ticket.threads!.push({
+      message: `Ticket created by ${agent.firstName} ${agent.lastName} (Agent) on behalf of student during offline support.`,
+      createdBy: new mongoose.Types.ObjectId(agent.userId),
+      isSystemMessage: true,
+      attachments: [],
+      createdAt: new Date(),
+    } as any);
+
+    // Add assignment message
+    if (!escalateTo) {
+      // Ticket assigned to creating agent
+      ticket.threads!.push({
+        message: `Ticket assigned to ${agent.firstName} ${agent.lastName} (Creating Agent).`,
+        createdBy: new mongoose.Types.ObjectId(agent.userId),
+        isSystemMessage: true,
+        attachments: [],
+        createdAt: new Date(),
+      } as any);
+    }
+
+    // If marked as resolved, add resolution message
+    if (resolvedAtCreation === 'true') {
+      ticket.threads!.push({
+        message: `Issue resolved during offline support session by ${agent.firstName} ${agent.lastName}.`,
+        createdBy: new mongoose.Types.ObjectId(agent.userId),
+        isSystemMessage: true,
+        attachments: [],
+        createdAt: new Date(),
+      } as any);
+    }
+
+    // If escalated, add escalation record
+    if (escalateTo && escalationReason) {
+      ticket.escalationHistory!.push({
+        escalatedTo: new mongoose.Types.ObjectId(escalateTo),
+        escalatedBy: new mongoose.Types.ObjectId(agent.userId),
+        reason: escalationReason,
+        escalatedAt: new Date(),
+      } as any);
+
+      ticket.threads!.push({
+        message: `Ticket escalated to another agent. Reason: ${escalationReason}`,
+        createdBy: new mongoose.Types.ObjectId(agent.userId),
+        isSystemMessage: true,
+        attachments: [],
+        createdAt: new Date(),
+      } as any);
+    }
+
+    await ticket.save();
+
+    console.log(`✅ Offline ticket created: ${ticket._id} | ${ticketNumber} | Agent: ${agent.email} | Student: ${student.email}`);
+
+    return res.status(201).json({
+      success: true,
+      message: 'Offline ticket created successfully',
+      data: {
+        _id: ticket._id,
+        ticketNumber: ticket.ticketNumber,
+        status: ticket.status,
+      },
+    });
+
+  } catch (error: any) {
+    console.error('Create offline ticket error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to create offline ticket',
+      error: error.message,
     });
   }
 };
