@@ -13,7 +13,8 @@ import ForgotPassword from './components/ForgotPassword'
 import EULA from './components/EULA'
 import ProjectManagement from './components/ProjectManagement'
 import MasterDataManagement from './components/MasterDataManagement'
-import RoleManagement from './components/RoleManagement'
+// import RoleManagement from './components/RoleManagement' // UNUSED: Replaced by RBACSetup
+import RBACSetup from './pages/RBACSetup'
 import UserManagement from './components/UserManagement'
 import DashboardLayout from './components/DashboardLayout'
 // import { FieldFormManagement } from './components/FieldFormManagement' // TODO: Implement
@@ -86,7 +87,7 @@ function App() {
         {/* <Route path="/project-dashboard" element={<ProjectDashboard />} /> */}
         <Route path="/projects" element={<ProjectManagement />} />
         <Route path="/master-data" element={<MasterDataManagement />} />
-        <Route path="/rbac" element={<RoleManagement />} />
+        <Route path="/rbac" element={<RBACSetup />} />
         <Route path="/users" element={<UserManagement />} />
         <Route path="/ticket-config" element={<TicketConfigurationPage />} />
         <Route path="/ticket-config/settings/:projectId" element={<TicketSettings />} />

@@ -1,3 +1,20 @@
+/**
+ * ⚠️ DEPRECATED - DO NOT USE
+ * 
+ * This component has been REPLACED by: src/pages/RBACSetup.tsx
+ * 
+ * Reason: RBACSetup provides comprehensive role management with:
+ * - Master role templates
+ * - Role cloning functionality
+ * - Module-wise permission organization
+ * - Project mapping
+ * 
+ * This file is kept for reference only and should be archived/deleted.
+ * Last active: Before RBACSetup implementation
+ * 
+ * @deprecated Use RBACSetup instead
+ */
+
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 

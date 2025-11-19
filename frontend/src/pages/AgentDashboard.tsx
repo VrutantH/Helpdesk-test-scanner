@@ -1,3 +1,16 @@
+/**
+ * ⚠️ POTENTIAL DUPLICATE - VERIFY BEFORE USE
+ * 
+ * There is another AgentDashboard component at: src/components/AgentDashboard.tsx
+ * The components/ version is currently imported in App.tsx (line 5)
+ * 
+ * TODO: Verify which version is correct and archive the other
+ * - components/AgentDashboard.tsx (548 lines) - Currently used
+ * - pages/AgentDashboard.tsx (868 lines) - This file
+ * 
+ * Check: Are both needed for different routes?
+ */
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';

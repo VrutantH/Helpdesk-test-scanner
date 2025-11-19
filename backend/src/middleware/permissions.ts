@@ -45,10 +45,12 @@ export const requirePermission = (code: string) => async (
 };
 
 /**
- * Middleware factory to check permission by resource and action.
- * Constructs permission code as "resource.action" and checks if user has it.
+ * Middleware factory to check permission by code or resource and action.
+ * Can be called as:
+ * - checkPermission('PERMISSION_CODE') - direct permission code
+ * - checkPermission('resource', 'action') - constructs "resource.action"
  */
-export const checkPermission = (resource: string, action: string) => {
-  const code = `${resource}.${action}`;
+export const checkPermission = (resourceOrCode: string, action?: string) => {
+  const code = action ? `${resourceOrCode}.${action}` : resourceOrCode;
   return requirePermission(code);
 };

@@ -1,3 +1,16 @@
+/**
+ * ⚠️ POTENTIAL DUPLICATE - VERIFY BEFORE USE
+ * 
+ * There is another ProjectLogin component at: src/pages/ProjectLogin.tsx
+ * The pages/ version is currently imported in App.tsx (line 4)
+ * 
+ * TODO: Verify which version is correct and archive the other
+ * - pages/ProjectLogin.tsx (768 lines) - Currently used in App.tsx
+ * - components/ProjectLogin.tsx (769 lines) - This file
+ * 
+ * Action: This components/ version should likely be archived
+ */
+
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';

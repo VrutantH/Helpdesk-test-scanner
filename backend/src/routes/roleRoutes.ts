@@ -7,6 +7,8 @@ import {
   createRole,
   updateRole,
   deleteRole,
+  cloneRole,
+  getMasterRoles,
 } from '../controllers/roleController';
 
 const router = Router();
@@ -16,8 +18,13 @@ router.use(auth);
 
 // @desc    Get all roles
 // @route   GET /api/roles
+// @access  Private (requires permission)
+router.get('/', checkPermission('RBAC_VIEW_ROLES'), getRoles);
+
+// @desc    Get master roles
+// @route   GET /api/roles/master
 // @access  Private
-router.get('/', getRoles);
+router.get('/master/list', getMasterRoles);
 
 // @desc    Get role by ID
 // @route   GET /api/roles/:id
@@ -27,16 +34,21 @@ router.get('/:id', getRoleById);
 // @desc    Create new role
 // @route   POST /api/roles
 // @access  Private (requires permission)
-router.post('/', checkPermission('role', 'create'), createRole);
+router.post('/', checkPermission('RBAC_CREATE_ROLE'), createRole);
+
+// @desc    Clone role from master
+// @route   POST /api/roles/:id/clone
+// @access  Private (requires permission)
+router.post('/:id/clone', checkPermission('RBAC_CREATE_ROLE'), cloneRole);
 
 // @desc    Update role
 // @route   PUT /api/roles/:id
 // @access  Private (requires permission)
-router.put('/:id', checkPermission('role', 'update'), updateRole);
+router.put('/:id', checkPermission('RBAC_EDIT_ROLE'), updateRole);
 
 // @desc    Delete role
 // @route   DELETE /api/roles/:id
 // @access  Private (requires permission)
-router.delete('/:id', checkPermission('role', 'delete'), deleteRole);
+router.delete('/:id', checkPermission('RBAC_DELETE_ROLE'), deleteRole);
 
 export default router;

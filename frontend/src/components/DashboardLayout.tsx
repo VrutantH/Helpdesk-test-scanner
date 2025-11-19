@@ -150,7 +150,7 @@ const DashboardLayout = ({ children, logoutRedirectPath }: DashboardLayoutProps)
     { path: '/sla', icon: <MdSchedule />, label: 'SLA & Escalation', labelMr: 'SLA आणि वाढीव प्रक्रिया' },
     { path: '/knowledge-base', icon: <MdBook />, label: 'Knowledge Base', labelMr: 'ज्ञान आधार' },
     { path: '/integrations', icon: <MdIntegrationInstructions />, label: 'Integrations', labelMr: 'इंटिग्रेशन' },
-    { path: '/reports', icon: <MdBarChart />, label: 'Predefined Reports', labelMr: 'पूर्वनिर्धारित अहवाल' },
+    { path: '/reports', icon: <MdBarChart />, label: 'Reports', labelMr: 'अहवाल' },
     { 
       icon: <MdFactCheck />, 
       label: 'Audit Logs', 

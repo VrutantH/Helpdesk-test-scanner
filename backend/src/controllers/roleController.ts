@@ -69,7 +69,7 @@ export const getRoleById = async (req: AuthRequest, res: Response) => {
 // @access  Private
 export const createRole = async (req: AuthRequest, res: Response) => {
   try {
-    const { name, code, description, permissions, type, projects, projectId } = req.body;
+    const { name, code, description, permissions, type, projects, projectId, isMaster } = req.body;
 
     // Check if role with same code already exists
     const existingRole = await Role.findOne({ code: code?.toUpperCase() });
@@ -88,6 +88,7 @@ export const createRole = async (req: AuthRequest, res: Response) => {
       description,
       permissions: permissions || [],
       type: type || 'custom',
+      isMaster: isMaster || false,
     };
 
     // Handle project mapping
@@ -128,7 +129,7 @@ export const createRole = async (req: AuthRequest, res: Response) => {
 // @access  Private
 export const updateRole = async (req: AuthRequest, res: Response) => {
   try {
-    const { name, code, description, permissions, projects, projectId } = req.body;
+    const { name, code, description, permissions, projects, projectId, isMaster } = req.body;
 
     const role = await Role.findById(req.params.id);
     if (!role) {
@@ -166,6 +167,10 @@ export const updateRole = async (req: AuthRequest, res: Response) => {
     
     if (permissions !== undefined) {
       role.permissions = permissions;
+    }
+
+    if (isMaster !== undefined) {
+      role.isMaster = isMaster;
     }
 
     // Update project mapping
@@ -226,6 +231,87 @@ export const deleteRole = async (req: AuthRequest, res: Response) => {
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to delete role',
+    });
+  }
+};
+
+// @desc    Clone role from master role
+// @route   POST /api/roles/:id/clone
+// @access  Private
+export const cloneRole = async (req: AuthRequest, res: Response) => {
+  try {
+    const { name, code, description, projects, projectId } = req.body;
+    const masterRoleId = req.params.id;
+
+    const masterRole = await Role.findById(masterRoleId);
+    if (!masterRole) {
+      res.status(404).json({
+        success: false,
+        error: 'Master role not found',
+      });
+      return;
+    }
+
+    // Check if role with same code already exists
+    const existingRole = await Role.findOne({ code: code?.toUpperCase() });
+    if (existingRole) {
+      res.status(400).json({
+        success: false,
+        error: 'Role with this code already exists',
+      });
+      return;
+    }
+
+    // Clone the role with new name, code, and project mapping
+    const roleData: any = {
+      name: name || `${masterRole.name} (Copy)`,
+      code: code?.toUpperCase(),
+      description: description || masterRole.description,
+      permissions: masterRole.permissions, // Copy all permissions
+      type: 'custom', // Cloned roles are always custom
+      isMaster: false, // Cloned roles are not master by default
+      masterRoleId: masterRole._id, // Reference to master role
+    };
+
+    // Handle project mapping for cloned role
+    if (projects && Array.isArray(projects) && projects.length > 0) {
+      roleData.projects = projects;
+      roleData.projectId = projects[0];
+    } else if (projectId) {
+      roleData.projectId = projectId;
+      roleData.projects = [projectId];
+    }
+
+    const clonedRole = await Role.create(roleData);
+    const populatedRole = await Role.findById(clonedRole._id).populate('permissions');
+
+    res.status(201).json({
+      success: true,
+      data: populatedRole,
+      message: 'Role cloned successfully',
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to clone role',
+    });
+  }
+};
+
+// @desc    Get master roles
+// @route   GET /api/roles/master
+// @access  Private
+export const getMasterRoles = async (req: AuthRequest, res: Response) => {
+  try {
+    const masterRoles = await Role.find({ isMaster: true, isActive: true }).populate('permissions');
+    res.json({
+      success: true,
+      data: masterRoles,
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to fetch master roles',
     });
   }
 };

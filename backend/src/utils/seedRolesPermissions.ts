@@ -630,52 +630,52 @@ export const helpDeskPermissions: HelpDeskPermission[] = [
     category: 'integrations',
   },
   // =====================================================
-  // PREDEFINED REPORTS CATEGORY
+  // REPORTS CATEGORY
   // =====================================================
   {
-    module: 'Predefined Reports',
+    module: 'Reports',
     name: 'View Ticket Reports',
     code: 'REPORT_VIEW_TICKETS',
     description: 'Can view ticket analytics and reports',
     category: 'reports',
   },
   {
-    module: 'Predefined Reports',
+    module: 'Reports',
     name: 'View Agent Performance Reports',
     code: 'REPORT_VIEW_AGENT_PERFORMANCE',
     description: 'Can view agent performance metrics',
     category: 'reports',
   },
   {
-    module: 'Predefined Reports',
+    module: 'Reports',
     name: 'View Customer Satisfaction Reports',
     code: 'REPORT_VIEW_CSAT',
     description: 'Can view customer satisfaction scores',
     category: 'reports',
   },
   {
-    module: 'Predefined Reports',
+    module: 'Reports',
     name: 'View SLA Reports',
     code: 'REPORT_VIEW_SLA',
     description: 'Can view SLA compliance reports',
     category: 'reports',
   },
   {
-    module: 'Predefined Reports',
+    module: 'Reports',
     name: 'Export Reports',
     code: 'REPORT_EXPORT',
     description: 'Can export reports to various formats',
     category: 'reports',
   },
   {
-    module: 'Predefined Reports',
+    module: 'Reports',
     name: 'Create Custom Reports',
     code: 'REPORT_CREATE_CUSTOM',
     description: 'Can create custom report templates',
     category: 'reports',
   },
   {
-    module: 'Predefined Reports',
+    module: 'Reports',
     name: 'Schedule Reports',
     code: 'REPORT_SCHEDULE',
     description: 'Can schedule automated report generation',
