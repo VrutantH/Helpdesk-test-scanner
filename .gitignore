@@ -35,4 +35,23 @@ uploads/tickets/*
 
 # OS
 Thumbs.db
-.DS_Store
+
+# Compiled files
+*.class
+*.py[cod]
+
+# Package files
+*.jar
+
+# Applications
+*.app
+*.exe
+*.war
+
+# Large media files
+*.mp4
+*.tiff
+*.avi
+*.flv
+*.mov
+*.wmv
