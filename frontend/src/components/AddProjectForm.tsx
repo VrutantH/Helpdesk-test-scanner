@@ -337,9 +337,22 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
   });
 
   // Computed: Get agents only (with Agent role and mapped to project)
-  const projectAgents = projectUsers.filter(user => 
-    user.roleId === agentRoleId || user.role.toLowerCase() === 'agent'
-  );
+  const projectAgents = projectUsers.filter(user => {
+    // Check by roleId first
+    if (user.roleId === agentRoleId) return true;
+    
+    // Check by role object (new JWT structure)
+    if (typeof user.role === 'object' && user.role?.code) {
+      return user.role.code.toLowerCase() === 'agent';
+    }
+    
+    // Fallback for old string-based role (backward compatibility)
+    if (typeof user.role === 'string') {
+      return user.role.toLowerCase() === 'agent';
+    }
+    
+    return false;
+  });
 
   // Fetch master data, users, and roles
   useEffect(() => {
