@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { MdSettings, MdLock, MdShield, MdMenuBook, MdPalette, MdConfirmationNumber } from 'react-icons/md';
 import { getText } from '../utils/language';
+import API_BASE_URL from '../config/api';
 
 
 interface AddProjectFormProps {
@@ -371,16 +372,16 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
         };
         
         const [orgTypesRes, countriesRes, languagesRes, timezonesRes, dateFormatsRes, currenciesRes, statesRes, citiesRes, usersRes, rolesRes] = await Promise.all([
-          fetch('http://localhost:3003/api/masters/organization-types', { headers, credentials: 'include' }),
-          fetch('http://localhost:3003/api/masters/countries', { headers, credentials: 'include' }),
-          fetch('http://localhost:3003/api/masters/languages', { headers, credentials: 'include' }),
-          fetch('http://localhost:3003/api/masters/timezones', { headers, credentials: 'include' }),
-          fetch('http://localhost:3003/api/masters/date-formats', { headers, credentials: 'include' }),
-          fetch('http://localhost:3003/api/masters/currencies', { headers, credentials: 'include' }),
-          fetch('http://localhost:3003/api/masters/states', { headers, credentials: 'include' }),
-          fetch('http://localhost:3003/api/masters/cities', { headers, credentials: 'include' }),
-          fetch('http://localhost:3003/api/users', { headers, credentials: 'include' }),
-          fetch('http://localhost:3003/api/roles', { headers, credentials: 'include' })
+          fetch(`${API_BASE_URL}/masters/organization-types`, { headers, credentials: 'include' }),
+          fetch(`${API_BASE_URL}/masters/countries`, { headers, credentials: 'include' }),
+          fetch(`${API_BASE_URL}/masters/languages`, { headers, credentials: 'include' }),
+          fetch(`${API_BASE_URL}/masters/timezones`, { headers, credentials: 'include' }),
+          fetch(`${API_BASE_URL}/masters/date-formats`, { headers, credentials: 'include' }),
+          fetch(`${API_BASE_URL}/masters/currencies`, { headers, credentials: 'include' }),
+          fetch(`${API_BASE_URL}/masters/states`, { headers, credentials: 'include' }),
+          fetch(`${API_BASE_URL}/masters/cities`, { headers, credentials: 'include' }),
+          fetch(`${API_BASE_URL}/users`, { headers, credentials: 'include' }),
+          fetch(`${API_BASE_URL}/roles`, { headers, credentials: 'include' })
         ]);
 
         const [orgTypes, countries, languages, timezones, dateFormats, currencies, statesData, citiesData, usersData, rolesData] = await Promise.all([
@@ -795,8 +796,8 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
       };
 
       const url = project
-        ? `http://localhost:3003/api/projects/${project._id}`
-        : 'http://localhost:3003/api/projects';
+        ? `${API_BASE_URL}/projects/${project._id}`
+        : `${API_BASE_URL}/projects`;
 
       const method = project ? 'PUT' : 'POST';
 
