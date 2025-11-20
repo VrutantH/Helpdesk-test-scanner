@@ -105,17 +105,24 @@ const UserManagement: React.FC = () => {
       const response = await fetch(`http://localhost:3003/api/users?${params}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
         },
-        credentials: 'include',
       });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
       const data = await response.json();
       
       if (data.success) {
         setUsers(data.data);
+      } else {
+        throw new Error(data.error || 'Failed to fetch users');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching users:', error);
-      alert('Failed to fetch users');
+      alert(`Failed to fetch users: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -129,37 +136,28 @@ const UserManagement: React.FC = () => {
         fetch('http://localhost:3003/api/roles', { 
           headers: {
             'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
           },
-          credentials: 'include' 
         }),
         fetch('http://localhost:3003/api/projects', { 
           headers: {
             'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
           },
-          credentials: 'include' 
         }),
       ]);
       
       const rolesData = await rolesRes.json();
       const projectsData = await projectsRes.json();
       
-      console.log('🔍 Roles response:', rolesData);
-      console.log('🔍 Projects response:', projectsData);
-      
       if (rolesData.success && Array.isArray(rolesData.data)) {
-        console.log('✅ Setting roles:', rolesData.data.length, 'roles');
         setRoles(rolesData.data);
-      } else {
-        console.error('❌ Invalid roles response:', rolesData);
       }
       if (projectsData.success && projectsData.data && Array.isArray(projectsData.data.projects)) {
-        console.log('✅ Setting projects:', projectsData.data.projects.length, 'projects');
         setProjects(projectsData.data.projects);
-      } else {
-        console.error('❌ Invalid projects response:', projectsData);
       }
     } catch (error) {
-      console.error('❌ Error fetching roles/projects:', error);
+      console.error('Error fetching roles/projects:', error);
     }
   };
 

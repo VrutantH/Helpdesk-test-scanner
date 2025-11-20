@@ -61,10 +61,18 @@ const PORT = process.env.PORT || 3003;
 connectDB();
 
 // Security middleware
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
+
+// CORS - Must be before other middleware
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:3001',
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range'],
+  maxAge: 86400 // 24 hours
 }));
 
 // Rate limiting - More lenient in development
@@ -177,21 +185,50 @@ process.on('uncaughtException', (error: Error) => {
   console.error('❌ Server will continue running, but this should be fixed');
 });
 
-// Graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('🔄 SIGTERM received, shutting down gracefully');
-  httpServer.close(() => {
-    console.log('✅ Server closed');
-    process.exit(0);
-  });
-});
+// Graceful shutdown - only in production
+// In development, ignore accidental SIGINT/SIGTERM to prevent server crashes
+const isDevelopment = process.env.NODE_ENV !== 'production';
 
-process.on('SIGINT', () => {
-  console.log('🔄 SIGINT received, shutting down gracefully');
-  httpServer.close(() => {
-    console.log('✅ Server closed');
-    process.exit(0);
+if (!isDevelopment) {
+  // Production: Graceful shutdown
+  process.on('SIGTERM', () => {
+    console.log('🔄 SIGTERM received, shutting down gracefully');
+    httpServer.close(() => {
+      console.log('✅ Server closed');
+      process.exit(0);
+    });
   });
-});
+
+  process.on('SIGINT', () => {
+    console.log('🔄 SIGINT received, shutting down gracefully');
+    httpServer.close(() => {
+      console.log('✅ Server closed');
+      process.exit(0);
+    });
+  });
+} else {
+  // Development: Ignore accidental signals, only shutdown on explicit Ctrl+C twice
+  let sigintCount = 0;
+  
+  process.on('SIGINT', () => {
+    sigintCount++;
+    if (sigintCount === 1) {
+      console.log('⚠️  SIGINT received - Press Ctrl+C again to stop server');
+      console.log('   (Ignoring single SIGINT to prevent accidental shutdown)');
+      setTimeout(() => { sigintCount = 0; }, 3000); // Reset after 3 seconds
+    } else {
+      console.log('🔄 Shutting down server...');
+      httpServer.close(() => {
+        console.log('✅ Server closed');
+        process.exit(0);
+      });
+    }
+  });
+  
+  process.on('SIGTERM', () => {
+    console.log('⚠️  SIGTERM received in development - Ignoring (server stays running)');
+    console.log('   Use Ctrl+C twice to stop the server');
+  });
+}
 
 export { io };

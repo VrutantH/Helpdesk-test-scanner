@@ -4,8 +4,8 @@ import { Permission } from '../models/Permission';
 
 /**
  * Middleware factory to require a specific permission code.
- * It looks up the permission by code and checks if the current user's role
- * (from the JWT payload attached by authMiddleware) contains that permission id.
+ * It checks if the current user's role (from JWT payload) contains that permission.
+ * Now supports both permission codes (strings) and permission IDs (ObjectIds) for backward compatibility.
  */
 export const requirePermission = (code: string) => async (
   req: AuthRequest,
@@ -13,16 +13,29 @@ export const requirePermission = (code: string) => async (
   next: NextFunction
 ) => {
   try {
+    const rolePerms = req.user?.role?.permissions || [];
+    
+    // Check if permissions are stored as codes (new optimized format)
+    const hasPermissionByCode = rolePerms.some((p: any) => {
+      const permCode = typeof p === 'string' ? p : p.code;
+      return permCode === code;
+    });
+
+    if (hasPermissionByCode) {
+      next();
+      return;
+    }
+
+    // Fallback: Check by permission ID (old format for backward compatibility)
     const perm = await Permission.findOne({ code });
     if (!perm) {
+      console.log(`❌ [PERMISSION] Permission ${code} not found in database`);
       res.status(403).json({ success: false, message: `Permission ${code} not found` });
       return;
     }
 
-    const rolePerms = req.user?.role?.permissions || [];
     const permId = perm._id.toString();
-
-    const has = rolePerms.some((p: any) => {
+    const hasPermissionById = rolePerms.some((p: any) => {
       try {
         return p.toString() === permId;
       } catch (e) {
@@ -30,7 +43,8 @@ export const requirePermission = (code: string) => async (
       }
     });
 
-    if (!has) {
+    if (!hasPermissionById) {
+      console.log(`❌ [PERMISSION] User ${req.user?.email} lacks permission: ${code}`);
       res.status(403).json({ success: false, message: 'Forbidden: insufficient permissions' });
       return;
     }
