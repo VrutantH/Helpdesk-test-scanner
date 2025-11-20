@@ -291,12 +291,7 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
   });
 
   // Master data states
-  const [organizationTypes, setOrganizationTypes] = useState<Array<{ key: string; value: string }>>([]);
   const [countries, setCountries] = useState<Array<{ key: string; value: string }>>([]);
-  const [languages, setLanguages] = useState<Array<{ key: string; value: string }>>([]);
-  const [timezones, setTimezones] = useState<Array<{ key: string; value: string }>>([]);
-  const [dateFormats, setDateFormats] = useState<Array<{ key: string; value: string }>>([]);
-  const [currencies, setCurrencies] = useState<Array<{ key: string; value: string }>>([]);
   const [states, setStates] = useState<Array<{ key: string; value: string }>>([]);
   const [cities, setCities] = useState<Array<{ key: string; value: string }>>([]);
   const [users, setUsers] = useState<Array<{ 
@@ -371,38 +366,23 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
           'Authorization': `Bearer ${token}`,
         };
         
-        const [orgTypesRes, countriesRes, languagesRes, timezonesRes, dateFormatsRes, currenciesRes, statesRes, citiesRes, usersRes, rolesRes] = await Promise.all([
-          fetch(`${API_BASE_URL}/masters/organization-types`, { headers, credentials: 'include' }),
+        const [countriesRes, statesRes, citiesRes, usersRes, rolesRes] = await Promise.all([
           fetch(`${API_BASE_URL}/masters/countries`, { headers, credentials: 'include' }),
-          fetch(`${API_BASE_URL}/masters/languages`, { headers, credentials: 'include' }),
-          fetch(`${API_BASE_URL}/masters/timezones`, { headers, credentials: 'include' }),
-          fetch(`${API_BASE_URL}/masters/date-formats`, { headers, credentials: 'include' }),
-          fetch(`${API_BASE_URL}/masters/currencies`, { headers, credentials: 'include' }),
           fetch(`${API_BASE_URL}/masters/states`, { headers, credentials: 'include' }),
           fetch(`${API_BASE_URL}/masters/cities`, { headers, credentials: 'include' }),
           fetch(`${API_BASE_URL}/users`, { headers, credentials: 'include' }),
           fetch(`${API_BASE_URL}/roles`, { headers, credentials: 'include' })
         ]);
 
-        const [orgTypes, countries, languages, timezones, dateFormats, currencies, statesData, citiesData, usersData, rolesData] = await Promise.all([
-          orgTypesRes.json(),
+        const [countries, statesData, citiesData, usersData, rolesData] = await Promise.all([
           countriesRes.json(),
-          languagesRes.json(),
-          timezonesRes.json(),
-          dateFormatsRes.json(),
-          currenciesRes.json(),
           statesRes.json(),
           citiesRes.json(),
           usersRes.json(),
           rolesRes.json()
         ]);
 
-        if (orgTypes.success) setOrganizationTypes(orgTypes.data);
         if (countries.success) setCountries(countries.data);
-        if (languages.success) setLanguages(languages.data);
-        if (timezones.success) setTimezones(timezones.data);
-        if (dateFormats.success) setDateFormats(dateFormats.data);
-        if (currencies.success) setCurrencies(currencies.data);
         if (statesData.success) setStates(statesData.data.map((item: any) => ({ key: item.key, value: item.value })));
         if (citiesData.success) setCities(citiesData.data.map((item: any) => ({ key: item.key, value: item.value })));
         if (usersData.success) setUsers(usersData.data);
