@@ -48,10 +48,21 @@ console.log('🔑 JWT_SECRET value:', process.env.JWT_SECRET || 'fallback-secret
 
 const app = express();
 const httpServer = createServer(app);
+
+// Allowed origins for Socket.IO
+const socketAllowedOrigins = [
+  'http://localhost:3001',
+  'http://localhost:3000',
+  'https://helpdesk.hubblehox.ai',
+  'https://api.helpdesk.hubblehox.ai',
+  process.env.FRONTEND_URL
+].filter((origin): origin is string => typeof origin === 'string');
+
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.FRONTEND_URL || 'http://localhost:3001',
+    origin: socketAllowedOrigins,
     methods: ['GET', 'POST'],
+    credentials: true
   },
 });
 
@@ -66,8 +77,27 @@ app.use(helmet({
 }));
 
 // CORS - Must be before other middleware
+// Support multiple origins (localhost + production domains)
+const allowedOrigins = [
+  'http://localhost:3001',
+  'http://localhost:3000',
+  'https://helpdesk.hubblehox.ai',
+  'https://api.helpdesk.hubblehox.ai',
+  process.env.FRONTEND_URL
+].filter(Boolean); // Remove undefined values
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3001',
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps, Postman, curl)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.log('❌ CORS blocked origin:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
