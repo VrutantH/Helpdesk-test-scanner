@@ -1,64 +1,33 @@
 image: node:18
 
-definitions:
-  steps:
-    - step: &build-backend
-        name: Build Backend
-        caches:
-          - node
-        script:
-          - cd backend
-          - npm ci
-          - npm run build
-        artifacts:
-          - backend/dist/**
-          - backend/node_modules/**
-          - backend/package*.json
-
-    - step: &build-frontend
-        name: Build Frontend
-        caches:
-          - node
-        script:
-          - cd frontend
-          - npm ci
-          - npm run build
-        artifacts:
-          - frontend/dist/**
-
-    - step: &deploy-production
-        name: Deploy to Production
-        deployment: production
-        script:
-          # Install SSH client
-          - apt-get update && apt-get install -y rsync openssh-client
-          # Add server to known hosts
-          - mkdir -p ~/.ssh
-          - echo "$SSH_KNOWN_HOSTS" >> ~/.ssh/known_hosts
-          # Deploy files
-          - rsync -avz --delete backend/dist/ $SSH_USER@$SSH_HOST:/var/www/helpdesk/backend/
-          - rsync -avz --delete frontend/dist/ $SSH_USER@$SSH_HOST:/var/www/helpdesk/frontend/
-          - rsync -avz backend/package*.json $SSH_USER@$SSH_HOST:/var/www/helpdesk/backend/
-          # Restart services
-          - ssh $SSH_USER@$SSH_HOST "cd /var/www/helpdesk/backend && npm ci --production && pm2 restart helpdesk-backend"
-          - ssh $SSH_USER@$SSH_HOST "sudo systemctl reload nginx"
-
 pipelines:
-  default:
-    - step:
-        name: Install and Test
-        caches:
-          - node
-        script:
-          - cd backend && npm ci
-          - cd ../frontend && npm ci
+  custom:
+    deploy-frontend:
+      - step:
+          name: Deploy Frontend
+          script:
+            - echo "Frontend Deployment Started"
+            - ssh -v ubuntu@34.14.157.13 '
+                cd /home/ubuntu/helpdesk/frontend &&
+                node -v &&
+                git checkout dev &&
+                git pull &&
+                npm install &&
+                npm run build &&
+                pm2 restart Frontend
+              '
 
-  branches:
-    main:
-      - step: *build-backend
-      - step: *build-frontend
-      - step: *deploy-production
-
-    develop:
-      - step: *build-backend
-      - step: *build-frontend
+    deploy-backend:
+      - step:
+          name: Deploy Backend
+          script:
+            - echo "Backend Deployment Started"
+            - ssh -v ubuntu@34.14.157.13 '
+                cd /home/ubuntu/helpdesk/backend &&
+                node -v &&
+                git checkout dev &&
+                git pull &&
+                npm install &&
+                npm run build &&
+                pm2 restart Backend
+              '
