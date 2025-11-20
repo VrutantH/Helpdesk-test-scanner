@@ -46,8 +46,14 @@ export const login = async (req: Request<{}, {}, LoginRequest>, res: Response) =
       });
     }
 
-    // Find user in database and populate role
-    const user = await User.findOne({ email: email.toLowerCase(), isActive: true }).populate('role');
+    // Find user in database and populate role with permissions
+    const user = await User.findOne({ email: email.toLowerCase(), isActive: true })
+      .populate({
+        path: 'role',
+        populate: {
+          path: 'permissions'
+        }
+      });
 
     if (!user) {
       console.log('❌ User not found:', email);
@@ -131,14 +137,20 @@ export const login = async (req: Request<{}, {}, LoginRequest>, res: Response) =
       console.log(`   - Version: ${eulaAcceptance.version}`);
     }
 
-    // Generate JWT token
+    // Generate JWT token with permissions (optimized - only codes)
+    const permissions = (user.role as any)?.permissions || [];
+    const permissionCodes = permissions.map((p: any) => p.code || p);
+    
     const payload = { 
       userId: user._id, 
-      email: user.email, 
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
       role: user.role ? {
         _id: (user.role as any)._id,
         code: (user.role as any).code,
-        name: (user.role as any).name
+        name: (user.role as any).name,
+        permissions: permissionCodes // Only store permission codes, not full objects
       } : null
     };
     const secret = process.env.JWT_SECRET || 'fallback-secret-key-for-development';

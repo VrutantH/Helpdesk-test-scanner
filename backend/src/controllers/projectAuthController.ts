@@ -172,11 +172,21 @@ export const projectLoginByUrl = async (req: Request, res: Response) => {
       });
     }
 
-    // Generate JWT token
+    // Generate JWT token with permissions (optimized - only codes)
+    const permissions = (user.role as any)?.permissions || [];
+    const permissionCodes = permissions.map((p: any) => p.code || p);
+    
     const payload = { 
       userId: user._id, 
-      email: user.email, 
-      role: user.role,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      role: user.role ? {
+        _id: (user.role as any)._id,
+        code: (user.role as any).code,
+        name: (user.role as any).name,
+        permissions: permissionCodes // Only store permission codes
+      } : null,
       projectId: project._id,
       projectName: project.name
     };
@@ -337,11 +347,21 @@ export const projectLogin = async (req: Request, res: Response) => {
       });
     }
 
-    // Generate JWT token
+    // Generate JWT token with permissions (optimized - only codes)
+    const permissions = (user.role as any)?.permissions || [];
+    const permissionCodes = permissions.map((p: any) => p.code || p);
+    
     const payload = { 
       userId: user._id, 
-      email: user.email, 
-      role: user.role,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      role: user.role ? {
+        _id: (user.role as any)._id,
+        code: (user.role as any).code,
+        name: (user.role as any).name,
+        permissions: permissionCodes // Only store permission codes
+      } : null,
       projectId: project._id,
       projectName: project.name
     };
