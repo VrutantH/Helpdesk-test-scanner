@@ -298,7 +298,14 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
   const [currencies, setCurrencies] = useState<Array<{ key: string; value: string }>>([]);
   const [states, setStates] = useState<Array<{ key: string; value: string }>>([]);
   const [cities, setCities] = useState<Array<{ key: string; value: string }>>([]);
-  const [users, setUsers] = useState<Array<{ _id: string; name: string; email: string; role: string; roleId?: string; projects?: string[] }>>([]);
+  const [users, setUsers] = useState<Array<{ 
+    _id: string; 
+    name: string; 
+    email: string; 
+    role: string | { _id: string; code: string; name: string; permissions?: string[] }; 
+    roleId?: string; 
+    projects?: string[] 
+  }>>([]);
   const [roles, setRoles] = useState<Array<{ _id: string; name: string; code: string; projectId?: string; projects?: string[]; type?: string }>>([]);
   const [agentRoleId, setAgentRoleId] = useState<string>('');
 
