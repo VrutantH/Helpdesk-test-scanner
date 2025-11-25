@@ -14,6 +14,7 @@ pipelines:
                 git reset --hard origin/dev &&
                 git pull &&
                 npm install &&
+                chmod +x node_modules/.bin/* &&
                 npm run build &&
                 pm2 restart Frontend
               '
@@ -30,6 +31,7 @@ pipelines:
                 git reset --hard origin/dev &&
                 git pull &&
                 npm install &&
+                chmod +x node_modules/.bin/* &&
                 npm run build &&
                 pm2 restart Backend
               '
