@@ -23,8 +23,16 @@ pipelines:
                 echo "Copying files..." &&
                 sudo cp -rv dist/* /var/www/helpdesk/frontend/ &&
                 sudo chown -R www-data:www-data /var/www/helpdesk/frontend &&
+                sudo chmod -R 755 /var/www/helpdesk/frontend &&
+                echo "Stopping any PM2 frontend processes..." &&
+                pm2 delete Frontend 2>/dev/null || true &&
+                pm2 delete frontend 2>/dev/null || true &&
+                echo "Reloading nginx..." &&
+                sudo nginx -t &&
+                sudo systemctl reload nginx &&
                 echo "Verifying files..." &&
                 ls -la /var/www/helpdesk/frontend/ &&
+                head -5 /var/www/helpdesk/frontend/index.html &&
                 echo "Frontend deployed successfully!"
               '
 
