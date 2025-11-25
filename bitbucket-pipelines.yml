@@ -42,29 +42,46 @@ pipelines:
           script:
             - echo "Backend Deployment Started"
             - ssh -v ubuntu@34.14.157.13 '
-                cd /home/ubuntu/helpdesk &&
+                set -e &&
+                echo "=== Checking environment ===" &&
                 node -v &&
+                mongo --version || echo "MongoDB CLI not found, checking service..." &&
+                sudo systemctl status mongod --no-pager || sudo systemctl status mongodb --no-pager || echo "MongoDB not running as service" &&
+                echo "" &&
+                echo "=== Pulling latest code ===" &&
+                cd /home/ubuntu/helpdesk &&
                 git checkout dev &&
                 git reset --hard origin/dev &&
                 git pull &&
+                echo "" &&
+                echo "=== Building backend ===" &&
                 cd backend &&
                 npm ci &&
-                chmod +x node_modules/.bin/* &&
+                chmod +x node_modules/.bin/* || true &&
                 npm run build &&
-                echo "Copying to /var/www/helpdesk/backend..." &&
-                sudo mkdir -p /var/www/helpdesk/backend &&
+                echo "" &&
+                echo "=== Setting up deployment directory ===" &&
                 sudo mkdir -p /var/www/helpdesk/backend/uploads &&
-                sudo rm -rf /var/www/helpdesk/backend/dist &&
-                sudo cp -r dist /var/www/helpdesk/backend/ &&
-                sudo cp package*.json /var/www/helpdesk/backend/ &&
-                sudo cp ../ecosystem.config.js /var/www/helpdesk/backend/ &&
+                sudo chown -R ubuntu:ubuntu /var/www/helpdesk || sudo chown -R $USER:$USER /var/www/helpdesk &&
+                echo "" &&
+                echo "=== Copying files ===" &&
+                rm -rf /var/www/helpdesk/backend/dist &&
+                cp -r dist /var/www/helpdesk/backend/ &&
+                cp package*.json /var/www/helpdesk/backend/ &&
+                cp ../ecosystem.config.js /var/www/helpdesk/backend/ &&
+                echo "" &&
+                echo "=== Installing production dependencies ===" &&
                 cd /var/www/helpdesk/backend &&
-                sudo npm ci --omit=dev &&
-                echo "Restarting PM2..." &&
+                npm ci --omit=dev &&
+                echo "" &&
+                echo "=== Starting PM2 ===" &&
                 pm2 delete helpdesk-backend 2>/dev/null || true &&
                 pm2 delete Backend 2>/dev/null || true &&
                 pm2 start ecosystem.config.js &&
                 pm2 save &&
                 pm2 list &&
-                echo "Backend deployed successfully!"
+                echo "" &&
+                echo "=== Deployment complete ===" &&
+                echo "Backend running on port 3003" &&
+                curl -f http://localhost:3003/api/health || echo "Health check failed - backend may still be starting..."
               '
