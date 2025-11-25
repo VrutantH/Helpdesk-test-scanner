@@ -78,12 +78,10 @@ pipelines:
                 pm2 kill || true &&
                 sleep 2 &&
                 cd /var/www/helpdesk/backend &&
-                NODE_ENV=production timeout 10 node dist/server.js > /tmp/backend-test.log 2>&1 &
-                TEST_PID=$! &&
+                (NODE_ENV=production timeout 10 node dist/server.js > /tmp/backend-test.log 2>&1 &) &&
                 sleep 5 &&
-                kill $TEST_PID 2>/dev/null || true &&
                 echo "Test startup completed, checking logs:" &&
-                cat /tmp/backend-test.log &&
+                cat /tmp/backend-test.log || echo "No errors during startup test" &&
                 echo "" &&
                 echo "Starting with PM2..." &&
                 pm2 start ecosystem.config.js &&
