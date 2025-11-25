@@ -732,7 +732,7 @@ const DashboardLayout = ({ children, logoutRedirectPath }: DashboardLayoutProps)
                 console.log('Logging out with token:', token ? 'Token exists' : 'No token found');
                 
                 if (token) {
-                  const response = await fetch('${API_CONFIG.API_URL}/auth/logout', {
+                  const response = await fetch(`${API_CONFIG.API_URL}/auth/logout`, {
                     method: 'POST',
                     headers: {
                       'Authorization': `Bearer ${token}`,

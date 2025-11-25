@@ -49,7 +49,7 @@ const SLARulesPage: React.FC = () => {
   const fetchProjects = async () => {
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch('${API_CONFIG.API_URL}/projects', {
+      const response = await fetch(`${API_CONFIG.API_URL}/projects`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -86,7 +86,7 @@ const SLARulesPage: React.FC = () => {
       const token = localStorage.getItem('authToken');
       console.log('Fetching SLA rules with token:', token ? 'Token exists' : 'No token');
       
-      const response = await fetch('${API_CONFIG.API_URL}/sla-rules', {
+      const response = await fetch(`${API_CONFIG.API_URL}/sla-rules`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -191,7 +191,7 @@ const SLARulesPage: React.FC = () => {
       const isEditing = editingRule !== null;
       const url = isEditing 
         ? `${API_CONFIG.API_URL}/sla-rules/${editingRule._id}`
-        : '${API_CONFIG.API_URL}/sla-rules';
+        : `${API_CONFIG.API_URL}/sla-rules`;
       const method = isEditing ? 'PUT' : 'POST';
 
       const response = await fetch(url, {

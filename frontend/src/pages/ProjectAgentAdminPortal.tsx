@@ -185,7 +185,7 @@ const ProjectAgentAdminPortal: React.FC = () => {
 
   const fetchUserData = async (token: string) => {
     try {
-      const response = await axios.get('${API_CONFIG.API_URL}/auth/me', {
+      const response = await axios.get(`${API_CONFIG.API_URL}/auth/me`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const userData = response.data.data;

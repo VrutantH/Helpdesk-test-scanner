@@ -299,7 +299,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ hideHeader = false }) => 
       });
 
       // Submit ticket
-      await axios.post('${API_CONFIG.API_URL}/tickets/submit', submitData, {
+      await axios.post(`${API_CONFIG.API_URL}/tickets/submit`, submitData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

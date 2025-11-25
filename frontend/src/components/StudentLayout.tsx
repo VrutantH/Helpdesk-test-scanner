@@ -85,7 +85,7 @@ const StudentLayout = ({ children }: StudentLayoutProps) => {
     
     // Try to call logout endpoint, but don't wait for it
     if (token) {
-      fetch('${API_CONFIG.API_URL}/auth/logout', {
+      fetch(`${API_CONFIG.API_URL}/auth/logout`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

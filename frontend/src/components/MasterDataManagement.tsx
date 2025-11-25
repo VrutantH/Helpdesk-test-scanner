@@ -71,7 +71,7 @@ const MasterDataManagement = () => {
   const fetchCountries = async () => {
     try {
       const token = localStorage.getItem('authToken');
-      const response = await axios.get('${API_CONFIG.API_URL}/master/countries?includeInactive=true', {
+      const response = await axios.get(`${API_CONFIG.API_URL}/master/countries?includeInactive=true`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.data.success) {
@@ -85,7 +85,7 @@ const MasterDataManagement = () => {
   const fetchStates = async () => {
     try {
       const token = localStorage.getItem('authToken');
-      const response = await axios.get('${API_CONFIG.API_URL}/master/states?includeInactive=true', {
+      const response = await axios.get(`${API_CONFIG.API_URL}/master/states?includeInactive=true`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.data.success) {

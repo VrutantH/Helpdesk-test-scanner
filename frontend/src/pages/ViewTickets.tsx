@@ -48,7 +48,7 @@ const ViewTickets: React.FC = () => {
   const fetchTickets = async () => {
     try {
       const token = localStorage.getItem('authToken');
-      const response = await axios.get('${API_CONFIG.API_URL}/tickets', {
+      const response = await axios.get(`${API_CONFIG.API_URL}/tickets`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
