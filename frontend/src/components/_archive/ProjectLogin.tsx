@@ -81,7 +81,7 @@ const ProjectLogin: React.FC = () => {
     const fetchProjectBranding = async () => {
       try {
         setProjectLoading(true);
-        const response = await fetch(`http://localhost:3003/api/projects/branding/${customUrlPath}`);
+        const response = await fetch(`${API_CONFIG.API_URL}/projects/branding/${customUrlPath}`);
         
         if (!response.ok) {
           throw new Error('Project not found');
@@ -113,7 +113,7 @@ const ProjectLogin: React.FC = () => {
     setErrorMessage('');
     
     try {
-      const response = await fetch('http://localhost:3003/api/auth/login', {
+      const response = await fetch('${API_CONFIG.API_URL}/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -234,7 +234,7 @@ const AgentTicketDetail: React.FC<AgentTicketDetailProps> = ({ wrapWithLayout = 
 
       console.log('Fetching ticket:', ticketId);
       const response = await axios.get(
-        `http://localhost:3003/api/tickets/${ticketId}`,
+        `${API_CONFIG.API_URL}/tickets/${ticketId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -284,7 +284,7 @@ const AgentTicketDetail: React.FC<AgentTicketDetailProps> = ({ wrapWithLayout = 
       // Fetch ticket configuration (statuses, priorities, categories)
       if (projectContext.projectId) {
         const ticketConfigRes = await axios.get(
-          `http://localhost:3003/api/projects/${projectContext.projectId}/ticket-settings`,
+          `${API_CONFIG.API_URL}/projects/${projectContext.projectId}/ticket-settings`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -319,7 +319,7 @@ const AgentTicketDetail: React.FC<AgentTicketDetailProps> = ({ wrapWithLayout = 
 
       // Fetch available tags
       const tagsRes = await axios.get(
-        'http://localhost:3003/api/tickets/tags',
+        '${API_CONFIG.API_URL}/tickets/tags',
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -332,7 +332,7 @@ const AgentTicketDetail: React.FC<AgentTicketDetailProps> = ({ wrapWithLayout = 
       if (projectContext.projectId) {
         try {
           const escalationContactsRes = await axios.get(
-            `http://localhost:3003/api/escalation-policies?projectId=${projectContext.projectId}&isActive=true`,
+            `${API_CONFIG.API_URL}/escalation-policies?projectId=${projectContext.projectId}&isActive=true`,
             {
               headers: { Authorization: `Bearer ${token}` },
             }
@@ -407,7 +407,7 @@ const AgentTicketDetail: React.FC<AgentTicketDetailProps> = ({ wrapWithLayout = 
     try {
       const token = localStorage.getItem('authToken');
       const response = await axios.patch(
-        `http://localhost:3003/api/tickets/${ticket._id}/status`,
+        `${API_CONFIG.API_URL}/tickets/${ticket._id}/status`,
         { status: statusToUpdate },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -435,7 +435,7 @@ const AgentTicketDetail: React.FC<AgentTicketDetailProps> = ({ wrapWithLayout = 
     try {
       const token = localStorage.getItem('authToken');
       await axios.patch(
-        `http://localhost:3003/api/tickets/${ticket._id}/category`,
+        `${API_CONFIG.API_URL}/tickets/${ticket._id}/category`,
         { category: newCategory },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -460,7 +460,7 @@ const AgentTicketDetail: React.FC<AgentTicketDetailProps> = ({ wrapWithLayout = 
     try {
       const token = localStorage.getItem('authToken');
       const response = await axios.patch(
-        `http://localhost:3003/api/tickets/${ticket._id}/priority`,
+        `${API_CONFIG.API_URL}/tickets/${ticket._id}/priority`,
         { priority: priorityToUpdate },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -488,7 +488,7 @@ const AgentTicketDetail: React.FC<AgentTicketDetailProps> = ({ wrapWithLayout = 
     try {
       const token = localStorage.getItem('authToken');
       const response = await axios.post(
-        `http://localhost:3003/api/tickets/${ticket._id}/tags`,
+        `${API_CONFIG.API_URL}/tickets/${ticket._id}/tags`,
         { tag: newTag },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -511,7 +511,7 @@ const AgentTicketDetail: React.FC<AgentTicketDetailProps> = ({ wrapWithLayout = 
     try {
       const token = localStorage.getItem('authToken');
       await axios.delete(
-        `http://localhost:3003/api/tickets/${ticket._id}/tags/${tag}`,
+        `${API_CONFIG.API_URL}/tickets/${ticket._id}/tags/${tag}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -529,7 +529,7 @@ const AgentTicketDetail: React.FC<AgentTicketDetailProps> = ({ wrapWithLayout = 
     try {
       const token = localStorage.getItem('authToken');
       await axios.post(
-        `http://localhost:3003/api/tickets/${ticket._id}/escalate`,
+        `${API_CONFIG.API_URL}/tickets/${ticket._id}/escalate`,
         {
           escalateTo: selectedEscalationContact,
           reason: escalationReason,
@@ -567,7 +567,7 @@ const AgentTicketDetail: React.FC<AgentTicketDetailProps> = ({ wrapWithLayout = 
       }
 
       await axios.post(
-        `http://localhost:3003/api/tickets/${ticket._id}/reply`,
+        `${API_CONFIG.API_URL}/tickets/${ticket._id}/reply`,
         formData,
         {
           headers: {
@@ -595,7 +595,7 @@ const AgentTicketDetail: React.FC<AgentTicketDetailProps> = ({ wrapWithLayout = 
     try {
       const token = localStorage.getItem('authToken');
       await axios.post(
-        `http://localhost:3003/api/tickets/${ticket._id}/notes`,
+        `${API_CONFIG.API_URL}/tickets/${ticket._id}/notes`,
         { note: noteText },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -735,7 +735,7 @@ const AgentTicketDetail: React.FC<AgentTicketDetailProps> = ({ wrapWithLayout = 
                     {ticket.attachments.map((attachment, index) => (
                       <a
                         key={index}
-                        href={`http://localhost:3003/${attachment.path}`}
+                        href={`${API_CONFIG.BASE_URL}/${attachment.path}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center space-x-2 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
@@ -883,7 +883,7 @@ const AgentTicketDetail: React.FC<AgentTicketDetailProps> = ({ wrapWithLayout = 
                                       {thread.attachments.map((attachment, idx) => (
                                         <a
                                           key={idx}
-                                          href={`http://localhost:3003${attachment.path}`}
+                                          href={`${API_CONFIG.BASE_URL}${attachment.path}`}
                                           target="_blank"
                                           rel="noopener noreferrer"
                                           className="text-xs text-blue-600 hover:text-blue-700 flex items-center space-x-1"

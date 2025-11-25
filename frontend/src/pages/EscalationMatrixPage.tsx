@@ -53,7 +53,7 @@ const EscalationMatrixPage: React.FC = () => {
       const token = localStorage.getItem('authToken');
       console.log('Fetching escalation policies with token:', token ? 'Token exists' : 'No token');
       
-      const response = await fetch('http://localhost:3003/api/escalation-policies', {
+      const response = await fetch('${API_CONFIG.API_URL}/escalation-policies', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -88,7 +88,7 @@ const EscalationMatrixPage: React.FC = () => {
       try {
         const token = localStorage.getItem('authToken');
         const policyId = policy._id || policy.policyId;
-        const response = await fetch(`http://localhost:3003/api/escalation-policies/${policyId}`, {
+        const response = await fetch(`${API_CONFIG.API_URL}/escalation-policies/${policyId}`, {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
@@ -114,7 +114,7 @@ const EscalationMatrixPage: React.FC = () => {
     try {
       const token = localStorage.getItem('authToken');
       const policyId = policy._id || policy.policyId;
-      const response = await fetch(`http://localhost:3003/api/escalation-policies/${policyId}/toggle-status`, {
+      const response = await fetch(`${API_CONFIG.API_URL}/escalation-policies/${policyId}/toggle-status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -152,8 +152,8 @@ const EscalationMatrixPage: React.FC = () => {
 
       const isEdit = editingMatrix && editingMatrix._id;
       const url = isEdit 
-        ? `http://localhost:3003/api/escalation-policies/${editingMatrix._id}`
-        : 'http://localhost:3003/api/escalation-policies';
+        ? `${API_CONFIG.API_URL}/escalation-policies/${editingMatrix._id}`
+        : '${API_CONFIG.API_URL}/escalation-policies';
       const method = isEdit ? 'PUT' : 'POST';
 
       const response = await fetch(url, {

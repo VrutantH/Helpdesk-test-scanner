@@ -107,7 +107,7 @@ const OfflineModuleSettings: React.FC = () => {
       setLoading(true);
       const token = localStorage.getItem('authToken');
       const response = await axios.get(
-        `http://localhost:3003/api/projects/${projectId}/offline-settings`,
+        `${API_CONFIG.API_URL}/projects/${projectId}/offline-settings`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -165,7 +165,7 @@ const OfflineModuleSettings: React.FC = () => {
     try {
       const token = localStorage.getItem('authToken');
       const response = await axios.get(
-        `http://localhost:3003/api/categories/project/${projectId}`,
+        `${API_CONFIG.API_URL}/categories/project/${projectId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -184,7 +184,7 @@ const OfflineModuleSettings: React.FC = () => {
     try {
       const token = localStorage.getItem('authToken');
       await axios.put(
-        `http://localhost:3003/api/projects/${projectId}/offline-settings`,
+        `${API_CONFIG.API_URL}/projects/${projectId}/offline-settings`,
         settings,
         { headers: { Authorization: `Bearer ${token}` } }
       );

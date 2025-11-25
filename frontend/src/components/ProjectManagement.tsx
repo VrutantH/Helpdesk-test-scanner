@@ -52,7 +52,7 @@ const ProjectManagement = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('authToken');
-      const response = await fetch('http://localhost:3003/api/projects', {
+      const response = await fetch('${API_CONFIG.API_URL}/projects', {
         credentials: 'include',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -73,7 +73,7 @@ const ProjectManagement = () => {
     try {
       setLoadingProject(true);
       const token = localStorage.getItem('authToken');
-      const response = await fetch(`http://localhost:3003/api/projects/${projectId}`, {
+      const response = await fetch(`${API_CONFIG.API_URL}/projects/${projectId}`, {
         credentials: 'include',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -100,7 +100,7 @@ const ProjectManagement = () => {
     try {
       setDeleting(true);
       const token = localStorage.getItem('authToken');
-      const response = await fetch(`http://localhost:3003/api/projects/${projectToDelete._id}`, {
+      const response = await fetch(`${API_CONFIG.API_URL}/projects/${projectToDelete._id}`, {
         method: 'DELETE',
         credentials: 'include',
         headers: {

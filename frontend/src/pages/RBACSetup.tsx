@@ -78,10 +78,10 @@ const RBACSetup = () => {
       const headers = { Authorization: `Bearer ${token}` };
 
       const [rolesRes, permissionsRes, projectsRes, masterRolesRes] = await Promise.all([
-        axios.get('http://localhost:3003/api/roles', { headers }),
-        axios.get('http://localhost:3003/api/permissions/grouped', { headers }),
-        axios.get('http://localhost:3003/api/projects', { headers }),
-        axios.get('http://localhost:3003/api/roles/master/list', { headers }),
+        axios.get('${API_CONFIG.API_URL}/roles', { headers }),
+        axios.get('${API_CONFIG.API_URL}/permissions/grouped', { headers }),
+        axios.get('${API_CONFIG.API_URL}/projects', { headers }),
+        axios.get('${API_CONFIG.API_URL}/roles/master/list', { headers }),
       ]);
 
       setRoles(Array.isArray(rolesRes.data.data) ? rolesRes.data.data : []);
@@ -112,7 +112,7 @@ const RBACSetup = () => {
     try {
       const token = localStorage.getItem('authToken');
       await axios.post(
-        'http://localhost:3003/api/roles',
+        '${API_CONFIG.API_URL}/roles',
         formData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -133,7 +133,7 @@ const RBACSetup = () => {
       
       const token = localStorage.getItem('authToken');
       const response = await axios.put(
-        `http://localhost:3003/api/roles/${editingRole._id}`,
+        `${API_CONFIG.API_URL}/roles/${editingRole._id}`,
         formData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -156,7 +156,7 @@ const RBACSetup = () => {
     try {
       const token = localStorage.getItem('authToken');
       await axios.post(
-        `http://localhost:3003/api/roles/${cloneMasterRole._id}/clone`,
+        `${API_CONFIG.API_URL}/roles/${cloneMasterRole._id}/clone`,
         {
           name: formData.name,
           code: formData.code,
@@ -178,7 +178,7 @@ const RBACSetup = () => {
     if (!confirm('Are you sure you want to delete this role?')) return;
     try {
       const token = localStorage.getItem('authToken');
-      await axios.delete(`http://localhost:3003/api/roles/${roleId}`, {
+      await axios.delete(`${API_CONFIG.API_URL}/roles/${roleId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       fetchData();
@@ -191,7 +191,7 @@ const RBACSetup = () => {
     try {
       const token = localStorage.getItem('authToken');
       await axios.put(
-        `http://localhost:3003/api/roles/${role._id}`,
+        `${API_CONFIG.API_URL}/roles/${role._id}`,
         { isMaster: !role.isMaster },
         { headers: { Authorization: `Bearer ${token}` } }
       );

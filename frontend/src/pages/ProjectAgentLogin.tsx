@@ -42,7 +42,7 @@ const ProjectAgentLogin: React.FC = () => {
   const fetchProjectBranding = async () => {
     try {
       const response = await axios.get(
-        `http://localhost:3003/api/projects/branding/${customUrlPath}`
+        `${API_CONFIG.API_URL}/projects/branding/${customUrlPath}`
       );
       const brandingData = response.data.success ? response.data.data : response.data;
       setProjectBranding(brandingData);
@@ -61,7 +61,7 @@ const ProjectAgentLogin: React.FC = () => {
 
     try {
       const response = await axios.post(
-        `http://localhost:3003/api/auth/project/${customUrlPath}/login`,
+        `${API_CONFIG.API_URL}/auth/project/${customUrlPath}/login`,
         { email, password }
       );
 

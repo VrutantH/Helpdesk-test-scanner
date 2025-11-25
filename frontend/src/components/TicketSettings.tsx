@@ -90,7 +90,7 @@ const TicketSettings: React.FC = () => {
     setLoadingStatuses(true);
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch(`http://localhost:3003/api/statuses/project/${projectId}`, {
+      const response = await fetch(`${API_CONFIG.API_URL}/statuses/project/${projectId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -121,7 +121,7 @@ const TicketSettings: React.FC = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch(`http://localhost:3003/api/projects/${projectId}/ticket-settings`, {
+      const response = await fetch(`${API_CONFIG.API_URL}/projects/${projectId}/ticket-settings`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -153,7 +153,7 @@ const TicketSettings: React.FC = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch(`http://localhost:3003/api/projects/${projectId}/ticket-settings`, {
+      const response = await fetch(`${API_CONFIG.API_URL}/projects/${projectId}/ticket-settings`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -232,8 +232,8 @@ const TicketSettings: React.FC = () => {
       // Determine if this is an update or create
       const isUpdate = editingStatus._id && !editingStatus._id.startsWith('temp_');
       const url = isUpdate
-        ? `http://localhost:3003/api/statuses/${editingStatus._id}`
-        : `http://localhost:3003/api/statuses/project/${projectId}`;
+        ? `${API_CONFIG.API_URL}/statuses/${editingStatus._id}`
+        : `${API_CONFIG.API_URL}/statuses/project/${projectId}`;
       
       const method = isUpdate ? 'PUT' : 'POST';
       
@@ -280,7 +280,7 @@ const TicketSettings: React.FC = () => {
     try {
       const token = localStorage.getItem('authToken');
       const response = await fetch(
-        `http://localhost:3003/api/statuses/${id}`,
+        `${API_CONFIG.API_URL}/statuses/${id}`,
         {
           method: 'DELETE',
           headers: { 'Authorization': `Bearer ${token}` }

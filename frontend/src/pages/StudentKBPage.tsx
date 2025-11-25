@@ -76,20 +76,20 @@ const StudentKBPage: React.FC<StudentKBPageProps> = ({ hideHeader = false }) => 
     try {
       // Fetch branding
       const brandingRes = await axios.get(
-        `http://localhost:3003/api/projects/branding/${customUrlPath}`
+        `${API_CONFIG.API_URL}/projects/branding/${customUrlPath}`
       );
       const brandingData = brandingRes.data.success ? brandingRes.data.data : brandingRes.data;
       setBranding(brandingData);
 
       // Fetch KB articles
       const articlesRes = await axios.get(
-        `http://localhost:3003/api/kb/project/${brandingData.projectId}`
+        `${API_CONFIG.API_URL}/kb/project/${brandingData.projectId}`
       );
       setArticles(articlesRes.data.data || []);
 
       // Fetch categories
       const categoriesRes = await axios.get(
-        `http://localhost:3003/api/kb/project/${brandingData.projectId}/categories`
+        `${API_CONFIG.API_URL}/kb/project/${brandingData.projectId}/categories`
       );
       setCategories(categoriesRes.data.data || []);
     } catch (error) {
@@ -134,7 +134,7 @@ const StudentKBPage: React.FC<StudentKBPageProps> = ({ hideHeader = false }) => 
       }
 
       // Submit new vote
-      await axios.post(`http://localhost:3003/api/kb/${articleId}/feedback`, {
+      await axios.post(`${API_CONFIG.API_URL}/kb/${articleId}/feedback`, {
         helpful,
       });
 

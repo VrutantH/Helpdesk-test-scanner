@@ -109,7 +109,7 @@ const Login: React.FC = () => {
 
   // API functions
   const apiCall = async (endpoint: string, data: any) => {
-    const response = await fetch(`http://localhost:3003/api${endpoint}`, {
+    const response = await fetch(`${API_CONFIG.API_URL}${endpoint}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

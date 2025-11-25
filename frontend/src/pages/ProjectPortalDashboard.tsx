@@ -178,7 +178,7 @@ const AgentTicketsContent = ({ projectBranding, user }: AgentTicketsContentProps
     try {
       const token = localStorage.getItem('authToken');
       const response = await axios.get(
-        'http://localhost:3003/api/tickets/agent/assigned',
+        `${API_CONFIG.API_URL}/tickets/agent/assigned`,
         {
           headers: { Authorization: `Bearer ${token}` },
           params: { projectId },
@@ -196,7 +196,7 @@ const AgentTicketsContent = ({ projectBranding, user }: AgentTicketsContentProps
     try {
       const token = localStorage.getItem('authToken');
       const response = await axios.get(
-        'http://localhost:3003/api/tickets/tags',
+        `${API_CONFIG.API_URL}/tickets/tags`,
         {
           headers: { Authorization: `Bearer ${token}` },
           params: { projectId }
@@ -212,7 +212,7 @@ const AgentTicketsContent = ({ projectBranding, user }: AgentTicketsContentProps
     try {
       const token = localStorage.getItem('authToken');
       const response = await axios.get(
-        `http://localhost:3003/api/categories/project/${projectId}`,
+        `${API_CONFIG.API_URL}/categories/project/${projectId}`,
         {
           headers: { Authorization: `Bearer ${token}` }
         }
@@ -227,7 +227,7 @@ const AgentTicketsContent = ({ projectBranding, user }: AgentTicketsContentProps
     try {
       const token = localStorage.getItem('authToken');
       const response = await axios.get(
-        `http://localhost:3003/api/statuses/project/${projectId}`,
+        `${API_CONFIG.API_URL}/statuses/project/${projectId}`,
         {
           headers: { Authorization: `Bearer ${token}` }
         }
@@ -271,7 +271,7 @@ const AgentTicketsContent = ({ projectBranding, user }: AgentTicketsContentProps
       const token = localStorage.getItem('authToken');
       for (const ticketId of Array.from(selectedTickets)) {
         await axios.patch(
-          `http://localhost:3003/api/tickets/${ticketId}/status`,
+          `${API_CONFIG.API_URL}/tickets/${ticketId}/status`,
           { status: bulkStatus },
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -294,7 +294,7 @@ const AgentTicketsContent = ({ projectBranding, user }: AgentTicketsContentProps
       const token = localStorage.getItem('authToken');
       for (const ticketId of Array.from(selectedTickets)) {
         await axios.post(
-          `http://localhost:3003/api/tickets/${ticketId}/reply`,
+          `${API_CONFIG.API_URL}/tickets/${ticketId}/reply`,
           { message: bulkReply },
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -320,7 +320,7 @@ const AgentTicketsContent = ({ projectBranding, user }: AgentTicketsContentProps
       const token = localStorage.getItem('authToken');
       for (const ticketId of Array.from(selectedTickets)) {
         await axios.patch(
-          `http://localhost:3003/api/tickets/${ticketId}/status`,
+          `${API_CONFIG.API_URL}/tickets/${ticketId}/status`,
           { status: 'closed' },
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -1017,7 +1017,7 @@ const ProjectPortalDashboard = () => {
   const initializePortal = async (token: string) => {
     try {
       // Get user data
-      const userResponse = await axios.get('http://localhost:3003/api/auth/me', {
+      const userResponse = await axios.get('${API_CONFIG.API_URL}/auth/me', {
         headers: { Authorization: `Bearer ${token}` },
       });
       const userData = userResponse.data.data;
@@ -1027,7 +1027,7 @@ const ProjectPortalDashboard = () => {
 
       // Get project branding
       const brandingResponse = await axios.get(
-        `http://localhost:3003/api/projects/branding/${customUrlPath}`
+        `${API_CONFIG.API_URL}/projects/branding/${customUrlPath}`
       );
       const brandingData = brandingResponse.data.success 
         ? brandingResponse.data.data 

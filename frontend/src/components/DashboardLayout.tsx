@@ -90,7 +90,7 @@ const DashboardLayout = ({ children, logoutRedirectPath }: DashboardLayoutProps)
         if (customUrlPath) {
           // Fetch project branding using public endpoint (no auth required)
           const response = await axios.get(
-            `http://localhost:3003/api/projects/branding/${customUrlPath}`
+            `${API_CONFIG.API_URL}/projects/branding/${customUrlPath}`
           );
           const branding = response.data;
           
@@ -731,7 +731,7 @@ const DashboardLayout = ({ children, logoutRedirectPath }: DashboardLayoutProps)
                 console.log('Logging out with token:', token ? 'Token exists' : 'No token found');
                 
                 if (token) {
-                  const response = await fetch('http://localhost:3003/api/auth/logout', {
+                  const response = await fetch('${API_CONFIG.API_URL}/auth/logout', {
                     method: 'POST',
                     headers: {
                       'Authorization': `Bearer ${token}`,

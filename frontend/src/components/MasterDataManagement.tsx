@@ -4,6 +4,7 @@ import DashboardLayout from './DashboardLayout';
 import { MdAdd, MdEdit, MdDelete, MdSave, MdClose } from 'react-icons/md';
 import { usePermissions } from '../hooks/usePermissions';
 import { PERMISSIONS } from '../constants/permissions';
+import { API_CONFIG } from '../config/constants';
 
 interface MasterItem {
   _id: string;
@@ -70,7 +71,7 @@ const MasterDataManagement = () => {
   const fetchCountries = async () => {
     try {
       const token = localStorage.getItem('authToken');
-      const response = await axios.get('http://localhost:3003/api/master/countries?includeInactive=true', {
+      const response = await axios.get('${API_CONFIG.API_URL}/master/countries?includeInactive=true', {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.data.success) {
@@ -84,7 +85,7 @@ const MasterDataManagement = () => {
   const fetchStates = async () => {
     try {
       const token = localStorage.getItem('authToken');
-      const response = await axios.get('http://localhost:3003/api/master/states?includeInactive=true', {
+      const response = await axios.get('${API_CONFIG.API_URL}/master/states?includeInactive=true', {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.data.success) {
@@ -99,7 +100,7 @@ const MasterDataManagement = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('authToken');
-      const url = `http://localhost:3003${currentCategory?.api}?includeInactive=true`;
+      const url = `${API_CONFIG.BASE_URL}${currentCategory?.api}?includeInactive=true`;
       
       const response = await axios.get(url, {
         headers: { Authorization: `Bearer ${token}` }
@@ -165,18 +166,18 @@ const MasterDataManagement = () => {
         if (editingItem) {
           // Update: PUT /api/categories/:id or PUT /api/statuses/:id
           const baseApi = activeTab === 'categories' ? '/api/categories' : '/api/statuses';
-          url = `http://localhost:3003${baseApi}/${editingItem._id}`;
+          url = `${API_CONFIG.BASE_URL}${baseApi}/${editingItem._id}`;
           method = 'put';
         } else {
           // Create: POST /api/categories/project/:projectId or POST /api/statuses/project/:projectId
-          url = `http://localhost:3003${currentCategory?.api}`;
+          url = `${API_CONFIG.BASE_URL}${currentCategory?.api}`;
           method = 'post';
         }
       } else {
         // Countries, States, Cities use consistent pattern
         url = editingItem 
-          ? `http://localhost:3003${currentCategory?.api}/${editingItem._id}`
-          : `http://localhost:3003${currentCategory?.api}`;
+          ? `${API_CONFIG.BASE_URL}${currentCategory?.api}/${editingItem._id}`
+          : `${API_CONFIG.BASE_URL}${currentCategory?.api}`;
         method = editingItem ? 'put' : 'post';
       }
       
@@ -249,11 +250,11 @@ const MasterDataManagement = () => {
       // Categories and Status use /:id directly, others use the API path + /:id
       let url: string;
       if (activeTab === 'categories') {
-        url = `http://localhost:3003/api/categories/${id}`;
+        url = `${API_CONFIG.API_URL}/categories/${id}`;
       } else if (activeTab === 'statuses') {
-        url = `http://localhost:3003/api/statuses/${id}`;
+        url = `${API_CONFIG.API_URL}/statuses/${id}`;
       } else {
-        url = `http://localhost:3003${currentCategory?.api}/${id}`;
+        url = `${API_CONFIG.BASE_URL}${currentCategory?.api}/${id}`;
       }
       
       await axios.delete(url, {

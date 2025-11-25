@@ -184,7 +184,7 @@ const ProjectAgentAdminPortal: React.FC = () => {
 
   const fetchUserData = async (token: string) => {
     try {
-      const response = await axios.get('http://localhost:3003/api/auth/me', {
+      const response = await axios.get('${API_CONFIG.API_URL}/auth/me', {
         headers: { Authorization: `Bearer ${token}` },
       });
       const userData = response.data.data;
@@ -222,7 +222,7 @@ const ProjectAgentAdminPortal: React.FC = () => {
   const fetchProjectBranding = async () => {
     try {
       const response = await axios.get(
-        `http://localhost:3003/api/projects/branding/${customUrlPath}`
+        `${API_CONFIG.API_URL}/projects/branding/${customUrlPath}`
       );
       // Handle both response formats: { success: true, data: {...} } or direct data
       const brandingData = response.data.success ? response.data.data : response.data;

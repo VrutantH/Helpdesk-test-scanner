@@ -45,7 +45,7 @@ const KBArticleView: React.FC = () => {
   const fetchArticle = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`http://localhost:3003/api/kb/${articleId}`);
+      const response = await axios.get(`${API_CONFIG.API_URL}/kb/${articleId}`);
       
       if (response.data.success) {
         setArticle(response.data.data);
@@ -54,7 +54,7 @@ const KBArticleView: React.FC = () => {
         if (response.data.data.projectId) {
           try {
             const projectResponse = await axios.get(
-              `http://localhost:3003/api/projects/${response.data.data.projectId}`
+              `${API_CONFIG.API_URL}/projects/${response.data.data.projectId}`
             );
             if (projectResponse.data.success) {
               const proj = projectResponse.data.data;
@@ -82,7 +82,7 @@ const KBArticleView: React.FC = () => {
     if (!article || feedbackSubmitted) return;
 
     try {
-      await axios.post(`http://localhost:3003/api/kb/${article._id}/feedback`, {
+      await axios.post(`${API_CONFIG.API_URL}/kb/${article._id}/feedback`, {
         isHelpful,
       });
       

@@ -161,7 +161,7 @@ const AgentDashboard: React.FC = () => {
 
   const fetchUserData = async (token: string) => {
     try {
-      const response = await axios.get('http://localhost:3003/api/auth/me', {
+      const response = await axios.get('${API_CONFIG.API_URL}/auth/me', {
         headers: { Authorization: `Bearer ${token}` },
       });
       const userData = response.data.data;
@@ -179,7 +179,7 @@ const AgentDashboard: React.FC = () => {
   const fetchProjectBranding = async () => {
     try {
       const response = await axios.get(
-        `http://localhost:3003/api/projects/branding/${customUrlPath}`
+        `${API_CONFIG.API_URL}/projects/branding/${customUrlPath}`
       );
       const brandingData = response.data.success ? response.data.data : response.data;
       setProjectBranding(brandingData);
@@ -193,7 +193,7 @@ const AgentDashboard: React.FC = () => {
     try {
       const token = localStorage.getItem('authToken');
       const response = await axios.get(
-        'http://localhost:3003/api/tickets/agent/assigned',
+        '${API_CONFIG.API_URL}/tickets/agent/assigned',
         {
           headers: { Authorization: `Bearer ${token}` },
           params: { projectId: projectBranding?.projectId },
@@ -211,7 +211,7 @@ const AgentDashboard: React.FC = () => {
     try {
       const token = localStorage.getItem('authToken');
       const response = await axios.get(
-        'http://localhost:3003/api/tickets/agent/assigned',
+        '${API_CONFIG.API_URL}/tickets/agent/assigned',
         {
           headers: { Authorization: `Bearer ${token}` },
           params: { projectId: projectBranding?.projectId },
@@ -252,7 +252,7 @@ const AgentDashboard: React.FC = () => {
     setKbLoading(true);
     try {
       const response = await axios.get(
-        `http://localhost:3003/api/knowledge-base/project/${projectBranding?.projectId}/articles`
+        `${API_CONFIG.API_URL}/knowledge-base/project/${projectBranding?.projectId}/articles`
       );
       setKbArticles(response.data.data || []);
     } catch (error) {

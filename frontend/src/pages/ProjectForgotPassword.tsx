@@ -104,7 +104,7 @@ const ProjectForgotPassword: React.FC = () => {
     try {
       setBrandingLoading(true);
       const response = await axios.get(
-        `http://localhost:3003/api/projects/branding/${customUrlPath}`
+        `${API_CONFIG.API_URL}/projects/branding/${customUrlPath}`
       );
       
       if (response.data.success) {
@@ -138,7 +138,7 @@ const ProjectForgotPassword: React.FC = () => {
 
     try {
       const response = await axios.post(
-        `http://localhost:3003/api/project-auth/${customUrlPath}/forgot-password`,
+        `${API_CONFIG.API_URL}/project-auth/${customUrlPath}/forgot-password`,
         { email: data.email }
       );
 
@@ -162,7 +162,7 @@ const ProjectForgotPassword: React.FC = () => {
 
     try {
       const response = await axios.post(
-        `http://localhost:3003/api/project-auth/${customUrlPath}/verify-otp`,
+        `${API_CONFIG.API_URL}/project-auth/${customUrlPath}/verify-otp`,
         {
           email: userEmail,
           otp: data.otp
@@ -187,7 +187,7 @@ const ProjectForgotPassword: React.FC = () => {
 
     try {
       const response = await axios.post(
-        `http://localhost:3003/api/project-auth/${customUrlPath}/reset-password`,
+        `${API_CONFIG.API_URL}/project-auth/${customUrlPath}/reset-password`,
         {
           email: userEmail,
           newPassword: data.newPassword
@@ -211,7 +211,7 @@ const ProjectForgotPassword: React.FC = () => {
 
     try {
       const response = await axios.post(
-        `http://localhost:3003/api/project-auth/${customUrlPath}/forgot-password`,
+        `${API_CONFIG.API_URL}/project-auth/${customUrlPath}/forgot-password`,
         { email: userEmail }
       );
 

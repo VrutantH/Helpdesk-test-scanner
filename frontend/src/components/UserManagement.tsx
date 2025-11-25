@@ -156,7 +156,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ wrapWithLayout = true }
       if (projectId) params.append('project', projectId); // Backend uses 'project' not 'projectId'
       
       const token = localStorage.getItem('authToken');
-      const response = await fetch(`http://localhost:3003/api/users?${params}`, {
+      const response = await fetch(`${API_CONFIG.API_URL}/users?${params}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -194,8 +194,8 @@ const UserManagement: React.FC<UserManagementProps> = ({ wrapWithLayout = true }
       
       // Fetch roles with project filter if in project portal
       const rolesUrl = isProjectPortal && projectContext?.projectId
-        ? `http://localhost:3003/api/roles?projectId=${projectContext.projectId}`
-        : 'http://localhost:3003/api/roles';
+        ? `${API_CONFIG.API_URL}/roles?projectId=${projectContext.projectId}`
+        : '${API_CONFIG.API_URL}/roles';
       
       const rolesRes = await fetch(rolesUrl, { 
         headers: {
@@ -212,7 +212,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ wrapWithLayout = true }
       
       // Only fetch projects if in super admin portal
       if (!isProjectPortal) {
-        const projectsRes = await fetch('http://localhost:3003/api/projects', { 
+        const projectsRes = await fetch('${API_CONFIG.API_URL}/projects', { 
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
@@ -305,8 +305,8 @@ const UserManagement: React.FC<UserManagementProps> = ({ wrapWithLayout = true }
     try {
       setSaving(true);
       const url = editingUser
-        ? `http://localhost:3003/api/users/${editingUser._id}`
-        : 'http://localhost:3003/api/users';
+        ? `${API_CONFIG.API_URL}/users/${editingUser._id}`
+        : '${API_CONFIG.API_URL}/users';
       
       const method = editingUser ? 'PUT' : 'POST';
       
@@ -384,7 +384,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ wrapWithLayout = true }
       }
       
       const token = localStorage.getItem('authToken');
-      const response = await fetch(`http://localhost:3003/api/users/hrms/search?query=${encodeURIComponent(queryParam)}`, {
+      const response = await fetch(`${API_CONFIG.API_URL}/users/hrms/search?query=${encodeURIComponent(queryParam)}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -446,7 +446,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ wrapWithLayout = true }
 
         try {
           const token = localStorage.getItem('authToken');
-          const response = await fetch('http://localhost:3003/api/users', {
+          const response = await fetch('${API_CONFIG.API_URL}/users', {
             method: 'POST',
             headers: { 
               'Content-Type': 'application/json',
@@ -505,7 +505,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ wrapWithLayout = true }
 
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch(`http://localhost:3003/api/users/${userId}`, {
+      const response = await fetch(`${API_CONFIG.API_URL}/users/${userId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -531,7 +531,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ wrapWithLayout = true }
   const handleToggleStatus = async (userId: string) => {
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch(`http://localhost:3003/api/users/${userId}/toggle-status`, {
+      const response = await fetch(`${API_CONFIG.API_URL}/users/${userId}/toggle-status`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -569,7 +569,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ wrapWithLayout = true }
 
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch(`http://localhost:3003/api/users/${resetPasswordUser._id}/reset-password`, {
+      const response = await fetch(`${API_CONFIG.API_URL}/users/${resetPasswordUser._id}/reset-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -601,7 +601,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ wrapWithLayout = true }
     
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch(`http://localhost:3003/api/users/${userId}`, {
+      const response = await fetch(`${API_CONFIG.API_URL}/users/${userId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

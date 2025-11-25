@@ -48,7 +48,7 @@ const SLARulesPage: React.FC = () => {
   const fetchProjects = async () => {
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch('http://localhost:3003/api/projects', {
+      const response = await fetch('${API_CONFIG.API_URL}/projects', {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -85,7 +85,7 @@ const SLARulesPage: React.FC = () => {
       const token = localStorage.getItem('authToken');
       console.log('Fetching SLA rules with token:', token ? 'Token exists' : 'No token');
       
-      const response = await fetch('http://localhost:3003/api/sla-rules', {
+      const response = await fetch('${API_CONFIG.API_URL}/sla-rules', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -119,7 +119,7 @@ const SLARulesPage: React.FC = () => {
     if (confirm(`Are you sure you want to delete "${rule.name}"?`)) {
       try {
         const token = localStorage.getItem('authToken');
-        const response = await fetch(`http://localhost:3003/api/sla-rules/${rule._id}`, {
+        const response = await fetch(`${API_CONFIG.API_URL}/sla-rules/${rule._id}`, {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
@@ -145,7 +145,7 @@ const SLARulesPage: React.FC = () => {
   const handleToggleStatus = async (rule: SLARule) => {
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch(`http://localhost:3003/api/sla-rules/${rule._id}/toggle-status`, {
+      const response = await fetch(`${API_CONFIG.API_URL}/sla-rules/${rule._id}/toggle-status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -189,8 +189,8 @@ const SLARulesPage: React.FC = () => {
 
       const isEditing = editingRule !== null;
       const url = isEditing 
-        ? `http://localhost:3003/api/sla-rules/${editingRule._id}`
-        : 'http://localhost:3003/api/sla-rules';
+        ? `${API_CONFIG.API_URL}/sla-rules/${editingRule._id}`
+        : '${API_CONFIG.API_URL}/sla-rules';
       const method = isEditing ? 'PUT' : 'POST';
 
       const response = await fetch(url, {

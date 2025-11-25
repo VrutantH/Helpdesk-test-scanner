@@ -134,7 +134,7 @@ const AgentOfflineModule: React.FC<Props> = ({ projectId }) => {
     try {
       const token = localStorage.getItem('authToken');
       const response = await axios.get(
-        `http://localhost:3003/api/projects/${projectId}/offline-settings`,
+        `${API_CONFIG.API_URL}/projects/${projectId}/offline-settings`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
@@ -173,7 +173,7 @@ const AgentOfflineModule: React.FC<Props> = ({ projectId }) => {
     try {
       const token = localStorage.getItem('authToken');
       const agentResponse = await axios.get(
-        `http://localhost:3003/api/users?projectId=${projectId}&roleCode=AGENT`,
+        `${API_CONFIG.API_URL}/users?projectId=${projectId}&roleCode=AGENT`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (agentResponse.data.success) {
@@ -188,7 +188,7 @@ const AgentOfflineModule: React.FC<Props> = ({ projectId }) => {
     try {
       const token = localStorage.getItem('authToken');
       const response = await axios.get(
-        `http://localhost:3003/api/categories/project/${projectId}`,
+        `${API_CONFIG.API_URL}/categories/project/${projectId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (response.data.success) {
@@ -209,7 +209,7 @@ const AgentOfflineModule: React.FC<Props> = ({ projectId }) => {
     try {
       const token = localStorage.getItem('authToken');
       const response = await axios.get(
-        `http://localhost:3003/api/users/search?email=${searchEmail}&projectId=${projectId}`,
+        `${API_CONFIG.API_URL}/users/search?email=${searchEmail}&projectId=${projectId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -262,7 +262,7 @@ const AgentOfflineModule: React.FC<Props> = ({ projectId }) => {
     try {
       const token = localStorage.getItem('authToken');
       const response = await axios.post(
-        'http://localhost:3003/api/users/register-student',
+        '${API_CONFIG.API_URL}/users/register-student',
         {
           ...userForm,
           projectId,
@@ -298,7 +298,7 @@ const AgentOfflineModule: React.FC<Props> = ({ projectId }) => {
     try {
       const token = localStorage.getItem('authToken');
       const response = await axios.get(
-        `http://localhost:3003/api/users/search?email=${ticketForm.userEmail}&projectId=${projectId}`,
+        `${API_CONFIG.API_URL}/users/search?email=${ticketForm.userEmail}&projectId=${projectId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -372,7 +372,7 @@ const AgentOfflineModule: React.FC<Props> = ({ projectId }) => {
       }
 
       const response = await axios.post(
-        'http://localhost:3003/api/tickets/offline-submission',
+        '${API_CONFIG.API_URL}/tickets/offline-submission',
         formData,
         {
           headers: {

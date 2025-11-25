@@ -90,7 +90,7 @@ export const AddEscalationMatrixModal: React.FC<AddEscalationMatrixModalProps> =
   const fetchProjects = async () => {
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch('http://localhost:3003/api/projects', {
+      const response = await fetch('${API_CONFIG.API_URL}/projects', {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -120,7 +120,7 @@ export const AddEscalationMatrixModal: React.FC<AddEscalationMatrixModalProps> =
   const fetchRoles = async () => {
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch('http://localhost:3003/api/rbac/roles', {
+      const response = await fetch('${API_CONFIG.API_URL}/rbac/roles', {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -146,7 +146,7 @@ export const AddEscalationMatrixModal: React.FC<AddEscalationMatrixModalProps> =
   const fetchUsers = async () => {
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch('http://localhost:3003/api/users', {
+      const response = await fetch('${API_CONFIG.API_URL}/users', {
         headers: {
           'Authorization': `Bearer ${token}`,
         },

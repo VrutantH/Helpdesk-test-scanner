@@ -79,7 +79,7 @@ const ActivityLogs: React.FC<ActivityLogsProps> = ({ wrapWithLayout = true }) =>
         ...(projectId && { projectId: projectId })
       });
 
-      const response = await fetch(`http://localhost:3003/api/activity-logs?${params}`, {
+      const response = await fetch(`${API_CONFIG.API_URL}/activity-logs?${params}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
