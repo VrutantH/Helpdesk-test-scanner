@@ -75,19 +75,22 @@ pipelines:
                 npm ci --omit=dev &&
                 echo "" &&
                 echo "=== Starting PM2 ===" &&
-                pm2 delete helpdesk-backend 2>/dev/null || true &&
-                pm2 delete Backend 2>/dev/null || true &&
-                pm2 start ecosystem.config.js 2>&1 | head -50 &&
-                echo "Waiting for backend to initialize..." &&
+                pm2 kill || true &&
+                sleep 2 &&
+                cd /var/www/helpdesk/backend &&
+                NODE_ENV=production timeout 10 node dist/server.js > /tmp/backend-test.log 2>&1 &
+                TEST_PID=$! &&
                 sleep 5 &&
-                pm2 save &&
+                kill $TEST_PID 2>/dev/null || true &&
+                echo "Test startup completed, checking logs:" &&
+                cat /tmp/backend-test.log &&
                 echo "" &&
-                echo "=== PM2 Status ===" &&
+                echo "Starting with PM2..." &&
+                pm2 start ecosystem.config.js &&
+                pm2 save --force &&
+                sleep 3 &&
                 pm2 list &&
                 echo "" &&
-                echo "=== Recent Logs ===" &&
-                timeout 5 pm2 logs helpdesk-backend --lines 30 --nostream 2>&1 || echo "Logs not available yet" &&
-                echo "" &&
                 echo "=== Health Check ===" &&
-                timeout 10 curl -f http://localhost:3003/api/health && echo "" && echo "✅ Backend is healthy!" || echo "⚠️ Health check timeout or failed - backend may still be starting"
+                curl -m 5 http://localhost:3003/api/health && echo "" && echo "✅ Deployed!" || echo "⚠️ Check PM2 logs: pm2 logs helpdesk-backend"
               '
