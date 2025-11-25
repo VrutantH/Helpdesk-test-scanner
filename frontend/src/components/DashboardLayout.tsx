@@ -5,6 +5,8 @@ import axios from 'axios';
 import { SkipLink } from './accessible/SkipLink';
 import { LanguageToggle } from './LanguageToggle';
 import { designSystem } from '../styles/designSystem';
+import { usePermissions } from '../hooks/usePermissions';
+import { menuConfig, projectPortalMenuConfig, getFilteredMenuItems } from '../config/menuConfig';
 import { 
   MdDashboard, 
   MdFolder, 
@@ -52,15 +54,6 @@ interface DashboardLayoutProps {
   logoutRedirectPath?: string; // Optional custom logout redirect path
 }
 
-interface MenuItem {
-  path?: string;
-  icon: ReactNode;
-  label: string;
-  labelHi?: string;
-  labelMr?: string;
-  subItems?: MenuItem[];
-}
-
 const DashboardLayout = ({ children, logoutRedirectPath }: DashboardLayoutProps) => {
   const location = useLocation();
   const { i18n } = useTranslation();
@@ -69,6 +62,16 @@ const DashboardLayout = ({ children, logoutRedirectPath }: DashboardLayoutProps)
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState<{ top: number; left: number } | null>(null);
   const [projectBranding, setProjectBranding] = useState<any>(null);
+  
+  // Get user permissions from the permission context
+  const { permissions } = usePermissions();
+  
+  // Debug permissions
+  useEffect(() => {
+    console.log('🔐 DashboardLayout - User Permissions:', permissions);
+    console.log('🔐 Total permissions:', permissions?.length || 0);
+    console.log('🔐 Has TICKET_ASSIGN:', permissions?.includes('TICKET_ASSIGN'));
+  }, [permissions]);
 
   // Fetch project branding if user is logged in via project portal
   useEffect(() => {
@@ -79,19 +82,24 @@ const DashboardLayout = ({ children, logoutRedirectPath }: DashboardLayoutProps)
         if (!projectContextStr) return;
 
         const projectContext = JSON.parse(projectContextStr);
-        if (projectContext.projectId) {
-          // Fetch project details
+        
+        // Get customUrlPath from URL or use project code
+        const pathParts = window.location.pathname.split('/');
+        const customUrlPath = pathParts[1]; // First part of path after domain
+        
+        if (customUrlPath) {
+          // Fetch project branding using public endpoint (no auth required)
           const response = await axios.get(
-            `http://localhost:3003/api/projects/${projectContext.projectId}`
+            `http://localhost:3003/api/projects/branding/${customUrlPath}`
           );
-          const project = response.data.data || response.data;
+          const branding = response.data;
           
           // Set branding with proper structure
           setProjectBranding({
-            name: project.name,
-            code: project.code,
-            logo: project.branding?.logo,
-            colorTheme: project.branding?.colorTheme || {
+            name: branding.name,
+            code: branding.code,
+            logo: branding.logo,
+            colorTheme: branding.colorTheme || {
               primary: '#667eea',
               secondary: '#764ba2',
               accent: '#3b82f6',
@@ -101,6 +109,25 @@ const DashboardLayout = ({ children, logoutRedirectPath }: DashboardLayoutProps)
         }
       } catch (error) {
         console.error('Error fetching project branding:', error);
+        // Fallback to project context if available
+        try {
+          const projectContextStr = localStorage.getItem('projectContext');
+          if (projectContextStr) {
+            const projectContext = JSON.parse(projectContextStr);
+            setProjectBranding({
+              name: projectContext.projectName || 'Dashboard',
+              code: projectContext.projectCode || '',
+              colorTheme: {
+                primary: '#667eea',
+                secondary: '#764ba2',
+                accent: '#3b82f6',
+                background: '#ffffff'
+              }
+            });
+          }
+        } catch (fallbackError) {
+          console.error('Fallback error:', fallbackError);
+        }
       }
     };
 
@@ -118,7 +145,7 @@ const DashboardLayout = ({ children, logoutRedirectPath }: DashboardLayoutProps)
   }, [projectBranding]);
 
   // Helper function to get label in current language
-  const getLabel = (item: MenuItem): string => {
+  const getLabel = (item: any): string => {
     if (i18n.language === 'hi' && item.labelHi) return item.labelHi;
     if (i18n.language === 'mr' && item.labelMr) return item.labelMr;
     return item.label; // Default to English
@@ -131,120 +158,27 @@ const DashboardLayout = ({ children, logoutRedirectPath }: DashboardLayoutProps)
     return en;
   };
 
-  // Check if user is a project user with limited access
-  const moduleAccessStr = localStorage.getItem('moduleAccess');
-  const isProjectUser = !!moduleAccessStr;
-  const moduleAccess = moduleAccessStr ? JSON.parse(moduleAccessStr) : {};
+  // Determine if this is a project portal (legacy check for migration period)
+  const projectContextStr = localStorage.getItem('projectContext');
+  const isProjectPortal = !!projectContextStr;
+  const customUrlPath = projectContextStr 
+    ? JSON.parse(projectContextStr).customUrlPath 
+    : null;
 
-  // All menu items for super admin
-  const allMenuItems: MenuItem[] = [
-    { path: '/dashboard', icon: <MdDashboard />, label: 'Dashboard', labelMr: 'डॅशबोर्ड' },
-    { path: '/projects', icon: <MdFolder />, label: 'Project Management', labelMr: 'प्रकल्प व्यवस्थापन' },
-    { path: '/master-data', icon: <MdSettings />, label: 'Master Data', labelMr: 'मास्टर डेटा' },
-    { path: '/rbac', icon: <MdSecurity />, label: 'RBAC Setup', labelMr: 'RBAC सेटअप' },
-    { path: '/users', icon: <MdPeople />, label: 'User Management', labelMr: 'वापरकर्ता व्यवस्थापन' },
-    { path: '/ticket-config', icon: <MdConfirmationNumber />, label: 'Ticket Configuration', labelMr: 'तिकीट कॉन्फिगरेशन' },
-    { path: '/offline-module', icon: <MdSettings />, label: 'Offline Module Setup', labelMr: 'ऑफलाइन मॉड्यूल सेटअप' },
-    { path: '/approvals', icon: <MdCheckCircle />, label: 'Approval Process', labelMr: 'मंजूरी प्रक्रिया' },
-    // Removed: Fields & Forms, Ticket Automation, Workflow & Role Mapping (not used)
-    { path: '/sla', icon: <MdSchedule />, label: 'SLA & Escalation', labelMr: 'SLA आणि वाढीव प्रक्रिया' },
-    { path: '/knowledge-base', icon: <MdBook />, label: 'Knowledge Base', labelMr: 'ज्ञान आधार' },
-    { path: '/integrations', icon: <MdIntegrationInstructions />, label: 'Integrations', labelMr: 'इंटिग्रेशन' },
-    { path: '/reports', icon: <MdBarChart />, label: 'Reports', labelMr: 'अहवाल' },
-    { 
-      icon: <MdFactCheck />, 
-      label: 'Audit Logs', 
-      labelMr: 'ऑडिट लॉग',
-      subItems: [
-        { path: '/audit/activity-logs', icon: <MdHistory />, label: 'Activity Logs', labelMr: 'अॅक्टिव्हिटी लॉग' },
-        { path: '/audit/access-logs', icon: <MdLogin />, label: 'Access Logs', labelMr: 'अॅक्सेस लॉग' },
-        { path: '/audit/blocked-email-recipients', icon: <MdBlock />, label: 'Blocked Email Recipients', labelMr: 'ब्लॉक केलेले ईमेल प्राप्तकर्ते' },
-        { path: '/audit/email-failure-logs', icon: <MdMailOutline />, label: 'Email Failure Logs', labelMr: 'ईमेल फेल्युअर लॉग' },
-        { path: '/audit/integration-failure-logs', icon: <MdSyncProblem />, label: 'Integration Failure Logs', labelMr: 'इंटिग्रेशन फेल्युअर लॉग' },
-        { path: '/audit/webhook-failure-logs', icon: <MdWebhook />, label: 'Webhook Failure Logs', labelMr: 'वेबहुक फेल्युअर लॉग' },
-        { path: '/audit/chat-webhook-failure', icon: <MdChat />, label: 'Chat Webhook Failure', labelMr: 'चॅट वेबहुक फेल्युअर' },
-      ]
-    },
-  ];
-
-  // Filter menu items based on module access for project users
-  const getFilteredMenuItems = (): MenuItem[] => {
-    if (!isProjectUser) {
-      // Super admin or regular admin - show all items
-      return allMenuItems;
-    }
-
-    // Project user - filter based on module access
-    const filteredItems: MenuItem[] = [];
-
-    // Get project custom URL path from localStorage
-    const projectContextStr = localStorage.getItem('projectContext');
-    const customUrlPath = projectContextStr 
-      ? JSON.parse(projectContextStr).customUrlPath 
-      : 'project';
-
-    // Always show project dashboard with correct path
-    filteredItems.push({ 
-      path: `/${customUrlPath}/portal/dashboard`, 
-      icon: <MdDashboard />, 
-      label: 'Dashboard', 
-      labelMr: 'डॅशबोर्ड' 
-    });
-
-    // Check each module access
-    if (moduleAccess.tickets) {
-      filteredItems.push({ 
-        path: `/${customUrlPath}/portal/tickets`,
-        icon: projectBranding?.logo ? (
-          <img 
-            src={projectBranding.logo} 
-            alt="Tickets"
-            style={{
-              width: '24px',
-              height: '24px',
-              objectFit: 'contain',
-              borderRadius: '4px'
-            }}
-          />
-        ) : <MdConfirmationNumber />, 
-        label: 'Tickets', 
-        labelMr: 'तिकीटे'
-      });
-    }
-
-    if (moduleAccess.knowledgeBase) {
-      filteredItems.push({ 
-        path: `/${customUrlPath}/portal/knowledge-base`,
-        icon: projectBranding?.logo ? (
-          <img 
-            src={projectBranding.logo} 
-            alt="Knowledge Base"
-            style={{
-              width: '24px',
-              height: '24px',
-              objectFit: 'contain',
-              borderRadius: '4px'
-            }}
-          />
-        ) : <MdBook />, 
-        label: 'Knowledge Base', 
-        labelMr: 'ज्ञान आधार'
-      });
-    }
-
-    if (moduleAccess.offline) {
-      filteredItems.push({ 
-        path: `/${customUrlPath}/portal/offline`,
-        icon: <MdSettings />, 
-        label: 'Offline Support', 
-        labelMr: 'ऑफलाइन सहाय्य'
-      });
-    }
-
-    return filteredItems;
-  };
-
-  const menuItems = getFilteredMenuItems();
+  // Get filtered menu items based on permissions
+  const menuItems = isProjectPortal
+    ? getFilteredMenuItems(
+        projectPortalMenuConfig.map(item => ({
+          ...item,
+          path: item.path ? `/${customUrlPath}/portal/${item.path}` : undefined,
+          subItems: item.subItems?.map(subItem => ({
+            ...subItem,
+            path: subItem.path ? `/${customUrlPath}/portal/${subItem.path}` : undefined
+          }))
+        })),
+        permissions
+      )
+    : getFilteredMenuItems(menuConfig, permissions);
 
   const userName = localStorage.getItem('userName') || 'Super Admin';
   const sidebarWidth = isSidebarCollapsed ? '64px' : '240px';
@@ -812,13 +746,14 @@ const DashboardLayout = ({ children, logoutRedirectPath }: DashboardLayoutProps)
                 console.error('Logout API error:', error);
               } finally {
                 // Clear local storage and redirect
-                localStorage.removeItem('token');
                 localStorage.removeItem('authToken');
                 localStorage.removeItem('userName');
                 localStorage.removeItem('userEmail');
                 localStorage.removeItem('userId');
                 localStorage.removeItem('userRole');
                 localStorage.removeItem('projectContext');
+                localStorage.removeItem('permissions'); // Clear cached permissions
+                localStorage.removeItem('moduleAccess'); // Legacy - can be removed after full migration
                 window.location.href = logoutRedirectPath || '/login';
               }
             }}

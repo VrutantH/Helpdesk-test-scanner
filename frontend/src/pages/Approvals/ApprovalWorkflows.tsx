@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import DashboardLayout from '../../components/DashboardLayout';
+import { usePermissions } from '../../hooks/usePermissions';
 
 type ApprovalCategory = {
   _id: string;
@@ -26,9 +27,9 @@ const createEmptyLevel = (index: number): LevelForm => ({
 });
 
 const ApprovalWorkflows: React.FC = () => {
+  const { hasPermission } = usePermissions();
   const [projectId, setProjectId] = useState<string | null>(null);
   const [projects, setProjects] = useState<any[]>([]);
-  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [workflows, setWorkflows] = useState<any[]>([]);
   const [masters, setMasters] = useState<{ categories: ApprovalCategory[] }>({
     categories: [],
@@ -145,19 +146,17 @@ const ApprovalWorkflows: React.FC = () => {
           console.log('Decoded token payload:', payload);
           console.log('User role from token:', payload.role);
           
-          // Role can be a string or object with code property
-          const roleCode = typeof payload.role === 'string' ? payload.role : payload.role?.code;
-          console.log('Role code:', roleCode);
-          
-          // Check for both 'SUPER_ADMIN' and 'superadmin' formats
-          if (roleCode === 'SUPER_ADMIN' || roleCode === 'superadmin') {
-            // Super admin - load all projects
-            console.log('✓ Super admin detected - loading all projects');
-            setIsSuperAdmin(true);
-            fetchProjects();
-            return; // Exit here for super admin
-          } else {
-            console.log('× Not a super admin, role code is:', roleCode);
+          // Check permissions instead of role code
+          // Users with PROJECT_VIEW_ALL permission can see all projects
+          if (payload.permissions && Array.isArray(payload.permissions)) {
+            const hasProjectViewAll = payload.permissions.includes('PROJECT_VIEW_ALL');
+            if (hasProjectViewAll) {
+              console.log('✓ User has PROJECT_VIEW_ALL permission - loading all projects');
+              fetchProjects();
+              return;
+            } else {
+              console.log('× User does not have PROJECT_VIEW_ALL permission');
+            }
           }
         } else {
           console.error('Invalid token format - expected 3 parts, got:', parts.length);
@@ -451,8 +450,8 @@ const ApprovalWorkflows: React.FC = () => {
           </div>
         ) : (
           <>
-        {/* Project Selector - Always show for super admin */}
-        {isSuperAdmin && (
+        {/* Project Selector - Show for users with PROJECT_VIEW_ALL permission */}
+        {hasPermission('PROJECT_VIEW_ALL') && (
           <div style={{ 
             marginBottom: '24px',
             padding: '16px',
@@ -509,7 +508,7 @@ const ApprovalWorkflows: React.FC = () => {
         )}
 
         {/* Show content only if project is selected */}
-        {!projectId && isSuperAdmin ? (
+        {!projectId && hasPermission('PROJECT_VIEW_ALL') ? (
           <div style={{
             background: 'white',
             borderRadius: '8px',

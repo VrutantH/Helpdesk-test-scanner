@@ -132,17 +132,42 @@ const Login: React.FC = () => {
     
     try {
       const result = await apiCall('/auth/login', data);
+      console.log('🔐 Login response:', result);
+      console.log('🔐 User data:', result.data?.user);
+      console.log('🔐 Permissions from response:', result.data?.user?.permissions);
+      
       if (result.success) {
         // Store auth data
-        localStorage.setItem('authToken', result.data.token);
+        const token = result.data.token;
+        localStorage.setItem('authToken', token);
         localStorage.setItem('userId', result.data.user.id);
         localStorage.setItem('userEmail', result.data.user.email);
         localStorage.setItem('userRole', result.data.user.role);
         
+        // Store user permissions - ALWAYS extract from token (primary source)
+        let permissions: string[] = [];
+        try {
+          const parts = token.split('.');
+          if (parts.length === 3) {
+            const payload = JSON.parse(atob(parts[1]));
+            permissions = payload.role?.permissions || [];
+            console.log('✅ Extracted', permissions.length, 'permissions from token');
+          }
+        } catch (e) {
+          console.error('❌ Failed to extract permissions from token:', e);
+          // Fallback to response if token decode fails
+          permissions = result.data.user.permissions || [];
+        }
+        
+        console.log('💾 Storing permissions:', permissions.length, 'items');
+        localStorage.setItem('userPermissions', JSON.stringify(permissions));
+        
         // Check if user has accepted EULA
         if (result.data.user.eulaAccepted) {
-          // EULA already accepted, go to dashboard
-          window.location.href = '/dashboard';
+          // EULA already accepted, redirect to user's default accessible route
+          const { getDefaultRoute } = await import('../utils/routeUtils');
+          const defaultRoute = getDefaultRoute(permissions);
+          window.location.href = defaultRoute;
         } else {
           // EULA not accepted, redirect to EULA page
           window.location.href = '/eula';

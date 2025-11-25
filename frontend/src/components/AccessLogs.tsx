@@ -27,7 +27,11 @@ interface AccessLog {
   sessionDuration?: number;
 }
 
-const AccessLogs: React.FC = () => {
+interface AccessLogsProps {
+  wrapWithLayout?: boolean;
+}
+
+const AccessLogs: React.FC<AccessLogsProps> = ({ wrapWithLayout = true }) => {
   const [logs, setLogs] = useState<AccessLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -53,6 +57,10 @@ const AccessLogs: React.FC = () => {
       setLoading(true);
       const token = localStorage.getItem('authToken');
       
+      // Get projectId if in project portal context
+      const projectContextStr = localStorage.getItem('projectContext');
+      const projectId = projectContextStr ? JSON.parse(projectContextStr).projectId : null;
+      
       const params = new URLSearchParams({
         page: page.toString(),
         limit: limit.toString(),
@@ -60,7 +68,8 @@ const AccessLogs: React.FC = () => {
         ...(filters.success && { success: filters.success }),
         ...(filters.search && { search: filters.search }),
         ...(filters.startDate && { startDate: filters.startDate }),
-        ...(filters.endDate && { endDate: filters.endDate })
+        ...(filters.endDate && { endDate: filters.endDate }),
+        ...(projectId && { projectId: projectId })
       });
 
       const response = await fetch(`http://localhost:3003/api/access-logs?${params}`, {
@@ -113,19 +122,21 @@ const AccessLogs: React.FC = () => {
 
   const totalPages = Math.ceil(total / limit);
 
+  const loadingContent = (
+    <div style={{ padding: '40px', textAlign: 'center' }}>
+      <div>Loading access logs...</div>
+    </div>
+  );
+
   if (loading && logs.length === 0) {
-    return (
-      <DashboardLayout>
-        <div style={{ padding: '40px', textAlign: 'center' }}>
-          <div>Loading access logs...</div>
-        </div>
-      </DashboardLayout>
-    );
+    if (wrapWithLayout) {
+      return <DashboardLayout>{loadingContent}</DashboardLayout>;
+    }
+    return loadingContent;
   }
 
-  return (
-    <DashboardLayout>
-      <div style={{ padding: '32px', maxWidth: '1400px', margin: '0 auto' }}>
+  const mainContent = (
+    <div style={{ padding: '32px', maxWidth: '1400px', margin: '0 auto' }}>
         {/* Header */}
         <div style={{ marginBottom: '24px' }}>
           <h1 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: 600 }}>
@@ -759,9 +770,14 @@ const AccessLogs: React.FC = () => {
             </div>
           </div>
         )}
-      </div>
-    </DashboardLayout>
+    </div>
   );
+
+  if (wrapWithLayout) {
+    return <DashboardLayout>{mainContent}</DashboardLayout>;
+  }
+
+  return mainContent;
 };
 
 export default AccessLogs;

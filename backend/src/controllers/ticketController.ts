@@ -7,6 +7,7 @@ import mongoose from 'mongoose';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import { sendTicketCreatedEmail, sendStudentWelcomeEmail } from '../utils/emailService';
 
 /**
  * Get next agent for round-robin assignment
@@ -92,9 +93,42 @@ export const submitTicket = async (req: Request, res: Response) => {
       });
     }
     
-    // Generate ticket number
-    const ticketCount = await Ticket.countDocuments();
-    const ticketNumber = `TKT-${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}${String(new Date().getDate()).padStart(2, '0')}-${String(ticketCount + 1).padStart(4, '0')}`;
+    // Generate unique ticket number with retry mechanism
+    const generateUniqueTicketNumber = async (): Promise<string> => {
+      const today = new Date();
+      const datePrefix = `TKT-${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}`;
+      
+      // Find the highest ticket number for today
+      const latestTicket = await Ticket.findOne({
+        ticketNumber: new RegExp(`^${datePrefix}-`)
+      }).sort({ ticketNumber: -1 });
+      
+      let nextNumber = 1;
+      if (latestTicket && latestTicket.ticketNumber) {
+        // Extract the sequence number from the last ticket
+        const lastNumber = parseInt(latestTicket.ticketNumber.split('-').pop() || '0');
+        nextNumber = lastNumber + 1;
+      }
+      
+      // Try up to 10 times to find a unique number (in case of race conditions)
+      for (let attempt = 0; attempt < 10; attempt++) {
+        const ticketNumber = `${datePrefix}-${String(nextNumber).padStart(4, '0')}`;
+        
+        // Check if this number already exists
+        const exists = await Ticket.findOne({ ticketNumber });
+        if (!exists) {
+          return ticketNumber;
+        }
+        
+        nextNumber++;
+      }
+      
+      // Fallback: use timestamp if all attempts fail
+      return `${datePrefix}-${Date.now().toString().slice(-4)}`;
+    };
+    
+    const ticketNumber = await generateUniqueTicketNumber();
+    console.log(`🎫 Generated ticket number: ${ticketNumber}`);
     
     // Auto-assignment logic
     let assignedAgent: mongoose.Types.ObjectId | null = null;
@@ -106,118 +140,55 @@ export const submitTicket = async (req: Request, res: Response) => {
       // Get eligible users for assignment
       let eligibleUsers: any[] = [];
       
-      if (assignmentSettings.assignToUsers && assignmentSettings.assignToUsers.length > 0) {
-        // Use specific user pool
-        eligibleUsers = await User.find({
-          _id: { $in: assignmentSettings.assignToUsers },
-          isActive: true
-        });
-      } else if (assignmentSettings.assignToRoles && assignmentSettings.assignToRoles.length > 0) {
-        // Use role-based pool
-        eligibleUsers = await User.find({
-          role: { $in: assignmentSettings.assignToRoles },
-          isActive: true
-        });
-      } else {
-        // Use all active users
-        eligibleUsers = await User.find({ isActive: true });
-      }
-      
-      if (eligibleUsers.length > 0) {
-        const eligibleUserIds = eligibleUsers.map(u => u._id);
-        
-        switch (assignmentSettings.assignmentType) {
-          case 'round-robin':
+      switch (assignmentSettings.assignmentType) {
+        case 'round-robin':
+          // For round-robin: Find users with isAgent roles mapped to this project
+          const agentRoles = await Role.find({
+            isAgent: true,
+            isActive: true,
+            $or: [
+              { projects: projectId }, // New multi-project mapping
+              { projectId: projectId }  // Old single project mapping (backward compatibility)
+            ]
+          });
+          
+          if (agentRoles.length > 0) {
+            const agentRoleIds = agentRoles.map(r => r._id);
+            eligibleUsers = await User.find({
+              role: { $in: agentRoleIds },
+              isActive: true
+            });
+            console.log(`🔍 Found ${eligibleUsers.length} agents with isAgent roles for project ${projectId}`);
+          } else {
+            console.log(`⚠️ No agent roles (isAgent=true) mapped to project ${projectId}`);
+          }
+          
+          if (eligibleUsers.length > 0) {
+            const eligibleUserIds = eligibleUsers.map(u => u._id);
             assignedAgent = await getNextRoundRobinAgent(projectId, eligibleUserIds);
-            console.log(`🔄 Round-robin assignment: ${assignedAgent}`);
-            break;
-            
-          case 'load-balanced':
-            assignedAgent = await getLeastLoadedAgent(eligibleUserIds);
-            console.log(`⚖️ Load-balanced assignment: ${assignedAgent}`);
-            break;
-            
-          case 'condition-based':
-            // Find matching rule based on ticket category
-            const ticketCategory = ticketData.Category || 'General';
-            const matchingRule = assignmentSettings.conditionRules?.find(rule => 
-              rule.field === 'category' && 
-              rule.operator === 'is' && 
-              rule.categories.includes(ticketCategory)
-            );
-            
-            if (matchingRule && matchingRule.assignToAgents.length > 0) {
-              // Get agents from the matching rule
-              const ruleAgents = await User.find({
-                _id: { $in: matchingRule.assignToAgents },
-                isActive: true
-              });
-              
-              if (ruleAgents.length > 0) {
-                // Use round-robin among rule-specific agents
-                const ruleAgentIds = ruleAgents.map(a => a._id);
-                assignedAgent = await getNextRoundRobinAgent(projectId, ruleAgentIds);
-                console.log(`🎯 Condition-based assignment (Category: ${ticketCategory}): ${assignedAgent}`);
-              } else {
-                console.log(`⚠️ No active agents found in matching rule for category: ${ticketCategory}`);
-              }
-            } else {
-              console.log(`⚠️ No matching condition rule for category: ${ticketCategory}`);
-            }
-            break;
-            
-          case 'manual':
-          default:
-            console.log(`✋ Manual assignment - ticket will be unassigned`);
-            break;
-        }
-      } else {
-        console.log(`⚠️ No eligible users found for auto-assignment`);
+            console.log(`🔄 Round-robin assignment to agent: ${assignedAgent}`);
+          }
+          break;
+          
+        case 'manual':
+        default:
+          console.log(`✋ Manual assignment - ticket will be unassigned`);
+          break;
       }
     }
     
-    // Create ticket (using a system user ID for student submissions)
-    // In a real implementation, you'd create a guest user or use a dedicated system user
-    const systemUserId = new mongoose.Types.ObjectId(); // Placeholder
-    
-    const ticket = new Ticket({
-      ticketNumber,
-      title: ticketData.Subject || 'New Ticket',
-      description: ticketData.Description || '',
-      status: 'open',
-      priority: 'medium',
-      category: ticketData.Category || 'General',
-      createdBy: systemUserId, // Required field
-      assignedTo: assignedAgent, // Auto-assigned agent (if enabled)
-      submissionSource: 'online', // Mark as online submission
-      attachments,
-      tags: [`student-submission`, `project-${projectId}`],
-      // Store student contact info in custom metadata
-      metadata: {
-        studentName: ticketData.Name,
-        studentEmail: ticketData.Email,
-        studentPhone: ticketData.Phone,
-        projectId,
-        submissionType: 'online',
-        autoAssigned: !!assignedAgent,
-      },
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-    
-    await ticket.save();
-    
-    console.log(`✅ Ticket created successfully: ${ticket._id}${assignedAgent ? ` | Assigned to: ${assignedAgent}` : ' | Unassigned'}`);
-    
-    // Check if student user exists, create if first time
+    // Check if student user exists, create if first time (MUST DO THIS BEFORE CREATING TICKET)
     const studentEmail = ticketData.Email;
     const studentName = ticketData.Name || 'Student';
+    let studentUserId: mongoose.Types.ObjectId;
+    let isNewStudent = false;
     
     if (studentEmail) {
       let studentUser = await User.findOne({ email: studentEmail });
       
       if (!studentUser) {
         console.log(`📧 First-time student submission detected: ${studentEmail}`);
+        isNewStudent = true;
         
         // Get STUDENT role
         const studentRole = await Role.findOne({ code: 'STUDENT' });
@@ -242,9 +213,80 @@ export const submitTicket = async (req: Request, res: Response) => {
           // await sendStudentWelcomeEmail(studentEmail, project.name);
         } else {
           console.error('⚠️ STUDENT role not found - cannot create student user');
+          // Use a placeholder if role doesn't exist
+          studentUserId = new mongoose.Types.ObjectId();
         }
-      } else {
-        console.log(`📌 Existing student user found: ${studentUser._id}`);
+      }
+      
+      // Use the actual student user ID
+      studentUserId = studentUser!._id as mongoose.Types.ObjectId;
+    } else {
+      // No email provided - use placeholder (shouldn't happen in normal flow)
+      studentUserId = new mongoose.Types.ObjectId();
+    }
+    
+    // Create ticket (using actual student user ID)
+    const ticket = new Ticket({
+      ticketNumber,
+      title: ticketData.Subject || 'New Ticket',
+      description: ticketData.Description || '',
+      status: 'open',
+      priority: 'medium',
+      category: ticketData.Category || 'General',
+      createdBy: studentUserId, // Use actual student user ID
+      assignedTo: assignedAgent, // Auto-assigned agent (if enabled)
+      submissionSource: 'online', // Mark as online submission
+      attachments,
+      tags: [`student-submission`, `project-${projectId}`],
+      // Store student contact info in custom metadata
+      metadata: {
+        studentName: ticketData.Name,
+        studentEmail: ticketData.Email,
+        studentPhone: ticketData.Phone,
+        projectId,
+        submissionType: 'online',
+        autoAssigned: !!assignedAgent,
+      },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+    
+    await ticket.save();
+    
+    console.log(`✅ Ticket created successfully: ${ticket._id} | Created by: ${studentUserId}${assignedAgent ? ` | Assigned to: ${assignedAgent}` : ' | Unassigned'}`);
+    
+    // Send email notifications to student
+    if (studentEmail) {
+      try {
+        // Send welcome email if this is a new student
+        if (isNewStudent) {
+          const customUrlPath = project.branding?.customUrlPath || 'portal';
+          const loginUrl = `${process.env.FRONTEND_URL || 'http://localhost:3001'}/${customUrlPath}/student/login`;
+          
+          await sendStudentWelcomeEmail(
+            studentEmail,
+            studentName,
+            project.name,
+            loginUrl,
+            projectId
+          );
+        }
+        
+        // Send ticket creation confirmation
+        await sendTicketCreatedEmail(
+          studentEmail,
+          ticket.ticketNumber,
+          ticket.title,
+          projectId,
+          {
+            studentName: studentName,
+            status: ticket.status,
+            priority: ticket.priority
+          }
+        );
+      } catch (emailError) {
+        console.error('Failed to send email notifications:', emailError);
+        // Don't fail the request if email fails
       }
     }
     
@@ -281,8 +323,14 @@ export const getMyTickets = async (req: Request, res: Response) => {
       });
     }
 
-    // Get user to find their email
-    const user = await User.findById(userId);
+    // Get user with their role and permissions
+    const user = await User.findById(userId).populate({
+      path: 'role',
+      populate: {
+        path: 'permissions',
+        model: 'Permission'
+      }
+    });
     
     if (!user) {
       return res.status(404).json({
@@ -291,16 +339,85 @@ export const getMyTickets = async (req: Request, res: Response) => {
       });
     }
 
-    // Find all tickets where studentEmail matches user's email
-    const tickets = await Ticket.find({
-      'metadata.studentEmail': user.email,
-    })
+    // Check if user has TICKET_VIEW_ALL permission
+    const role = user.role as any;
+    const permissions = role?.permissions || [];
+    const permissionCodes = permissions.map((p: any) => p.code).filter((c: any) => c); // Filter out undefined
+    const hasViewAll = permissionCodes.includes('TICKET_VIEW_ALL');
+    const hasViewOwn = permissionCodes.includes('TICKET_VIEW_OWN');
+    
+    // Check if user is a student based on role code
+    const isStudent = role?.code === 'STUDENT';
+    const isAgent = role?.isAgent === true;
+
+    console.log(`🔍 [PERMISSIONS] User: ${user.email}`);
+    console.log(`🔍 [PERMISSIONS] Role: ${role?.name} (${role?.code})`);
+    console.log(`🔍 [PERMISSIONS] isStudent: ${isStudent}, isAgent: ${isAgent}`);
+    console.log(`🔍 [PERMISSIONS] Permission codes:`, permissionCodes);
+    console.log(`🔍 [PERMISSIONS] hasViewAll: ${hasViewAll}, hasViewOwn: ${hasViewOwn}`);
+
+    // Build query based on permissions and role type
+    let query: any = {};
+
+    if (hasViewAll) {
+      // If user has TICKET_VIEW_ALL, show all tickets (no filter on user)
+      console.log(`🔍 [QUERY] Using TICKET_VIEW_ALL - no user filter`);
+    } else if (hasViewOwn) {
+      // For TICKET_VIEW_OWN: Students see tickets created by them, Agents see tickets assigned to them
+      if (isStudent) {
+        query['metadata.studentEmail'] = user.email;
+        console.log(`🔍 [QUERY] TICKET_VIEW_OWN + Student - filter by metadata.studentEmail: ${user.email}`);
+      } else if (isAgent) {
+        query.assignedTo = userId;
+        console.log(`🔍 [QUERY] TICKET_VIEW_OWN + Agent - filter by assignedTo: ${userId}`);
+      } else {
+        // Fallback: check by studentEmail
+        query['metadata.studentEmail'] = user.email;
+        console.log(`🔍 [QUERY] TICKET_VIEW_OWN + Unknown role - filter by metadata.studentEmail: ${user.email}`);
+      }
+    } else {
+      // No specific permissions: show only tickets created by this student (by studentEmail)
+      query['metadata.studentEmail'] = user.email;
+      console.log(`🔍 [QUERY] No VIEW permissions - filter by metadata.studentEmail: ${user.email}`);
+    }
+
+    console.log(`🔍 [TICKET QUERY] Final query:`, JSON.stringify(query));
+
+    // Filter by project if projectId is provided in query params
+    if (req.query.projectId) {
+      query['metadata.projectId'] = req.query.projectId;
+    }
+
+    // Find tickets based on query
+    const tickets = await Ticket.find(query)
       .populate('assignedTo', 'firstName lastName email')
       .sort({ createdAt: -1 });
 
+    console.log(`🔍 [TICKET QUERY] Tickets found: ${tickets.length}`);
+
+    // Manually populate project data since metadata.projectId is in a Mixed type field
+    const ticketsWithProject = await Promise.all(
+      tickets.map(async (ticket) => {
+        const ticketObj = ticket.toObject();
+        if (ticketObj.metadata?.projectId) {
+          const project = await Project.findById(ticketObj.metadata.projectId).select('name code');
+          if (project) {
+            ticketObj.metadata.projectId = {
+              _id: project._id,
+              name: project.name,
+              code: project.code,
+            };
+          }
+        }
+        return ticketObj;
+      })
+    );
+
+    console.log(`📋 Retrieved ${tickets.length} tickets for ${hasViewAll ? 'all users' : `student ${user.email}`}${req.query.projectId ? ` in project ${req.query.projectId}` : ''}`);
+
     return res.status(200).json({
       success: true,
-      data: tickets,
+      data: ticketsWithProject,
     });
 
   } catch (error) {
@@ -1004,6 +1121,64 @@ export const escalateTicket = async (req: Request, res: Response) => {
 };
 
 /**
+ * Assign ticket to agent
+ */
+export const assignTicket = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { agentId } = req.body;
+
+    // Validate ticket exists
+    const ticket = await Ticket.findById(id);
+    if (!ticket) {
+      return res.status(404).json({
+        success: false,
+        message: 'Ticket not found',
+      });
+    }
+
+    // Validate agent exists and is active
+    const agent = await User.findById(agentId).populate('role');
+    if (!agent) {
+      return res.status(404).json({
+        success: false,
+        message: 'Agent not found',
+      });
+    }
+
+    if (!agent.isActive) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot assign to inactive agent',
+      });
+    }
+
+    // Update ticket assignment
+    ticket.assignedTo = new mongoose.Types.ObjectId(agentId);
+    ticket.updatedAt = new Date();
+    await ticket.save();
+
+    // Populate assignedTo for response
+    const updatedTicket = await Ticket.findById(id)
+      .populate('assignedTo', 'firstName lastName email')
+      .populate('metadata.projectId', 'name');
+
+    return res.status(200).json({
+      success: true,
+      message: 'Ticket assigned successfully',
+      data: updatedTicket,
+    });
+  } catch (error) {
+    console.error('Assign ticket error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to assign ticket',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+};
+
+/**
  * Get all available tags
  */
 export const getAllTags = async (req: Request, res: Response) => {
@@ -1079,35 +1254,39 @@ export const getDashboardStats = async (req: Request, res: Response) => {
     }
 
     const roleCode = (user.role as any)?.code;
+    const userPermissions = (user.role as any)?.permissions || [];
 
-    // Build query based on user role
+    // Build query based on user permissions (not role)
     let query: any = {};
     
-    // For students, show only their tickets
-    if (roleCode === 'STUDENT') {
-      query['metadata.studentEmail'] = user.email;
-    } else {
-      // For agents/admins, check based on role and project mapping
-      const hasFullAccess = ['SUPER_ADMIN', 'SUPPORT_MANAGER'].includes(roleCode);
+    // Check permissions instead of hardcoded role checks
+    const hasViewAllTickets = userPermissions.includes('TICKET_VIEW_ALL');
+    const hasViewOwnTickets = userPermissions.includes('TICKET_VIEW_OWN');
+    
+    if (hasViewAllTickets) {
+      // Users with TICKET_VIEW_ALL see all tickets (no query filter)
+    } else if (hasViewOwnTickets) {
+      // Users with TICKET_VIEW_OWN see tickets from their mapped projects OR assigned to them
+      const userProjects = user.projects || [];
       
-      if (hasFullAccess) {
-        // SUPER_ADMIN and SUPPORT_MANAGER see all tickets (no query filter)
+      if (userProjects.length > 0) {
+        // User mapped to specific projects - show tickets from those projects
+        const projectIds = userProjects.map(p => p.toString());
+        query.$or = [
+          { 'metadata.projectId': { $in: projectIds } },
+          { assignedTo: userId },
+          { 'metadata.studentEmail': user.email } // Also show tickets they created as student
+        ];
       } else {
-        // Regular agents see tickets from their mapped projects OR assigned to them
-        const userProjects = user.projects || [];
-        
-        if (userProjects.length > 0) {
-          // Agent mapped to specific projects - show tickets from those projects
-          const projectIds = userProjects.map(p => p.toString());
-          query.$or = [
-            { 'metadata.projectId': { $in: projectIds } },
-            { assignedTo: userId }
-          ];
-        } else {
-          // Agent not mapped to any project - show only assigned tickets
-          query.assignedTo = userId;
-        }
+        // User not mapped to any project - show only assigned tickets or created by them
+        query.$or = [
+          { assignedTo: userId },
+          { 'metadata.studentEmail': user.email }
+        ];
       }
+    } else {
+      // No ticket view permissions - show only tickets created by this user
+      query['metadata.studentEmail'] = user.email;
     }
 
     // Get total tickets count
@@ -1161,9 +1340,12 @@ export const createOfflineTicket = async (req: Request, res: Response) => {
   try {
     const agent = (req as any).user;
     
+    console.log('=== OFFLINE TICKET SUBMISSION ===');
+    console.log('req.body:', req.body);
+    console.log('req.files:', req.files);
+    
     const {
       studentId,
-      title,
       description,
       category,
       priority,
@@ -1175,8 +1357,19 @@ export const createOfflineTicket = async (req: Request, res: Response) => {
       escalationReason,
     } = req.body;
 
-    // Validate required fields (priority is optional, will be set by agent later)
-    if (!studentId || !title || !description || !category || !projectId) {
+    console.log('Extracted values:');
+    console.log('  studentId:', studentId);
+    console.log('  description:', description);
+    console.log('  category:', category);
+    console.log('  projectId:', projectId);
+
+    // Validate required fields
+    if (!studentId || !description || !category || !projectId) {
+      console.log('❌ Validation failed - missing fields');
+      console.log('  studentId present:', !!studentId);
+      console.log('  description present:', !!description);
+      console.log('  category present:', !!category);
+      console.log('  projectId present:', !!projectId);
       return res.status(400).json({
         success: false,
         message: 'Missing required fields',
@@ -1220,7 +1413,7 @@ export const createOfflineTicket = async (req: Request, res: Response) => {
     // Create ticket (priority defaults to 'medium' if not provided - agent will set it later based on SLA)
     const ticket = await Ticket.create({
       ticketNumber,
-      title,
+      title: description.substring(0, 100), // Use first 100 chars of description as title
       description,
       category,
       priority: priority || 'medium', // Default to medium, agent will update based on SLA rules

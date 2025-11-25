@@ -50,16 +50,27 @@ apiClient.interceptors.response.use(
   (error: AxiosError) => {
     const status = error.response?.status;
     const url = error.config?.url;
+    const errorData = error.response?.data as any;
+    const errorMessage = errorData?.message;
+    const errorCode = errorData?.code;
     
     console.error(`❌ API Error: ${url} - ${status}`);
     
-    // Handle 401 Unauthorized - Token expired or invalid
-    if (status === 401) {
-      console.log('🔒 401 Unauthorized - Clearing token and redirecting to login');
+    // Handle 401 Unauthorized - Token expired, invalid, or permissions changed
+    if (status === 401 || errorMessage === 'Invalid token' || errorMessage === 'Token expired' || errorCode === 'TOKEN_VERSION_MISMATCH') {
+      console.log('🔒 401 Unauthorized - Token expired or permissions changed, auto-logout...');
+      
+      // Determine message based on error code
+      let alertMessage = 'Your session has expired. Please login again.';
+      if (errorCode === 'TOKEN_VERSION_MISMATCH') {
+        alertMessage = 'Your permissions have been updated. Please login again to continue.';
+      }
+      
+      // Show alert to user
+      alert(alertMessage);
       
       // Clear all auth data
       localStorage.removeItem('authToken');
-      localStorage.removeItem('token');
       localStorage.removeItem('userName');
       localStorage.removeItem('userEmail');
       localStorage.removeItem('userId');
@@ -155,7 +166,6 @@ export const authUtils = {
    */
   removeToken: (): void => {
     localStorage.removeItem('authToken');
-    localStorage.removeItem('token'); // Also remove old 'token' key for cleanup
   },
   
   /**
@@ -221,6 +231,46 @@ export const authUtils = {
       // Redirect to login
       const loginRoute = customUrlPath ? `/${customUrlPath}/agent/login` : '/login';
       window.location.href = loginRoute;
+    }
+  },
+
+  /**
+   * Setup automatic logout when token expires
+   * Call this after successful login
+   */
+  setupAutoLogout: (customUrlPath?: string): (() => void) => {
+    const token = localStorage.getItem('authToken');
+    if (!token) return () => {};
+
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const expirationTime = payload.exp * 1000;
+      const currentTime = Date.now();
+      const timeUntilExpiry = expirationTime - currentTime;
+
+      if (timeUntilExpiry <= 0) {
+        // Token already expired
+        console.log('⏰ Token already expired');
+        authUtils.logout(customUrlPath);
+        return () => {};
+      }
+
+      console.log(`⏰ Token will expire in ${Math.round(timeUntilExpiry / 1000 / 60)} minutes`);
+
+      // Set timer for auto-logout
+      const logoutTimer = setTimeout(() => {
+        console.log('⏰ Token expired - Auto logout');
+        alert('Your session has expired. Please login again.');
+        authUtils.logout(customUrlPath);
+      }, timeUntilExpiry);
+
+      // Return cleanup function
+      return () => {
+        clearTimeout(logoutTimer);
+      };
+    } catch (error) {
+      console.error('❌ Error setting up auto-logout:', error);
+      return () => {};
     }
   },
 };

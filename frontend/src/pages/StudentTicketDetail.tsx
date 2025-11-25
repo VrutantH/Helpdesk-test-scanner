@@ -239,7 +239,7 @@ const StudentTicketDetail: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="flex items-center justify-center py-12">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
@@ -247,14 +247,14 @@ const StudentTicketDetail: React.FC = () => {
 
   if (!ticket) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="flex items-center justify-center py-12">
         <div className="text-center">
           <p className="text-gray-600 mb-4">Ticket not found</p>
           <button
-            onClick={() => navigate(`/${customUrlPath}/student/dashboard`)}
+            onClick={() => navigate(`/${customUrlPath}/student/my-tickets`)}
             className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
-            Back to Dashboard
+            Back to My Tickets
           </button>
         </div>
       </div>
@@ -262,55 +262,26 @@ const StudentTicketDetail: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Sidebar Navigation */}
-      <div className="fixed left-0 top-0 h-full w-64 shadow-lg z-10" style={{
-        background: `linear-gradient(180deg, ${branding?.primaryColor || '#2563EB'} 0%, ${branding?.secondaryColor || '#764ba2'} 100%)`,
-      }}>
-        <div className="p-6">
-          {branding?.logoUrl && (
-            <img src={branding.logoUrl} alt="Logo" className="h-16 w-auto mb-8" />
-          )}
-          <nav className="space-y-2">
-            <button
-              onClick={() => navigate(`/${customUrlPath}/student/dashboard`)}
-              className="w-full flex items-center space-x-3 px-4 py-3 text-white/80 hover:bg-white/10 rounded-lg transition-colors"
-            >
-              <TicketIcon className="h-5 w-5" />
-              <span>Back to Dashboard</span>
-            </button>
-          </nav>
+    <div className="max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="mb-6">
+        <div className="flex items-center space-x-4 mb-4">
+          <button
+            onClick={() => navigate(`/${customUrlPath}/student/my-tickets`)}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            title="Back to My Tickets"
+          >
+            <ArrowLeftIcon className="h-6 w-6 text-gray-600" />
+          </button>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Ticket Details</h1>
+            <p className="text-gray-600 text-sm">{ticket.ticketNumber}</p>
+          </div>
         </div>
       </div>
 
-      {/* Main Content Area */}
-      <div className="ml-64 min-h-screen">
-        {/* Header */}
-        <div
-          className="shadow-md"
-          style={{
-            background: `linear-gradient(135deg, ${branding?.primaryColor || '#2563EB'} 0%, ${branding?.secondaryColor || '#764ba2'} 100%)`,
-          }}
-        >
-          <div className="px-8 py-6">
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => navigate(`/${customUrlPath}/student/dashboard`)}
-                className="text-white hover:bg-white/20 p-2 rounded-lg transition-colors"
-                title="Back to Dashboard"
-              >
-                <ArrowLeftIcon className="h-6 w-6" />
-              </button>
-              <div>
-                <h1 className="text-2xl font-bold text-white">Ticket Details</h1>
-                <p className="text-white/80 text-sm">{ticket.ticketNumber}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
       {/* Content */}
-      <div className="px-8 py-8">
+      <div>
         {/* Success Message */}
         {submitSuccess && (
           <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6 flex items-start space-x-3">
@@ -545,7 +516,6 @@ const StudentTicketDetail: React.FC = () => {
             )}
           </div>
         </div>
-      </div>
       </div>
     </div>
   );

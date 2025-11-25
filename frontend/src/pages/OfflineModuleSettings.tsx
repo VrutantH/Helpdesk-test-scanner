@@ -114,15 +114,31 @@ const OfflineModuleSettings: React.FC = () => {
       if (response.data.success && response.data.data) {
         const fetchedSettings = response.data.data;
         
-        // Ensure category field exists in ticket fields
-        const hasCategoryField = fetchedSettings.ticketFields?.some((f: TicketField) => f.fieldType === 'category');
+        // Remove duplicate Category fields - keep only the first one
+        if (fetchedSettings.ticketFields) {
+          const seenCategories = new Set();
+          fetchedSettings.ticketFields = fetchedSettings.ticketFields.filter((field: TicketField) => {
+            if (field.fieldName === 'Category') {
+              if (seenCategories.has('Category')) {
+                return false; // Remove duplicate
+              }
+              seenCategories.add('Category');
+            }
+            return true;
+          });
+        }
+        
+        // Ensure category field exists
+        const hasCategoryField = fetchedSettings.ticketFields?.some((f: TicketField) => 
+          f.fieldType === 'category' || f.fieldType === 'category-select' || f.fieldName === 'Category'
+        );
         if (!hasCategoryField) {
           // Add category field as first field if it doesn't exist
           fetchedSettings.ticketFields = [
             {
               id: 'category-fixed',
               fieldName: 'Category',
-              fieldType: 'category',
+              fieldType: 'category-select',
               required: true,
               placeholder: 'Select category',
               isFixed: true,
@@ -774,7 +790,7 @@ const OfflineModuleSettings: React.FC = () => {
                         disabled={field.isFixed}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                       >
-                        {field.fieldType === 'category' && <option value="category">Category (Master)</option>}
+                        {(field.fieldType === 'category' || field.fieldType === 'category-select') && <option value={field.fieldType}>Category (Master)</option>}
                         <option value="text">Text</option>
                         <option value="textarea">Textarea</option>
                         <option value="dropdown">Dropdown</option>
@@ -901,17 +917,27 @@ const OfflineModuleSettings: React.FC = () => {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Allowed Types (comma-separated)
+                          Allowed File Types
                         </label>
-                        <input
-                          type="text"
-                          value={field.allowedFileTypes?.join(', ') || ''}
-                          onChange={(e) => updateTicketField(field.id, {
-                            allowedFileTypes: e.target.value.split(',').map(t => t.trim()).filter(Boolean)
-                          })}
-                          placeholder="pdf, jpg, png, doc"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
+                        <div className="grid grid-cols-2 gap-2">
+                          {['pdf', 'jpg', 'jpeg', 'png', 'gif', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'zip', 'rar'].map((fileType) => (
+                            <label key={fileType} className="flex items-center space-x-2 p-2 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={(field.allowedFileTypes || []).includes(fileType)}
+                                onChange={(e) => {
+                                  const currentTypes = field.allowedFileTypes || [];
+                                  const newTypes = e.target.checked
+                                    ? [...currentTypes, fileType]
+                                    : currentTypes.filter(t => t !== fileType);
+                                  updateTicketField(field.id, { allowedFileTypes: newTypes });
+                                }}
+                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                              />
+                              <span className="text-sm text-gray-700">.{fileType}</span>
+                            </label>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   )}

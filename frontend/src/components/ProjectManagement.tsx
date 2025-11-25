@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import DashboardLayout from './DashboardLayout';
 import AddProjectForm from './AddProjectForm';
+import { usePermissions } from '../hooks/usePermissions';
 
 interface Project {
   _id: string;
@@ -33,6 +34,7 @@ interface Project {
 }
 
 const ProjectManagement = () => {
+  const { hasPermission } = usePermissions();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -49,8 +51,12 @@ const ProjectManagement = () => {
   const fetchProjects = async () => {
     try {
       setLoading(true);
+      const token = localStorage.getItem('authToken');
       const response = await fetch('http://localhost:3003/api/projects', {
         credentials: 'include',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
       });
       const data = await response.json();
       if (data.success) {
@@ -66,8 +72,12 @@ const ProjectManagement = () => {
   const fetchProjectDetails = async (projectId: string) => {
     try {
       setLoadingProject(true);
+      const token = localStorage.getItem('authToken');
       const response = await fetch(`http://localhost:3003/api/projects/${projectId}`, {
         credentials: 'include',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
       });
       const data = await response.json();
       if (data.success) {
@@ -89,9 +99,13 @@ const ProjectManagement = () => {
 
     try {
       setDeleting(true);
+      const token = localStorage.getItem('authToken');
       const response = await fetch(`http://localhost:3003/api/projects/${projectToDelete._id}`, {
         method: 'DELETE',
         credentials: 'include',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
       });
       const data = await response.json();
       
@@ -125,24 +139,26 @@ const ProjectManagement = () => {
             <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827' }}>
               Projects
             </h2>
-            <button
-              style={{
-                padding: '0.75rem 1.5rem',
-                background: '#2563EB',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                fontSize: '0.875rem',
-                fontWeight: '500',
-                cursor: 'pointer'
-              }}
-              onClick={() => {
-                setSelectedProject(null);
-                setShowAddForm(true);
-              }}
-            >
-              Add Project
-            </button>
+            {hasPermission('PROJECT_CREATE') && (
+              <button
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  background: '#2563EB',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  fontSize: '0.875rem',
+                  fontWeight: '500',
+                  cursor: 'pointer'
+                }}
+                onClick={() => {
+                  setSelectedProject(null);
+                  setShowAddForm(true);
+                }}
+              >
+                Add Project
+              </button>
+            )}
           </div>
 
           {loading ? (
@@ -219,41 +235,45 @@ const ProjectManagement = () => {
                       {new Date(project.createdAt).toLocaleDateString()}
                     </td>
                     <td style={{ padding: '1rem' }}>
-                      <button
-                        onClick={() => fetchProjectDetails(project._id)}
-                        disabled={loadingProject}
-                        style={{
-                          padding: '0.5rem 1rem',
-                          background: loadingProject ? '#E5E7EB' : '#F3F4F6',
-                          border: 'none',
-                          borderRadius: '4px',
-                          fontSize: '0.875rem',
-                          cursor: loadingProject ? 'not-allowed' : 'pointer',
-                          marginRight: '0.5rem'
-                        }}
-                      >
-                        {loadingProject ? 'Loading...' : 'Edit'}
-                      </button>
-                      <button
-                        onClick={() => {
-                          setProjectToDelete(project);
-                          setShowDeleteConfirm(true);
-                        }}
-                        style={{
-                          padding: '0.5rem 1rem',
-                          background: '#FEE2E2',
-                          color: '#DC2626',
-                          border: 'none',
-                          borderRadius: '4px',
-                          fontSize: '0.875rem',
-                          cursor: 'pointer',
-                          transition: 'background 0.2s'
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.background = '#FECACA'}
-                        onMouseLeave={(e) => e.currentTarget.style.background = '#FEE2E2'}
-                      >
-                        Delete
-                      </button>
+                      {hasPermission('PROJECT_EDIT') && (
+                        <button
+                          onClick={() => fetchProjectDetails(project._id)}
+                          disabled={loadingProject}
+                          style={{
+                            padding: '0.5rem 1rem',
+                            background: loadingProject ? '#E5E7EB' : '#F3F4F6',
+                            border: 'none',
+                            borderRadius: '4px',
+                            fontSize: '0.875rem',
+                            cursor: loadingProject ? 'not-allowed' : 'pointer',
+                            marginRight: '0.5rem'
+                          }}
+                        >
+                          {loadingProject ? 'Loading...' : 'Edit'}
+                        </button>
+                      )}
+                      {hasPermission('PROJECT_DELETE') && (
+                        <button
+                          onClick={() => {
+                            setProjectToDelete(project);
+                            setShowDeleteConfirm(true);
+                          }}
+                          style={{
+                            padding: '0.5rem 1rem',
+                            background: '#FEE2E2',
+                            color: '#DC2626',
+                            border: 'none',
+                            borderRadius: '4px',
+                            fontSize: '0.875rem',
+                            cursor: 'pointer',
+                            transition: 'background 0.2s'
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.background = '#FECACA'}
+                          onMouseLeave={(e) => e.currentTarget.style.background = '#FEE2E2'}
+                        >
+                          Delete
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}

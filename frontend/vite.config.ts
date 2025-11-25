@@ -8,6 +8,13 @@ export default defineConfig({
   server: {
     port: 3001,
     strictPort: true,
+    host: true, // Allow external access
+    allowedHosts: [
+      'localhost',
+      '127.0.0.1',
+      'helpdesk.hubblehox.ai',
+      '.hubblehox.ai', // Allow all subdomains
+    ],
     hmr: {
       port: 3001,
       // Use relative protocol in development, prevents hardcoded URLs in production build

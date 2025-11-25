@@ -166,8 +166,12 @@ interface EscalationPolicy {
   }>;
 }
 
-const AgentTicketDetail: React.FC = () => {
-  const { ticketId, customUrlPath } = useParams();
+interface AgentTicketDetailProps {
+  wrapWithLayout?: boolean;
+}
+
+const AgentTicketDetail: React.FC<AgentTicketDetailProps> = ({ wrapWithLayout = true }) => {
+  const { id: ticketId, customUrlPath } = useParams();
   const navigate = useNavigate();
   const [ticket, setTicket] = useState<Ticket | null>(null);
   const [loading, setLoading] = useState(true);
@@ -212,7 +216,7 @@ const AgentTicketDetail: React.FC = () => {
   const fetchTicketDetails = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('authToken');
       
       if (!token) {
         console.error('No authentication token found');
@@ -274,7 +278,7 @@ const AgentTicketDetail: React.FC = () => {
 
   const fetchMasterData = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('authToken');
       const projectContext = JSON.parse(localStorage.getItem('projectContext') || '{}');
 
       // Fetch ticket configuration (statuses, priorities, categories)
@@ -401,7 +405,7 @@ const AgentTicketDetail: React.FC = () => {
     console.log('🔄 Updating status to:', statusToUpdate);
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('authToken');
       const response = await axios.patch(
         `http://localhost:3003/api/tickets/${ticket._id}/status`,
         { status: statusToUpdate },
@@ -429,7 +433,7 @@ const AgentTicketDetail: React.FC = () => {
     if (!newCategory || !ticket) return;
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('authToken');
       await axios.patch(
         `http://localhost:3003/api/tickets/${ticket._id}/category`,
         { category: newCategory },
@@ -454,7 +458,7 @@ const AgentTicketDetail: React.FC = () => {
     console.log('🔄 Updating priority to:', priorityToUpdate);
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('authToken');
       const response = await axios.patch(
         `http://localhost:3003/api/tickets/${ticket._id}/priority`,
         { priority: priorityToUpdate },
@@ -482,7 +486,7 @@ const AgentTicketDetail: React.FC = () => {
     if (!newTag || !ticket) return;
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('authToken');
       const response = await axios.post(
         `http://localhost:3003/api/tickets/${ticket._id}/tags`,
         { tag: newTag },
@@ -505,7 +509,7 @@ const AgentTicketDetail: React.FC = () => {
     if (!ticket) return;
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('authToken');
       await axios.delete(
         `http://localhost:3003/api/tickets/${ticket._id}/tags/${tag}`,
         {
@@ -523,7 +527,7 @@ const AgentTicketDetail: React.FC = () => {
     if (!selectedEscalationContact || !escalationReason || !ticket) return;
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('authToken');
       await axios.post(
         `http://localhost:3003/api/tickets/${ticket._id}/escalate`,
         {
@@ -551,7 +555,7 @@ const AgentTicketDetail: React.FC = () => {
 
     setIsSubmittingReply(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('authToken');
       const formData = new FormData();
       formData.append('message', replyMessage);
       formData.append('isInternal', 'false');
@@ -589,7 +593,7 @@ const AgentTicketDetail: React.FC = () => {
 
     setIsAddingNote(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('authToken');
       await axios.post(
         `http://localhost:3003/api/tickets/${ticket._id}/notes`,
         { note: noteText },
@@ -637,15 +641,22 @@ const AgentTicketDetail: React.FC = () => {
   };
 
   if (loading) {
-    return (
+    const loadingContent = (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
+    return wrapWithLayout ? (
+      <DashboardLayout>
+        {loadingContent}
+      </DashboardLayout>
+    ) : (
+      loadingContent
+    );
   }
 
   if (!ticket) {
-    return (
+    const errorContent = (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <XCircleIcon className="h-16 w-16 text-red-500 mx-auto mb-4" />
@@ -660,10 +671,16 @@ const AgentTicketDetail: React.FC = () => {
         </div>
       </div>
     );
+    return wrapWithLayout ? (
+      <DashboardLayout>
+        {errorContent}
+      </DashboardLayout>
+    ) : (
+      errorContent
+    );
   }
 
-  return (
-    <DashboardLayout>
+  const content = (
       <div className="min-h-screen bg-gray-50">
         {/* Header */}
         <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
@@ -1280,7 +1297,14 @@ const AgentTicketDetail: React.FC = () => {
         </div>
       </div>
     </div>
+  );
+
+  return wrapWithLayout ? (
+    <DashboardLayout>
+      {content}
     </DashboardLayout>
+  ) : (
+    content
   );
 };
 

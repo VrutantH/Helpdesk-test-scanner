@@ -25,6 +25,16 @@ export interface IThread {
   createdAt: Date;
 }
 
+export interface IComment {
+  _id?: mongoose.Types.ObjectId;
+  text: string;
+  createdBy: mongoose.Types.ObjectId;
+  createdAt: Date;
+  updatedAt?: Date;
+  isSystemComment?: boolean;
+  mergedFrom?: string; // Ticket number if comment was merged from another ticket
+}
+
 export interface IInternalNote {
   _id?: mongoose.Types.ObjectId;
   note: string;
@@ -49,8 +59,10 @@ export interface ITicket extends Document {
   category?: string;
   createdBy: mongoose.Types.ObjectId;
   assignedTo?: mongoose.Types.ObjectId;
+  project?: mongoose.Types.ObjectId; // Added for project reference
   attachments: IAttachment[];
   threads?: IThread[];
+  comments?: IComment[]; // Added for RBAC comment feature
   internalNotes?: IInternalNote[];
   escalationHistory?: IEscalationRecord[];
   tags: string[];
@@ -83,6 +95,15 @@ const ThreadSchema = new Schema({
   attachments: [ThreadAttachmentSchema],
   isSystemMessage: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now },
+});
+
+const CommentSchema = new Schema({
+  text: { type: String, required: true },
+  createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date },
+  isSystemComment: { type: Boolean, default: false },
+  mergedFrom: { type: String }, // Ticket number if merged from another ticket
 });
 
 const InternalNoteSchema = new Schema({
@@ -141,8 +162,14 @@ const TicketSchema: Schema = new Schema(
       type: Schema.Types.ObjectId,
       ref: 'User',
     },
+    project: {
+      type: Schema.Types.ObjectId,
+      ref: 'Project',
+      index: true,
+    },
     attachments: [AttachmentSchema],
     threads: [ThreadSchema],
+    comments: [CommentSchema], // Added for RBAC comment feature
     internalNotes: [InternalNoteSchema],
     escalationHistory: [EscalationRecordSchema],
     tags: [{

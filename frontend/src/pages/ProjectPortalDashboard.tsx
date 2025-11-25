@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams, Routes, Route } from 'react-router-dom';
 import axios from 'axios';
 import DashboardLayout from '../components/DashboardLayout';
+import ProtectedRoute from '../components/ProtectedRoute';
+import { PERMISSIONS } from '../constants/permissions';
 
 // Import existing super admin components
 import ActivityLogs from '../components/ActivityLogs';
@@ -9,6 +11,15 @@ import AccessLogs from '../components/AccessLogs';
 import KnowledgeBaseViewer from '../components/KnowledgeBaseViewer';
 import AgentOfflineModule from './AgentOfflineModule';
 import AgentStudentWorkflow from './AgentStudentWorkflow';
+import UserManagement from '../components/UserManagement';
+import RedirectToFirstRoute from '../components/RedirectToFirstRoute';
+import EmailConfigPage from './EmailConfigPage';
+
+// Import ticket-related pages
+import ViewTickets from './ViewTickets';
+import MyTickets from './MyTickets';
+import TicketAssignment from './TicketAssignment';
+import AgentTicketDetail from './AgentTicketDetail';
 
 interface ProjectBranding {
   projectId: string;
@@ -35,6 +46,11 @@ interface User {
     code: string;
   };
 }
+
+// User Management - renders without its own DashboardLayout (already wrapped by parent)
+const ProjectUserManagement = () => {
+  return <UserManagement wrapWithLayout={false} />;
+};
 
 // Simple Dashboard component for agents
 const AgentDashboardContent = () => {
@@ -101,9 +117,10 @@ const AgentDashboardContent = () => {
 // Tickets component for agents
 interface AgentTicketsContentProps {
   projectBranding?: ProjectBranding | null;
+  user?: User | null;
 }
 
-const AgentTicketsContent = ({ projectBranding }: AgentTicketsContentProps) => {
+const AgentTicketsContent = ({ projectBranding, user }: AgentTicketsContentProps) => {
   const { customUrlPath } = useParams();
   const navigate = useNavigate();
   const [tickets, setTickets] = useState<any[]>([]);
@@ -145,18 +162,20 @@ const AgentTicketsContent = ({ projectBranding }: AgentTicketsContentProps) => {
   }, []);
 
   useEffect(() => {
-    if (projectId) {
+    if (projectId && user) {
+      // Fetch data for all logged-in users (not just agents)
+      // Users without ticket permissions won't see the tickets page anyway
       fetchTickets();
       fetchTags();
       fetchCategories();
       fetchStatuses();
     }
-  }, [projectId]);
+  }, [projectId, user]);
 
   const fetchTickets = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('authToken');
       const response = await axios.get(
         'http://localhost:3003/api/tickets/agent/assigned',
         {
@@ -174,7 +193,7 @@ const AgentTicketsContent = ({ projectBranding }: AgentTicketsContentProps) => {
 
   const fetchTags = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('authToken');
       const response = await axios.get(
         'http://localhost:3003/api/tickets/tags',
         {
@@ -190,7 +209,7 @@ const AgentTicketsContent = ({ projectBranding }: AgentTicketsContentProps) => {
 
   const fetchCategories = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('authToken');
       const response = await axios.get(
         `http://localhost:3003/api/categories/project/${projectId}`,
         {
@@ -205,7 +224,7 @@ const AgentTicketsContent = ({ projectBranding }: AgentTicketsContentProps) => {
 
   const fetchStatuses = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('authToken');
       const response = await axios.get(
         `http://localhost:3003/api/statuses/project/${projectId}`,
         {
@@ -248,7 +267,7 @@ const AgentTicketsContent = ({ projectBranding }: AgentTicketsContentProps) => {
     if (!bulkStatus || selectedTickets.size === 0) return;
     
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('authToken');
       for (const ticketId of Array.from(selectedTickets)) {
         await axios.patch(
           `http://localhost:3003/api/tickets/${ticketId}/status`,
@@ -271,7 +290,7 @@ const AgentTicketsContent = ({ projectBranding }: AgentTicketsContentProps) => {
     if (!bulkReply || selectedTickets.size === 0) return;
     
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('authToken');
       for (const ticketId of Array.from(selectedTickets)) {
         await axios.post(
           `http://localhost:3003/api/tickets/${ticketId}/reply`,
@@ -297,7 +316,7 @@ const AgentTicketsContent = ({ projectBranding }: AgentTicketsContentProps) => {
     if (!confirm(`Are you sure you want to close ${selectedTickets.size} tickets?`)) return;
     
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('authToken');
       for (const ticketId of Array.from(selectedTickets)) {
         await axios.patch(
           `http://localhost:3003/api/tickets/${ticketId}/status`,
@@ -985,7 +1004,7 @@ const ProjectPortalDashboard = () => {
   const [projectBranding, setProjectBranding] = useState<ProjectBranding | null>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('authToken');
     if (!token) {
       navigate(`/${customUrlPath}/portal/login`);
       return;
@@ -1002,13 +1021,7 @@ const ProjectPortalDashboard = () => {
       });
       const userData = userResponse.data.data;
 
-      // Block students
-      if (userData.role.code === 'STUDENT') {
-        localStorage.removeItem('token');
-        navigate(`/${customUrlPath}/portal/login`);
-        return;
-      }
-
+      // Route protection will handle access control based on permissions
       setUser(userData);
 
       // Get project branding
@@ -1048,8 +1061,8 @@ const ProjectPortalDashboard = () => {
         }
       }
 
-      // Set module access based on role
-      const moduleAccess = getModuleAccessForRole(userData.role.code);
+      // Set module access based on permissions (dynamic, not hardcoded)
+      const moduleAccess = getModuleAccessFromPermissions(userData.role.permissions || []);
       localStorage.setItem('moduleAccess', JSON.stringify(moduleAccess));
       localStorage.setItem('userName', userData.name || `${userData.firstName} ${userData.lastName}`);
       
@@ -1063,22 +1076,31 @@ const ProjectPortalDashboard = () => {
       setLoading(false);
     } catch (error) {
       console.error('Error initializing portal:', error);
-      localStorage.removeItem('token');
+      localStorage.removeItem('authToken');
       navigate(`/${customUrlPath}/portal/login`);
     }
   };
 
-  const getModuleAccessForRole = (roleCode: string) => {
-    // Define which modules each role can access
-    const roleModules: Record<string, Record<string, boolean>> = {
-      'SUPERADMIN': { dashboard: true, tickets: true, knowledgeBase: true, users: true, audit: true, offline: true, all: true },
-      'AGENT': { dashboard: true, tickets: true, knowledgeBase: true, offline: true },
-      'HELPDESK': { dashboard: true, tickets: true, knowledgeBase: true, offline: true },
-      'MANAGER': { dashboard: true, tickets: true, knowledgeBase: true, users: true, audit: true, offline: true },
-      'SUPERVISOR': { dashboard: true, tickets: true, knowledgeBase: true, users: true, offline: true },
-    };
+  const getModuleAccessFromPermissions = (permissions: string[]) => {
+    // Dynamically determine module access based on actual permissions
+    // No hardcoded roles - works with ANY role name!
+    
+    const hasDashboardPermission = permissions.some(p => p.startsWith('DASHBOARD_'));
+    const hasTicketPermission = permissions.some(p => p.startsWith('TICKET_'));
+    const hasKnowledgeBasePermission = permissions.some(p => p.startsWith('KB_')); // Fixed: KB_ not KNOWLEDGE_BASE_
+    const hasUserPermission = permissions.some(p => p.startsWith('USER_'));
+    const hasAuditPermission = permissions.some(p => p.startsWith('AUDIT_'));
+    const hasOfflinePermission = permissions.some(p => p.startsWith('OFFLINE_') || p.startsWith('STUDENT_'));
 
-    return roleModules[roleCode] || { dashboard: true };
+    return {
+      dashboard: hasDashboardPermission, // Now permission-based, not hardcoded
+      tickets: hasTicketPermission,
+      knowledgeBase: hasKnowledgeBasePermission,
+      users: hasUserPermission,
+      audit: hasAuditPermission,
+      offline: hasOfflinePermission,
+      all: permissions.length > 20 // Heuristic for super admin (has many permissions)
+    };
   };
 
   if (loading) {
@@ -1106,14 +1128,65 @@ const ProjectPortalDashboard = () => {
     <DashboardLayout logoutRedirectPath={`/${customUrlPath}/portal/login`}>
       <Routes>
         <Route path="/dashboard" element={<AgentDashboardContent />} />
-        <Route path="/tickets" element={<AgentTicketsContent projectBranding={projectBranding} />} />
-        <Route path="/knowledge-base" element={<KnowledgeBaseViewer />} />
+        
+        {/* Ticket Routes */}
+        <Route path="/tickets/view" element={
+          <ProtectedRoute permission={[PERMISSIONS.TICKET_VIEW_ALL, PERMISSIONS.TICKET_VIEW_OWN]}>
+            <ViewTickets wrapWithLayout={false} />
+          </ProtectedRoute>
+        } />
+        <Route path="/tickets/my-tickets" element={
+          <ProtectedRoute permission={[PERMISSIONS.TICKET_VIEW_OWN, PERMISSIONS.TICKET_VIEW_ALL]}>
+            <MyTickets wrapWithLayout={false} />
+          </ProtectedRoute>
+        } />
+        <Route path="/tickets/assign" element={
+          <ProtectedRoute permission={PERMISSIONS.TICKET_ASSIGN}>
+            <TicketAssignment wrapWithLayout={false} />
+          </ProtectedRoute>
+        } />
+        <Route path="/tickets/:id" element={
+          <ProtectedRoute permission={[PERMISSIONS.TICKET_VIEW_OWN, PERMISSIONS.TICKET_VIEW_ALL]}>
+            <AgentTicketDetail wrapWithLayout={false} />
+          </ProtectedRoute>
+        } />
+        <Route path="/tickets" element={<AgentTicketsContent projectBranding={projectBranding} user={user} />} />
+        
+        <Route path="/knowledge-base" element={
+          <ProtectedRoute permission={PERMISSIONS.KB_VIEW}>
+            <KnowledgeBaseViewer />
+          </ProtectedRoute>
+        } />
         {/* NEW: Student Workflow replaces old Offline Module */}
         <Route path="/offline" element={<AgentStudentWorkflow projectId={projectBranding?.projectId || ''} />} />
         <Route path="/student-workflow" element={<AgentStudentWorkflow projectId={projectBranding?.projectId || ''} />} />
-        <Route path="/audit/activity-logs" element={<ActivityLogs />} />
-        <Route path="/audit/access-logs" element={<AccessLogs />} />
-        <Route path="/" element={<AgentDashboardContent />} />
+        <Route path="/users" element={<ProjectUserManagement />} />
+        <Route path="/audit/activity-logs" element={<ActivityLogs wrapWithLayout={false} />} />
+        <Route path="/audit/access-logs" element={<AccessLogs wrapWithLayout={false} />} />
+        
+        {/* Email Configuration */}
+        <Route path="/email-config" element={
+          <ProtectedRoute permission={PERMISSIONS.EMAIL_CONFIG_VIEW}>
+            <EmailConfigPage />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/" element={
+          user ? (
+            <RedirectToFirstRoute permissions={user.role?.permissions || []} />
+          ) : (
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              minHeight: '200px',
+              fontSize: '16px',
+              color: '#6B7280'
+            }}>
+              Loading user data...
+            </div>
+          )
+        } />
       </Routes>
     </DashboardLayout>
   );

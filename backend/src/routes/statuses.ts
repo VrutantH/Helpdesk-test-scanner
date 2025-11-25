@@ -8,25 +8,26 @@ import {
   reorderStatuses,
 } from '../controllers/statusController';
 import { authMiddleware } from '../middleware/auth';
+import { checkPermission } from '../middleware/permissions';
 
 const router = express.Router();
 
-// Get all statuses for a project
-router.get('/project/:projectId', getStatusesByProject);
+// Get all statuses for a project (agents need this to change ticket status)
+router.get('/project/:projectId', authMiddleware, checkPermission(['TICKET_VIEW_ALL', 'MASTER_DATA_VIEW', 'View Own Tickets', 'Change Ticket Status']), getStatusesByProject);
 
-// Create a new status
-router.post('/project/:projectId', authMiddleware, createStatus);
+// Create new status
+router.post('/project/:projectId', authMiddleware, checkPermission(['MASTER_DATA_MANAGE_STATUSES', 'TICKET_CONFIG_MANAGE_STATUSES']), createStatus);
 
 // Reorder statuses
-router.put('/project/:projectId/reorder', authMiddleware, reorderStatuses);
+router.put('/project/:projectId/reorder', authMiddleware, checkPermission(['MASTER_DATA_MANAGE_STATUSES', 'TICKET_CONFIG_MANAGE_STATUSES']), reorderStatuses);
 
-// Get a single status
-router.get('/:statusId', getStatusById);
+// Get single status
+router.get('/:statusId', authMiddleware, checkPermission('MASTER_DATA_VIEW'), getStatusById);
 
 // Update a status
-router.put('/:statusId', authMiddleware, updateStatus);
+router.put('/:statusId', authMiddleware, checkPermission(['MASTER_DATA_MANAGE_STATUSES', 'TICKET_CONFIG_MANAGE_STATUSES']), updateStatus);
 
 // Delete a status
-router.delete('/:statusId', authMiddleware, deleteStatus);
+router.delete('/:statusId', authMiddleware, checkPermission(['MASTER_DATA_MANAGE_STATUSES', 'TICKET_CONFIG_MANAGE_STATUSES']), deleteStatus);
 
 export default router;

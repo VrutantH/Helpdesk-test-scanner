@@ -13,6 +13,11 @@ build/
 .env.local
 .env.*.local
 
+# Sensitive files
+token.txt
+*.token
+.secrets
+
 # Logs
 logs/
 *.log

@@ -7,22 +7,23 @@ import {
   getCategoryById,
 } from '../controllers/categoryController';
 import { authMiddleware } from '../middleware/auth';
+import { requirePermission } from '../middleware/permissions';
 
 const router = express.Router();
 
 // Get all categories for a project
 router.get('/project/:projectId', getCategoriesByProject);
 
-// Create a new category
-router.post('/project/:projectId', authMiddleware, createCategory);
+// Create new category
+router.post('/project/:projectId', authMiddleware, requirePermission('MASTER_DATA_MANAGE_CATEGORIES'), createCategory);
 
-// Get a single category
-router.get('/:categoryId', getCategoryById);
+// Get single category
+router.get('/:categoryId', authMiddleware, requirePermission('MASTER_DATA_VIEW'), getCategoryById);
 
 // Update a category
-router.put('/:categoryId', authMiddleware, updateCategory);
+router.put('/:categoryId', authMiddleware, requirePermission('MASTER_DATA_MANAGE_CATEGORIES'), updateCategory);
 
 // Delete a category
-router.delete('/:categoryId', authMiddleware, deleteCategory);
+router.delete('/:categoryId', authMiddleware, requirePermission('MASTER_DATA_MANAGE_CATEGORIES'), deleteCategory);
 
 export default router;

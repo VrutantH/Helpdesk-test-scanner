@@ -18,12 +18,14 @@ interface Role {
   code: string;
   description?: string;
   type: 'system' | 'custom';
+  roleType?: 'super_admin' | 'agent' | 'student' | 'manager' | 'custom';
   projects?: string[];
   permissions: Permission[] | string[];
   agentCount: number;
   isActive: boolean;
   isMaster: boolean;
   masterRoleId?: string;
+  isAgent: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -61,6 +63,8 @@ const RBACSetup = () => {
     permissions: [] as string[],
     projects: [] as string[],
     isMaster: false,
+    isAgent: false,
+    roleType: 'custom' as 'super_admin' | 'agent' | 'student' | 'manager' | 'custom', // Add role type
   });
 
   useEffect(() => {
@@ -83,7 +87,15 @@ const RBACSetup = () => {
       setRoles(Array.isArray(rolesRes.data.data) ? rolesRes.data.data : []);
       setMasterRoles(Array.isArray(masterRolesRes.data.data) ? masterRolesRes.data.data : []);
       setGroupedPermissions(permissionsRes.data.data || {});
-      setProjects(Array.isArray(projectsRes.data.data) ? projectsRes.data.data : []);
+      
+      // Projects API returns {success: true, data: {projects: [...], pagination: {...}}}
+      const projectsArray = Array.isArray(projectsRes.data.data?.projects) 
+        ? projectsRes.data.data.projects 
+        : (Array.isArray(projectsRes.data.data) ? projectsRes.data.data : []);
+      
+      setProjects(projectsArray);
+      
+      console.log('✅ RBAC Setup - Projects loaded:', projectsArray.length, projectsArray);
     } catch (error: any) {
       console.error('Error fetching data:', error);
       if (error.response?.status === 401) {
@@ -116,17 +128,24 @@ const RBACSetup = () => {
     e.preventDefault();
     if (!editingRole) return;
     try {
+      console.log('🔄 Updating role with data:', formData);
+      console.log('🔍 isAgent value:', formData.isAgent);
+      
       const token = localStorage.getItem('authToken');
-      await axios.put(
+      const response = await axios.put(
         `http://localhost:3003/api/roles/${editingRole._id}`,
         formData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      
+      console.log('✅ Role update response:', response.data);
+      
       setShowRoleModal(false);
       setEditingRole(null);
       resetForm();
       fetchData();
     } catch (error: any) {
+      console.error('❌ Role update error:', error.response?.data);
       alert(error.response?.data?.error || 'Failed to update role');
     }
   };
@@ -183,6 +202,11 @@ const RBACSetup = () => {
   };
 
   const openEditModal = (role: Role) => {
+    console.log('🔍 Opening Edit Modal for role:', role.name);
+    console.log('🔍 Role projects:', role.projects);
+    console.log('🔍 Role isAgent:', role.isAgent);
+    console.log('🔍 Available projects in state:', projects);
+    
     setEditingRole(role);
     setFormData({
       name: role.name,
@@ -193,6 +217,8 @@ const RBACSetup = () => {
         : [],
       projects: role.projects || [],
       isMaster: role.isMaster,
+      isAgent: role.isAgent || false,
+      roleType: role.roleType || 'custom',
     });
     setShowRoleModal(true);
   };
@@ -206,6 +232,8 @@ const RBACSetup = () => {
       permissions: [],
       projects: [],
       isMaster: false,
+      isAgent: false,
+      roleType: 'custom',
     });
     setShowCloneModal(true);
   };
@@ -218,7 +246,41 @@ const RBACSetup = () => {
       permissions: [],
       projects: [],
       isMaster: false,
+      isAgent: false,
+      roleType: 'custom',
     });
+  };
+
+  // Filter permissions based on role type
+  const getFilteredPermissions = (permissions: GroupedPermissions, roleType: string): GroupedPermissions => {
+    const filtered: GroupedPermissions = {};
+
+    // Define permission categories for each role type
+    const rolePermissionMap: Record<string, string[]> = {
+      super_admin: ['RBAC', 'USER', 'PROJECT', 'TICKET', 'KB_', 'AUDIT', 'OFFLINE', 'STUDENT', 'FIELDS', 'SLA', 'AUTOMATION', 'REPORT', 'INTEGRATION', 'FORM', 'WORKFLOW', 'APPROVAL', 'MASTER_DATA', 'TICKET_CONFIG', 'DASHBOARD'],
+      manager: ['USER', 'TICKET', 'KB_', 'AUDIT', 'OFFLINE', 'STUDENT', 'REPORT'],
+      agent: ['TICKET', 'KB_', 'OFFLINE', 'STUDENT'],
+      student: ['TICKET', 'OFFLINE', 'STUDENT'],
+      custom: ['RBAC', 'USER', 'PROJECT', 'TICKET', 'KB_', 'AUDIT', 'OFFLINE', 'STUDENT', 'FIELDS', 'SLA', 'AUTOMATION', 'REPORT', 'INTEGRATION', 'FORM', 'WORKFLOW', 'APPROVAL', 'MASTER_DATA', 'TICKET_CONFIG', 'DASHBOARD'], // All
+    };
+
+    const allowedPrefixes = rolePermissionMap[roleType] || rolePermissionMap.custom;
+
+    Object.entries(permissions).forEach(([category, modules]) => {
+      Object.entries(modules).forEach(([module, perms]) => {
+        const filteredPerms = perms.filter(perm => {
+          // Check if permission code starts with any allowed prefix
+          return allowedPrefixes.some(prefix => perm.code.startsWith(prefix));
+        });
+
+        if (filteredPerms.length > 0) {
+          if (!filtered[category]) filtered[category] = {};
+          filtered[category][module] = filteredPerms;
+        }
+      });
+    });
+
+    return filtered;
   };
 
   const toggleCategory = (category: string) => {
@@ -530,7 +592,16 @@ const RBACSetup = () => {
                         type="text"
                         required
                         value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        onChange={(e) => {
+                          const newName = e.target.value;
+                          // Auto-generate code from name (only if not editing or code field is empty/auto-generated)
+                          const autoCode = newName.toUpperCase().replace(/\s+/g, '_').replace(/[^A-Z0-9_]/g, '');
+                          setFormData({ 
+                            ...formData, 
+                            name: newName,
+                            code: editingRole ? formData.code : autoCode
+                          });
+                        }}
                         style={{
                           width: '100%',
                           padding: '8px 12px',
@@ -542,7 +613,7 @@ const RBACSetup = () => {
                     </div>
                     <div>
                       <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>
-                        Code *
+                        Code * <span style={{ fontSize: '12px', color: '#6b7280', fontWeight: '400' }}>(auto-generated)</span>
                       </label>
                       <input
                         type="text"
@@ -556,7 +627,9 @@ const RBACSetup = () => {
                           border: '1px solid #d1d5db',
                           borderRadius: '6px',
                           fontSize: '14px',
+                          backgroundColor: editingRole?.type === 'system' ? '#f3f4f6' : '#f9fafb',
                         }}
+                        placeholder="Auto-generated from name"
                       />
                     </div>
                   </div>
@@ -578,9 +651,38 @@ const RBACSetup = () => {
                       }}
                     />
                   </div>
+
+                  {/* Role Type Selector */}
+                  <div style={{ marginTop: '16px' }}>
+                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>
+                      Role Type (filters available permissions)
+                    </label>
+                    <select
+                      value={formData.roleType}
+                      onChange={(e) => setFormData({ ...formData, roleType: e.target.value as any })}
+                      style={{
+                        width: '100%',
+                        padding: '8px 12px',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '6px',
+                        fontSize: '14px',
+                        backgroundColor: 'white',
+                      }}
+                    >
+                      <option value="custom">Custom (All Permissions)</option>
+                      <option value="super_admin">Super Admin (Full Access)</option>
+                      <option value="manager">Manager (User, Ticket, KB, Audit)</option>
+                      <option value="agent">Agent (Ticket, KB, Student Support)</option>
+                      <option value="student">Student (Basic Ticket & Support)</option>
+                    </select>
+                    <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
+                      Selecting a role type will show only relevant permissions below
+                    </p>
+                  </div>
+
                   {editingRole?.type === 'custom' && (
                     <div style={{ marginTop: '16px' }}>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', marginBottom: '12px' }}>
                         <input
                           type="checkbox"
                           checked={formData.isMaster}
@@ -588,8 +690,20 @@ const RBACSetup = () => {
                         />
                         <span style={{ fontSize: '14px', fontWeight: '500' }}>Mark as Master Role</span>
                       </label>
-                      <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px', marginLeft: '24px' }}>
+                      <p style={{ fontSize: '12px', color: '#6b7280', marginBottom: '12px', marginLeft: '24px' }}>
                         Master roles can be cloned to create new roles with same permissions
+                      </p>
+                      
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                        <input
+                          type="checkbox"
+                          checked={formData.isAgent}
+                          onChange={(e) => setFormData({ ...formData, isAgent: e.target.checked })}
+                        />
+                        <span style={{ fontSize: '14px', fontWeight: '500' }}>Mark as Agent Role</span>
+                      </label>
+                      <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px', marginLeft: '24px' }}>
+                        Agent roles will be included in auto-assignment (round-robin) for tickets
                       </p>
                     </div>
                   )}
@@ -598,39 +712,86 @@ const RBACSetup = () => {
                 {/* Project Mapping */}
                 {editingRole?.type !== 'system' && (
                   <div style={{ marginBottom: '24px' }}>
-                    <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '16px' }}>Project Mapping</h3>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '12px' }}>
-                      {projects.map(project => (
-                        <label key={project._id} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                          <input
-                            type="checkbox"
-                            checked={formData.projects.includes(project._id)}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setFormData({
-                                  ...formData,
-                                  projects: [...formData.projects, project._id],
-                                });
-                              } else {
-                                setFormData({
-                                  ...formData,
-                                  projects: formData.projects.filter(id => id !== project._id),
-                                });
-                              }
+                    <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '8px' }}>Project Mapping</h3>
+                    <p style={{ fontSize: '13px', color: '#6b7280', marginBottom: '12px' }}>
+                      Select which projects this role can be used in. Users with this role will only have access to the checked projects.
+                    </p>
+                    {(() => {
+                      console.log('🔍 Project Mapping - Projects state:', projects.length, projects);
+                      console.log('🔍 Project Mapping - Editing role:', editingRole?.name, editingRole?.type);
+                      return null;
+                    })()}
+                    {projects.length === 0 ? (
+                      <p style={{ fontSize: '13px', color: '#ef4444', padding: '12px', backgroundColor: '#fef2f2', borderRadius: '6px' }}>
+                        No projects available. Create a project first to map roles.
+                      </p>
+                    ) : (
+                      <div style={{ 
+                        display: 'grid', 
+                        gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', 
+                        gap: '12px',
+                        padding: '16px',
+                        backgroundColor: '#f9fafb',
+                        borderRadius: '6px',
+                        border: '1px solid #e5e7eb'
+                      }}>
+                        {projects.map(project => (
+                          <label 
+                            key={project._id} 
+                            style={{ 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              gap: '10px', 
+                              cursor: 'pointer',
+                              padding: '8px 12px',
+                              backgroundColor: formData.projects.includes(project._id) ? '#eff6ff' : 'white',
+                              borderRadius: '6px',
+                              border: formData.projects.includes(project._id) ? '1px solid #3b82f6' : '1px solid #e5e7eb',
+                              transition: 'all 0.2s'
                             }}
-                          />
-                          <span style={{ fontSize: '14px' }}>{project.name}</span>
-                        </label>
-                      ))}
-                    </div>
+                          >
+                            <input
+                              type="checkbox"
+                              checked={formData.projects.includes(project._id)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setFormData({
+                                    ...formData,
+                                    projects: [...formData.projects, project._id],
+                                  });
+                                } else {
+                                  setFormData({
+                                    ...formData,
+                                    projects: formData.projects.filter(id => id !== project._id),
+                                  });
+                                }
+                              }}
+                              style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                            />
+                            <span style={{ fontSize: '14px', fontWeight: formData.projects.includes(project._id) ? '500' : '400' }}>
+                              {project.name}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                    <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '8px' }}>
+                      {formData.projects.length === 0 ? (
+                        <span style={{ color: '#ef4444' }}>⚠️ No projects selected. This role won't be usable in any project.</span>
+                      ) : (
+                        <span>✓ This role is mapped to {formData.projects.length} project{formData.projects.length > 1 ? 's' : ''}.</span>
+                      )}
+                    </p>
                   </div>
                 )}
 
                 {/* Permissions */}
                 <div>
-                  <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '16px' }}>Permissions</h3>
+                  <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '16px' }}>
+                    Permissions {formData.roleType !== 'custom' && `(${formData.roleType.replace('_', ' ').toUpperCase()} role)`}
+                  </h3>
                   <div style={{ border: '1px solid #e5e7eb', borderRadius: '6px', overflow: 'hidden' }}>
-                    {Object.entries(groupedPermissions).map(([category, modules]) => (
+                    {Object.entries(getFilteredPermissions(groupedPermissions, formData.roleType)).map(([category, modules]) => (
                       <div key={category} style={{ borderBottom: '1px solid #e5e7eb' }}>
                         <button
                           type="button"
@@ -826,7 +987,12 @@ const RBACSetup = () => {
                     type="text"
                     required
                     value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    onChange={(e) => {
+                      const newName = e.target.value;
+                      // Auto-generate code from name
+                      const autoCode = newName.toUpperCase().replace(/\s+/g, '_').replace(/[^A-Z0-9_]/g, '');
+                      setFormData({ ...formData, name: newName, code: autoCode });
+                    }}
                     style={{
                       width: '100%',
                       padding: '8px 12px',
@@ -839,7 +1005,7 @@ const RBACSetup = () => {
 
                 <div style={{ marginBottom: '16px' }}>
                   <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>
-                    Code *
+                    Code * <span style={{ fontSize: '12px', color: '#6b7280', fontWeight: '400' }}>(auto-generated)</span>
                   </label>
                   <input
                     type="text"
@@ -852,7 +1018,9 @@ const RBACSetup = () => {
                       border: '1px solid #d1d5db',
                       borderRadius: '6px',
                       fontSize: '14px',
+                      backgroundColor: '#f9fafb',
                     }}
+                    placeholder="Auto-generated from name"
                   />
                 </div>
 

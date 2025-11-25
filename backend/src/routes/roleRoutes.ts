@@ -18,8 +18,8 @@ router.use(auth);
 
 // @desc    Get all roles
 // @route   GET /api/roles
-// @access  Private (requires permission)
-router.get('/', checkPermission('RBAC_VIEW_ROLES'), getRoles);
+// @access  Private (requires RBAC_VIEW_ROLES OR USER_VIEW_ALL/USER_CREATE for user management)
+router.get('/', checkPermission(['RBAC_VIEW_ROLES', 'USER_VIEW_ALL', 'USER_CREATE']), getRoles);
 
 // @desc    Get master roles
 // @route   GET /api/roles/master

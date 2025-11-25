@@ -8,6 +8,7 @@ import {
   EyeSlashIcon,
   ExclamationCircleIcon,
 } from '@heroicons/react/24/outline';
+import { getFirstAvailableRoute } from '../utils/loginRedirect';
 
 interface ProjectBranding {
   projectId: string;
@@ -46,11 +47,9 @@ const AgentLogin: React.FC = () => {
       });
       const user = response.data.data;
       
-      // If agent, redirect to dashboard
-      if (user.role.code !== 'STUDENT') {
-        navigate(`/${customUrlPath}/portal/dashboard`);
-        return;
-      }
+      // Route protection will handle access control based on permissions
+      const redirectPath = getFirstAvailableRoute(user.role.permissions || []);
+      navigate(`/${customUrlPath}/portal/${redirectPath}`);
     } catch (error) {
       console.error('Token verification failed:', error);
       localStorage.removeItem('authToken');
@@ -87,18 +86,13 @@ const AgentLogin: React.FC = () => {
 
       const { token, user } = response.data.data;
       
-      // Check if user is a student (not allowed)
-      if (user.role.code === 'STUDENT') {
-        setError('Access denied. This portal is for agents only. Please use the student portal.');
-        setLoading(false);
-        return;
-      }
-
-      // Store token
+      // Store token and let route protection handle access control
       localStorage.setItem('authToken', token);
+      localStorage.setItem('userPermissions', JSON.stringify(user.role.permissions || []));
 
-      // Redirect to project-scoped portal
-      navigate(`/${customUrlPath}/portal/dashboard`);
+      // Redirect to first available route based on permissions
+      const redirectPath = getFirstAvailableRoute(user.role.permissions || []);
+      navigate(`/${customUrlPath}/portal/${redirectPath}`);
     } catch (error: any) {
       console.error('Login error:', error);
       setError(

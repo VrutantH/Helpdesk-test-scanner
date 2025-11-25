@@ -50,7 +50,7 @@ const EscalationMatrixPage: React.FC = () => {
   const fetchPolicies = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      const token = localStorage.getItem('authToken');
       console.log('Fetching escalation policies with token:', token ? 'Token exists' : 'No token');
       
       const response = await fetch('http://localhost:3003/api/escalation-policies', {
@@ -86,7 +86,7 @@ const EscalationMatrixPage: React.FC = () => {
   const handleDeletePolicy = async (policy: EscalationPolicy) => {
     if (confirm(`Are you sure you want to delete "${policy.name}"?`)) {
       try {
-        const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+        const token = localStorage.getItem('authToken');
         const policyId = policy._id || policy.policyId;
         const response = await fetch(`http://localhost:3003/api/escalation-policies/${policyId}`, {
           method: 'DELETE',
@@ -112,7 +112,7 @@ const EscalationMatrixPage: React.FC = () => {
 
   const handleToggleStatus = async (policy: EscalationPolicy) => {
     try {
-      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      const token = localStorage.getItem('authToken');
       const policyId = policy._id || policy.policyId;
       const response = await fetch(`http://localhost:3003/api/escalation-policies/${policyId}/toggle-status`, {
         method: 'PATCH',
@@ -136,7 +136,7 @@ const EscalationMatrixPage: React.FC = () => {
 
   const handleSaveMatrix = async (matrixData: any) => {
     try {
-      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      const token = localStorage.getItem('authToken');
       
       // The form data already matches our API structure
       const apiData = {

@@ -211,6 +211,7 @@ const StudentDashboard: React.FC = () => {
       
       if (!token) {
         console.error('❌ No token found in fetchData');
+        setLoading(false);
         navigate(`/${customUrlPath}/submit-ticket`);
         return;
       }
@@ -278,8 +279,9 @@ const StudentDashboard: React.FC = () => {
 
       // Fetch student's tickets
       console.log('🎫 Fetching tickets with Authorization header...');
+      console.log('📦 Project ID:', branding.projectId);
       const ticketsRes = await axios.get(
-        'http://localhost:3003/api/tickets/my-tickets',
+        `http://localhost:3003/api/tickets/my-tickets?projectId=${branding.projectId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -296,7 +298,12 @@ const StudentDashboard: React.FC = () => {
       if (error.response?.status === 401) {
         console.log('🔒 Token invalid (401), clearing and redirecting to student portal');
         localStorage.removeItem('authToken');
-        navigate(`/${customUrlPath}/submit-ticket`);
+        // Show a message if it's a token version mismatch
+        if (error.response?.data?.code === 'TOKEN_VERSION_MISMATCH') {
+          alert('Your permissions have been updated. Please log in again.');
+        }
+        // Redirect to student portal submit-ticket page (which has login button)
+        window.location.href = `/${customUrlPath}/submit-ticket`;
         return;
       }
       

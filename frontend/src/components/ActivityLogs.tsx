@@ -34,7 +34,11 @@ interface ActivityLog {
   metadata?: Record<string, any>;
 }
 
-const ActivityLogs: React.FC = () => {
+interface ActivityLogsProps {
+  wrapWithLayout?: boolean;
+}
+
+const ActivityLogs: React.FC<ActivityLogsProps> = ({ wrapWithLayout = true }) => {
   const [logs, setLogs] = useState<ActivityLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -60,6 +64,10 @@ const ActivityLogs: React.FC = () => {
       setLoading(true);
       const token = localStorage.getItem('authToken');
       
+      // Get projectId if in project portal context
+      const projectContextStr = localStorage.getItem('projectContext');
+      const projectId = projectContextStr ? JSON.parse(projectContextStr).projectId : null;
+      
       const params = new URLSearchParams({
         page: page.toString(),
         limit: limit.toString(),
@@ -67,7 +75,8 @@ const ActivityLogs: React.FC = () => {
         ...(filters.entity && { entity: filters.entity }),
         ...(filters.search && { search: filters.search }),
         ...(filters.startDate && { startDate: filters.startDate }),
-        ...(filters.endDate && { endDate: filters.endDate })
+        ...(filters.endDate && { endDate: filters.endDate }),
+        ...(projectId && { projectId: projectId })
       });
 
       const response = await fetch(`http://localhost:3003/api/activity-logs?${params}`, {
@@ -111,19 +120,21 @@ const ActivityLogs: React.FC = () => {
 
   const totalPages = Math.ceil(total / limit);
 
+  const loadingContent = (
+    <div style={{ padding: '40px', textAlign: 'center' }}>
+      <div>Loading activity logs...</div>
+    </div>
+  );
+
   if (loading && logs.length === 0) {
-    return (
-      <DashboardLayout>
-        <div style={{ padding: '40px', textAlign: 'center' }}>
-          <div>Loading activity logs...</div>
-        </div>
-      </DashboardLayout>
-    );
+    if (wrapWithLayout) {
+      return <DashboardLayout>{loadingContent}</DashboardLayout>;
+    }
+    return loadingContent;
   }
 
-  return (
-    <DashboardLayout>
-      <div style={{ padding: '32px', maxWidth: '1400px', margin: '0 auto' }}>
+  const mainContent = (
+    <div style={{ padding: '32px', maxWidth: '1400px', margin: '0 auto' }}>
         {/* Header */}
         <div style={{ marginBottom: '24px' }}>
           <h1 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: 600 }}>
@@ -738,9 +749,14 @@ const ActivityLogs: React.FC = () => {
             </div>
           </div>
         )}
-      </div>
-    </DashboardLayout>
+    </div>
   );
+
+  if (wrapWithLayout) {
+    return <DashboardLayout>{mainContent}</DashboardLayout>;
+  }
+
+  return mainContent;
 };
 
 export default ActivityLogs;
