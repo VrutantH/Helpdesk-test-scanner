@@ -6,6 +6,7 @@ import * as yup from 'yup';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import axios from 'axios';
 import { getFirstAvailableRoute } from '../utils/loginRedirect';
+import { API_CONFIG } from '../config/constants';
 
 interface LoginFormData {
   email: string;
@@ -67,7 +68,7 @@ const ProjectPortalLogin: React.FC = () => {
     const token = localStorage.getItem('authToken');
     if (token) {
       axios
-        .get('http://localhost:3003/api/auth/me', {
+        .get(`${API_CONFIG.API_URL}/auth/me`, {
           headers: { Authorization: `Bearer ${token}` },
         })
         .then(() => {
@@ -86,7 +87,7 @@ const ProjectPortalLogin: React.FC = () => {
       setBrandingLoading(true);
       setErrorMessage(''); // Clear any previous errors
       const response = await axios.get(
-        `http://localhost:3003/api/projects/branding/${customUrlPath}`,
+        `${API_CONFIG.API_URL}/projects/branding/${customUrlPath}`,)
         {
           headers: {
             'Cache-Control': 'no-cache',
@@ -174,7 +175,7 @@ const ProjectPortalLogin: React.FC = () => {
 
     try {
       const response = await axios.post(
-        `http://localhost:3003/api/auth/project/${customUrlPath}/login`,
+        `${API_CONFIG.API_URL}/auth/project/${customUrlPath}/login`,
         {
           email: data.email,
           password: data.password,

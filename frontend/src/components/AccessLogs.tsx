@@ -72,7 +72,7 @@ const AccessLogs: React.FC<AccessLogsProps> = ({ wrapWithLayout = true }) => {
         ...(projectId && { projectId: projectId })
       });
 
-      const response = await fetch(`http://localhost:3003/api/access-logs?${params}`, {
+      const response = await fetch(`${API_CONFIG.API_URL}/access-logs?${params}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

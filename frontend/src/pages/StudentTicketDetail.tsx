@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { API_CONFIG } from '../config/constants';
 import {
   ArrowLeftIcon,
   PaperClipIcon,
@@ -92,21 +93,21 @@ const StudentTicketDetail: React.FC = () => {
 
       // Fetch branding
       const brandingRes = await axios.get(
-        `http://localhost:3003/api/projects/branding/${customUrlPath}`
+        `${API_CONFIG.API_URL}/projects/branding/${customUrlPath}`
       );
       const brandingData = brandingRes.data.success ? brandingRes.data.data : brandingRes.data;
       setBranding(brandingData);
 
       // Fetch ticket settings
       const settingsRes = await axios.get(
-        `http://localhost:3003/api/projects/${brandingData.projectId}/ticket-settings`
+        `${API_CONFIG.API_URL}/projects/${brandingData.projectId}/ticket-settings`
       );
       const settings = settingsRes.data.success ? settingsRes.data.data : settingsRes.data;
       setTicketSettings(settings);
 
       // Fetch ticket details
       const ticketRes = await axios.get(
-        `http://localhost:3003/api/tickets/${ticketId}`,
+        `${API_CONFIG.API_URL}/tickets/${ticketId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setTicket(ticketRes.data.data);
@@ -149,7 +150,7 @@ const StudentTicketDetail: React.FC = () => {
       });
 
       await axios.post(
-        `http://localhost:3003/api/tickets/${ticketId}/reply`,
+        `${API_CONFIG.API_URL}/tickets/${ticketId}/reply`,
         formData,
         {
           headers: {
@@ -186,7 +187,7 @@ const StudentTicketDetail: React.FC = () => {
     try {
       const token = localStorage.getItem('authToken');
       await axios.patch(
-        `http://localhost:3003/api/tickets/${ticketId}/close`,
+        `${API_CONFIG.API_URL}/tickets/${ticketId}/close`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -332,7 +333,7 @@ const StudentTicketDetail: React.FC = () => {
                     {ticket.attachments.map((file, idx) => (
                       <a
                         key={idx}
-                        href={`http://localhost:3003${file.path}`}
+                        href={`${API_CONFIG.BASE_URL}${file.path}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center space-x-2 text-sm text-blue-600 hover:text-blue-700"
@@ -381,7 +382,7 @@ const StudentTicketDetail: React.FC = () => {
                             {thread.attachments.map((file, idx) => (
                               <a
                                 key={idx}
-                                href={`http://localhost:3003${file.path}`}
+                                href={`${API_CONFIG.BASE_URL}${file.path}`}}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="flex items-center space-x-2 text-sm text-blue-600 hover:text-blue-700"

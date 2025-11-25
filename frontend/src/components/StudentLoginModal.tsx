@@ -54,7 +54,7 @@ export const StudentLoginModal: React.FC<StudentLoginModalProps> = ({
 
     try {
       // Check if user exists
-      const response = await axios.post('http://localhost:3003/api/student-auth/check-user', {
+      const response = await axios.post('${API_CONFIG.API_URL}/student-auth/check-user', {
         email,
       });
 
@@ -71,7 +71,7 @@ export const StudentLoginModal: React.FC<StudentLoginModalProps> = ({
 
       if (needsSetup) {
         // First time user - send OTP
-        await axios.post('http://localhost:3003/api/student-auth/send-otp', { email });
+        await axios.post('${API_CONFIG.API_URL}/student-auth/send-otp', { email });
         setStep('otp');
       } else {
         // Returning user - show password input
@@ -90,7 +90,7 @@ export const StudentLoginModal: React.FC<StudentLoginModalProps> = ({
     setError(null);
 
     try {
-      const response = await axios.post('http://localhost:3003/api/student-auth/verify-otp', {
+      const response = await axios.post('${API_CONFIG.API_URL}/student-auth/verify-otp', {
         email,
         otp,
       });
@@ -124,7 +124,7 @@ export const StudentLoginModal: React.FC<StudentLoginModalProps> = ({
     try {
       console.log('🔐 Setting password for:', email);
       const response = await axios.post(
-        'http://localhost:3003/api/student-auth/set-password',
+        '${API_CONFIG.API_URL}/student-auth/set-password',
         { password, confirmPassword },
         {
           headers: {
@@ -166,7 +166,7 @@ export const StudentLoginModal: React.FC<StudentLoginModalProps> = ({
 
     try {
       console.log('🔐 Attempting login with:', email);
-      const response = await axios.post('http://localhost:3003/api/student-auth/login', {
+      const response = await axios.post('${API_CONFIG.API_URL}/student-auth/login', {
         email,
         password,
       });
@@ -202,7 +202,7 @@ export const StudentLoginModal: React.FC<StudentLoginModalProps> = ({
     setError(null);
 
     try {
-      await axios.post('http://localhost:3003/api/student-auth/send-otp', { email });
+      await axios.post('${API_CONFIG.API_URL}/student-auth/send-otp', { email });
       setError(null);
       // Show success message
       alert('OTP sent successfully!');

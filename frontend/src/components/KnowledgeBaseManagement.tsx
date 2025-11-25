@@ -61,7 +61,7 @@ const KnowledgeBaseManagement: React.FC = () => {
   const fetchProjects = async () => {
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch('http://localhost:3003/api/projects', {
+      const response = await fetch('${API_CONFIG.API_URL}/projects', {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -95,7 +95,7 @@ const KnowledgeBaseManagement: React.FC = () => {
       setLoading(true);
       const token = localStorage.getItem('authToken');
       const response = await fetch(
-        `http://localhost:3003/api/kb/project/${selectedProject}?status=all`,
+        `${API_CONFIG.API_URL}/kb/project/${selectedProject}?status=all`,
         {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -145,8 +145,8 @@ const KnowledgeBaseManagement: React.FC = () => {
     try {
       const token = localStorage.getItem('authToken');
       const url = editingArticle
-        ? `http://localhost:3003/api/kb/${editingArticle._id}`
-        : 'http://localhost:3003/api/kb';
+        ? `${API_CONFIG.API_URL}/kb/${editingArticle._id}`
+        : '${API_CONFIG.API_URL}/kb';
       
       const method = editingArticle ? 'PUT' : 'POST';
       
@@ -183,7 +183,7 @@ const KnowledgeBaseManagement: React.FC = () => {
 
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch(`http://localhost:3003/api/kb/${id}`, {
+      const response = await fetch(`${API_CONFIG.API_URL}/kb/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,

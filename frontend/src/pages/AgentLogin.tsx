@@ -42,7 +42,7 @@ const AgentLogin: React.FC = () => {
 
   const verifyTokenAndRedirect = async (token: string) => {
     try {
-      const response = await axios.get('http://localhost:3003/api/auth/me', {
+      const response = await axios.get('${API_CONFIG.API_URL}/auth/me', {
         headers: { Authorization: `Bearer ${token}` },
       });
       const user = response.data.data;
@@ -61,7 +61,7 @@ const AgentLogin: React.FC = () => {
   const fetchProjectBranding = async () => {
     try {
       const response = await axios.get(
-        `http://localhost:3003/api/projects/branding/${customUrlPath}`
+        `${API_CONFIG.API_URL}/projects/branding/${customUrlPath}`
       );
       const brandingData = response.data.success ? response.data.data : response.data;
       setProjectBranding(brandingData);
@@ -80,7 +80,7 @@ const AgentLogin: React.FC = () => {
 
     try {
       const response = await axios.post(
-        `http://localhost:3003/api/auth/project/${customUrlPath}/login`,
+        `${API_CONFIG.API_URL}/auth/project/${customUrlPath}/login`,
         { email, password }
       );
 

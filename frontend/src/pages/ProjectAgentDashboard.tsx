@@ -110,21 +110,21 @@ const ProjectAgentDashboard: React.FC = () => {
       const token = localStorage.getItem('authToken');
       
       // Fetch user info
-      const userRes = await axios.get('http://localhost:3003/api/auth/me', {
+      const userRes = await axios.get('${API_CONFIG.API_URL}/auth/me', {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUser(userRes.data.data);
 
       // Fetch project branding
       const brandingRes = await axios.get(
-        `http://localhost:3003/api/projects/branding/${customUrlPath}`
+        `${API_CONFIG.API_URL}/projects/branding/${customUrlPath}`
       );
       const brandingData = brandingRes.data.success ? brandingRes.data.data : brandingRes.data;
       setProjectBranding(brandingData);
 
       // Fetch assigned tickets
       const ticketsRes = await axios.get(
-        'http://localhost:3003/api/tickets/agent/assigned',
+        '${API_CONFIG.API_URL}/tickets/agent/assigned',
         {
           headers: { Authorization: `Bearer ${token}` },
           params: { projectId: brandingData.projectId },
@@ -149,7 +149,7 @@ const ProjectAgentDashboard: React.FC = () => {
 
       // Fetch KB articles
       const kbRes = await axios.get(
-        `http://localhost:3003/api/kb/project/${brandingData.projectId}`
+        `${API_CONFIG.API_URL}/kb/project/${brandingData.projectId}`
       );
       const articles = kbRes.data.data || kbRes.data;
       setKbArticles(Array.isArray(articles) ? articles : []);

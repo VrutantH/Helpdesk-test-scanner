@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
+import { API_CONFIG } from '../config/constants';
 import {
   HomeIcon,
   TicketIcon,
@@ -218,7 +219,7 @@ const StudentDashboard: React.FC = () => {
       
       // Fetch project branding
       const brandingRes = await axios.get(
-        `http://localhost:3003/api/projects/branding/${customUrlPath}`
+        `${API_CONFIG.API_URL}/projects/branding/${customUrlPath}`
       );
       const brandingData = brandingRes.data.success ? brandingRes.data.data : brandingRes.data;
       
@@ -251,7 +252,7 @@ const StudentDashboard: React.FC = () => {
 
       // Fetch ticket settings for submit ticket and find center
       const settingsRes = await axios.get(
-        `http://localhost:3003/api/projects/${branding.projectId}/ticket-settings`
+        `${API_CONFIG.API_URL}/projects/${branding.projectId}/ticket-settings`
       );
       const settings = settingsRes.data.success ? settingsRes.data.data : settingsRes.data;
       setTicketSettings(settings);
@@ -264,13 +265,13 @@ const StudentDashboard: React.FC = () => {
       // Fetch KB articles
       try {
         const articlesRes = await axios.get(
-          `http://localhost:3003/api/kb/project/${branding.projectId}`
+          `${API_CONFIG.API_URL}/kb/project/${branding.projectId}`
         );
         setKbArticles(articlesRes.data.data || []);
 
         // Fetch KB categories
         const categoriesRes = await axios.get(
-          `http://localhost:3003/api/kb/project/${branding.projectId}/categories`
+          `${API_CONFIG.API_URL}/kb/project/${branding.projectId}/categories`
         );
         setKbCategories(categoriesRes.data.data || []);
       } catch (kbError) {
@@ -281,7 +282,7 @@ const StudentDashboard: React.FC = () => {
       console.log('🎫 Fetching tickets with Authorization header...');
       console.log('📦 Project ID:', branding.projectId);
       const ticketsRes = await axios.get(
-        `http://localhost:3003/api/tickets/my-tickets?projectId=${branding.projectId}`,
+        `${API_CONFIG.API_URL}/tickets/my-tickets?projectId=${branding.projectId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -451,7 +452,7 @@ const StudentDashboard: React.FC = () => {
         });
       });
 
-      await axios.post('http://localhost:3003/api/tickets/student-submit', formDataToSend, {
+      await axios.post('${API_CONFIG.API_URL}/tickets/student-submit', formDataToSend, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
@@ -593,7 +594,7 @@ const StudentDashboard: React.FC = () => {
       }
 
       // Submit new vote
-      await axios.post(`http://localhost:3003/api/kb/${articleId}/feedback`, { helpful });
+      await axios.post(`${API_CONFIG.API_URL}/kb/${articleId}/feedback`, { helpful });
 
       // Save vote to localStorage
       const updatedVotes: Record<string, 'helpful' | 'not-helpful' | null> = { ...articleVotes, [articleId]: newVoteType };
@@ -657,7 +658,7 @@ const StudentDashboard: React.FC = () => {
     setLoadingTicketDetail(true);
     try {
       const token = localStorage.getItem('authToken');
-      const response = await axios.get(`http://localhost:3003/api/tickets/${ticketId}`, {
+      const response = await axios.get(`${API_CONFIG.API_URL}/tickets/${ticketId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setSelectedTicket(response.data.data);
@@ -698,7 +699,7 @@ const StudentDashboard: React.FC = () => {
       });
 
       await axios.post(
-        `http://localhost:3003/api/tickets/${selectedTicketId}/reply`,
+        `${API_CONFIG.API_URL}/tickets/${selectedTicketId}/reply`,
         formData,
         {
           headers: {
@@ -737,7 +738,7 @@ const StudentDashboard: React.FC = () => {
     try {
       const token = localStorage.getItem('authToken');
       await axios.patch(
-        `http://localhost:3003/api/tickets/${selectedTicketId}/close`,
+        `${API_CONFIG.API_URL}/tickets/${selectedTicketId}/close`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -1415,7 +1416,7 @@ const StudentDashboard: React.FC = () => {
                               {selectedTicket.attachments.map((file, idx) => (
                                 <a
                                   key={idx}
-                                  href={`http://localhost:3003${file.path}`}
+                                  href={`${API_CONFIG.BASE_URL}{file.path}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className="flex items-center space-x-2 text-sm text-blue-600 hover:text-blue-700"
@@ -1464,7 +1465,7 @@ const StudentDashboard: React.FC = () => {
                                       {thread.attachments.map((file, idx) => (
                                         <a
                                           key={idx}
-                                          href={`http://localhost:3003${file.path}`}
+                                          href={`${API_CONFIG.BASE_URL}{file.path}`}
                                           target="_blank"
                                           rel="noopener noreferrer"
                                           className="flex items-center space-x-2 text-sm text-blue-600 hover:text-blue-700"

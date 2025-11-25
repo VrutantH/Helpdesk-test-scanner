@@ -2,6 +2,7 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { API_CONFIG } from '../config/constants';
 import { 
   MdMenu, 
   MdLogout, 
@@ -63,7 +64,7 @@ const ProjectLayout = ({ children, logoutRedirectPath }: ProjectLayoutProps) => 
     const fetchProjectBranding = async () => {
       try {
         if (customUrlPath) {
-          const response = await fetch(`http://localhost:3003/api/projects/branding/${customUrlPath}`);
+          const response = await fetch(`${API_CONFIG.API_URL}/projects/branding/${customUrlPath}`);
           const branding = await response.json();
           setProjectBranding({
             name: branding.name,
@@ -99,7 +100,7 @@ const ProjectLayout = ({ children, logoutRedirectPath }: ProjectLayoutProps) => 
     try {
       const token = localStorage.getItem('authToken');
       
-      await fetch('http://localhost:3003/api/auth/logout', {
+      await fetch(`${API_CONFIG.API_URL}/auth/logout`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

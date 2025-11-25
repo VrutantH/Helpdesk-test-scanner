@@ -108,7 +108,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ hideHeader = false }) => 
 
         // Fetch project branding
         const brandingResponse = await axios.get(
-          `http://localhost:3003/api/projects/branding/${customUrlPath}`
+          `${API_CONFIG.API_URL}/projects/branding/${customUrlPath}`
         );
         
         // Extract branding data from response
@@ -149,7 +149,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ hideHeader = false }) => 
 
         // Fetch ticket submission settings
         const settingsResponse = await axios.get(
-          `http://localhost:3003/api/projects/${branding.projectId}/ticket-settings`
+          `${API_CONFIG.API_URL}/projects/${branding.projectId}/ticket-settings`
         );
         const ticketSettings = settingsResponse.data.success 
           ? settingsResponse.data.data 
@@ -298,7 +298,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ hideHeader = false }) => 
       });
 
       // Submit ticket
-      await axios.post('http://localhost:3003/api/tickets/submit', submitData, {
+      await axios.post('${API_CONFIG.API_URL}/tickets/submit', submitData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
