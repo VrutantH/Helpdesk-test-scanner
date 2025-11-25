@@ -88,8 +88,7 @@ pipelines:
                 echo "=== Checking logs ===" &&
                 pm2 logs helpdesk-backend --lines 20 --nostream &&
                 echo "" &&
-                echo "=== Health Check ===" &&
-                for i in 1 2 3 4 5; do curl -m 3 http://localhost:3003/api/health 2>/dev/null && echo "" && echo "✅ Backend is healthy!" && exit 0 || echo "Attempt $i/5 failed..."; sleep 2; done &&
-                echo "⚠️ Health check failed. Showing PM2 logs:" &&
-                pm2 logs helpdesk-backend --lines 50 --nostream
+                echo "=== Setting up nginx ===" &&
+                cd /home/ubuntu/helpdesk &&
+                bash setup-nginx.sh
               '
