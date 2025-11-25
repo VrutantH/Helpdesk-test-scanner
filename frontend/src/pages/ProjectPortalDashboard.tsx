@@ -44,6 +44,7 @@ interface User {
   role: {
     name: string;
     code: string;
+    permissions?: string[];
   };
 }
 
