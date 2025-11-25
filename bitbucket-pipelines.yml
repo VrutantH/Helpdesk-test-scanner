@@ -42,11 +42,9 @@ pipelines:
           script:
             - echo "Backend Deployment Started"
             - ssh -v ubuntu@34.14.157.13 '
-                set -e &&
                 echo "=== Checking environment ===" &&
                 node -v &&
-                mongo --version || echo "MongoDB CLI not found, checking service..." &&
-                sudo systemctl status mongod --no-pager || sudo systemctl status mongodb --no-pager || echo "MongoDB not running as service" &&
+                mongo --version 2>/dev/null || mongosh --version 2>/dev/null || echo "MongoDB CLI not found" &&
                 echo "" &&
                 echo "=== Pulling latest code ===" &&
                 cd /home/ubuntu/helpdesk &&
@@ -57,12 +55,11 @@ pipelines:
                 echo "=== Building backend ===" &&
                 cd backend &&
                 npm ci &&
-                chmod +x node_modules/.bin/* || true &&
                 npm run build &&
                 echo "" &&
                 echo "=== Setting up deployment directory ===" &&
-                sudo mkdir -p /var/www/helpdesk/backend/uploads &&
-                sudo chown -R ubuntu:ubuntu /var/www/helpdesk || sudo chown -R $USER:$USER /var/www/helpdesk &&
+                mkdir -p /var/www/helpdesk/backend/uploads &&
+                chown -R ubuntu:ubuntu /var/www/helpdesk 2>/dev/null || true &&
                 echo "" &&
                 echo "=== Copying files ===" &&
                 rm -rf /var/www/helpdesk/backend/dist &&
@@ -74,21 +71,17 @@ pipelines:
                 cd /var/www/helpdesk/backend &&
                 npm ci --omit=dev &&
                 echo "" &&
-                echo "=== Starting PM2 ===" &&
-                pm2 kill || true &&
-                sleep 2 &&
-                cd /var/www/helpdesk/backend &&
-                (NODE_ENV=production timeout 10 node dist/server.js > /tmp/backend-test.log 2>&1 &) &&
-                sleep 5 &&
-                echo "Test startup completed, checking logs:" &&
-                cat /tmp/backend-test.log || echo "No errors during startup test" &&
-                echo "" &&
-                echo "Starting with PM2..." &&
+                echo "=== Restarting PM2 ===" &&
+                pm2 delete all 2>/dev/null || true &&
                 pm2 start ecosystem.config.js &&
-                pm2 save --force &&
-                sleep 3 &&
-                pm2 list &&
+                pm2 save &&
+                echo "" &&
+                echo "=== Waiting for startup ===" &&
+                sleep 5 &&
+                pm2 status &&
                 echo "" &&
                 echo "=== Health Check ===" &&
-                curl -m 5 http://localhost:3003/api/health && echo "" && echo "✅ Deployed!" || echo "⚠️ Check PM2 logs: pm2 logs helpdesk-backend"
+                for i in 1 2 3 4 5; do curl -m 3 http://localhost:3003/api/health 2>/dev/null && echo "" && echo "✅ Backend is healthy!" && exit 0 || echo "Attempt $i/5 failed..."; sleep 2; done &&
+                echo "⚠️ Health check failed. Showing PM2 logs:" &&
+                pm2 logs helpdesk-backend --lines 50 --nostream
               '
