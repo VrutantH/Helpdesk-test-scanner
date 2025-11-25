@@ -13,10 +13,12 @@ pipelines:
                 git checkout dev &&
                 git reset --hard origin/dev &&
                 git pull &&
-                npm install &&
+                npm ci &&
                 chmod +x node_modules/.bin/* &&
                 npm run build &&
-                pm2 restart Frontend
+                sudo rm -rf /var/www/helpdesk/frontend/* &&
+                sudo cp -r dist/* /var/www/helpdesk/frontend/ &&
+                echo "Frontend deployed successfully to /var/www/helpdesk/frontend"
               '
 
     deploy-backend:
