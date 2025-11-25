@@ -16,11 +16,16 @@ pipelines:
                 npm ci &&
                 chmod +x node_modules/.bin/* &&
                 npm run build &&
+                echo "Cleaning nginx root..." &&
+                sudo rm -rf /var/www/helpdesk/frontend &&
+                sudo mkdir -p /var/www/helpdesk &&
                 sudo mkdir -p /var/www/helpdesk/frontend &&
-                sudo rm -rf /var/www/helpdesk/frontend/* &&
-                sudo cp -r dist/* /var/www/helpdesk/frontend/ &&
+                echo "Copying files..." &&
+                sudo cp -rv dist/* /var/www/helpdesk/frontend/ &&
                 sudo chown -R www-data:www-data /var/www/helpdesk/frontend &&
-                echo "Frontend deployed successfully to /var/www/helpdesk/frontend"
+                echo "Verifying files..." &&
+                ls -la /var/www/helpdesk/frontend/ &&
+                echo "Frontend deployed successfully!"
               '
 
     deploy-backend:
