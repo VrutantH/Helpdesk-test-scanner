@@ -79,10 +79,10 @@ const RBACSetup = () => {
       const headers = { Authorization: `Bearer ${token}` };
 
       const [rolesRes, permissionsRes, projectsRes, masterRolesRes] = await Promise.all([
-        axios.get('${API_CONFIG.API_URL}/roles', { headers }),
-        axios.get('${API_CONFIG.API_URL}/permissions/grouped', { headers }),
-        axios.get('${API_CONFIG.API_URL}/projects', { headers }),
-        axios.get('${API_CONFIG.API_URL}/roles/master/list', { headers }),
+        axios.get(`${API_CONFIG.API_URL}/roles`, { headers }),
+        axios.get(`${API_CONFIG.API_URL}/permissions/grouped`, { headers }),
+        axios.get(`${API_CONFIG.API_URL}/projects`, { headers }),
+        axios.get(`${API_CONFIG.API_URL}/roles/master/list`, { headers }),
       ]);
 
       setRoles(Array.isArray(rolesRes.data.data) ? rolesRes.data.data : []);
@@ -113,7 +113,7 @@ const RBACSetup = () => {
     try {
       const token = localStorage.getItem('authToken');
       await axios.post(
-        '${API_CONFIG.API_URL}/roles',
+        `${API_CONFIG.API_URL}/roles`,
         formData,
         { headers: { Authorization: `Bearer ${token}` } }
       );

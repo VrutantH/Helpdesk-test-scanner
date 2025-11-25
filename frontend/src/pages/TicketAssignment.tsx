@@ -62,7 +62,7 @@ const TicketAssignment: React.FC<TicketAssignmentProps> = ({ wrapWithLayout = tr
     try {
       const token = localStorage.getItem('authToken');
       // Use my-tickets endpoint which shows all tickets for users with TICKET_VIEW_ALL permission
-      const response = await axios.get('${API_CONFIG.API_URL}/tickets/my-tickets', {
+      const response = await axios.get(`${API_CONFIG.API_URL}/tickets/my-tickets`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -96,7 +96,7 @@ const TicketAssignment: React.FC<TicketAssignmentProps> = ({ wrapWithLayout = tr
       }
       
       // Fetch users and their populated roles
-      const response = await axios.get('${API_CONFIG.API_URL}/users?populate=role', {
+      const response = await axios.get(`${API_CONFIG.API_URL}/users?populate=role`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 

@@ -111,7 +111,7 @@ const ProjectAgentDashboard: React.FC = () => {
       const token = localStorage.getItem('authToken');
       
       // Fetch user info
-      const userRes = await axios.get('${API_CONFIG.API_URL}/auth/me', {
+      const userRes = await axios.get(`${API_CONFIG.API_URL}/auth/me`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUser(userRes.data.data);
@@ -125,7 +125,7 @@ const ProjectAgentDashboard: React.FC = () => {
 
       // Fetch assigned tickets
       const ticketsRes = await axios.get(
-        '${API_CONFIG.API_URL}/tickets/agent/assigned',
+        `${API_CONFIG.API_URL}/tickets/agent/assigned`,
         {
           headers: { Authorization: `Bearer ${token}` },
           params: { projectId: brandingData.projectId },

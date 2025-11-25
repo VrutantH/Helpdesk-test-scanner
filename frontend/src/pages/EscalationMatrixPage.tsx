@@ -54,7 +54,7 @@ const EscalationMatrixPage: React.FC = () => {
       const token = localStorage.getItem('authToken');
       console.log('Fetching escalation policies with token:', token ? 'Token exists' : 'No token');
       
-      const response = await fetch('${API_CONFIG.API_URL}/escalation-policies', {
+      const response = await fetch(`${API_CONFIG.API_URL}/escalation-policies`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -154,7 +154,7 @@ const EscalationMatrixPage: React.FC = () => {
       const isEdit = editingMatrix && editingMatrix._id;
       const url = isEdit 
         ? `${API_CONFIG.API_URL}/escalation-policies/${editingMatrix._id}`
-        : '${API_CONFIG.API_URL}/escalation-policies';
+        : `${API_CONFIG.API_URL}/escalation-policies`;
       const method = isEdit ? 'PUT' : 'POST';
 
       const response = await fetch(url, {

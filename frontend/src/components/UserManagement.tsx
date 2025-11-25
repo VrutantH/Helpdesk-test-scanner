@@ -196,7 +196,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ wrapWithLayout = true }
       // Fetch roles with project filter if in project portal
       const rolesUrl = isProjectPortal && projectContext?.projectId
         ? `${API_CONFIG.API_URL}/roles?projectId=${projectContext.projectId}`
-        : '${API_CONFIG.API_URL}/roles';
+        : `${API_CONFIG.API_URL}/roles`;
       
       const rolesRes = await fetch(rolesUrl, { 
         headers: {
@@ -213,7 +213,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ wrapWithLayout = true }
       
       // Only fetch projects if in super admin portal
       if (!isProjectPortal) {
-        const projectsRes = await fetch('${API_CONFIG.API_URL}/projects', { 
+        const projectsRes = await fetch(`${API_CONFIG.API_URL}/projects`, { 
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
@@ -307,7 +307,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ wrapWithLayout = true }
       setSaving(true);
       const url = editingUser
         ? `${API_CONFIG.API_URL}/users/${editingUser._id}`
-        : '${API_CONFIG.API_URL}/users';
+        : `${API_CONFIG.API_URL}/users`;
       
       const method = editingUser ? 'PUT' : 'POST';
       
@@ -447,7 +447,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ wrapWithLayout = true }
 
         try {
           const token = localStorage.getItem('authToken');
-          const response = await fetch('${API_CONFIG.API_URL}/users', {
+          const response = await fetch(`${API_CONFIG.API_URL}/users`, {
             method: 'POST',
             headers: { 
               'Content-Type': 'application/json',

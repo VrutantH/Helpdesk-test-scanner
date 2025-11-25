@@ -1018,7 +1018,7 @@ const ProjectPortalDashboard = () => {
   const initializePortal = async (token: string) => {
     try {
       // Get user data
-      const userResponse = await axios.get('${API_CONFIG.API_URL}/auth/me', {
+      const userResponse = await axios.get(`${API_CONFIG.API_URL}/auth/me`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const userData = userResponse.data.data;

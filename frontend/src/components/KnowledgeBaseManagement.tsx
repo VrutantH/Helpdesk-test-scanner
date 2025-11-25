@@ -62,7 +62,7 @@ const KnowledgeBaseManagement: React.FC = () => {
   const fetchProjects = async () => {
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch('${API_CONFIG.API_URL}/projects', {
+      const response = await fetch(`${API_CONFIG.API_URL}/projects`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -147,7 +147,7 @@ const KnowledgeBaseManagement: React.FC = () => {
       const token = localStorage.getItem('authToken');
       const url = editingArticle
         ? `${API_CONFIG.API_URL}/kb/${editingArticle._id}`
-        : '${API_CONFIG.API_URL}/kb';
+        : `${API_CONFIG.API_URL}/kb`;
       
       const method = editingArticle ? 'PUT' : 'POST';
       

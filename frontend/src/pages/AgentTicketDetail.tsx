@@ -320,7 +320,7 @@ const AgentTicketDetail: React.FC<AgentTicketDetailProps> = ({ wrapWithLayout = 
 
       // Fetch available tags
       const tagsRes = await axios.get(
-        '${API_CONFIG.API_URL}/tickets/tags',
+        `${API_CONFIG.API_URL}/tickets/tags`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }

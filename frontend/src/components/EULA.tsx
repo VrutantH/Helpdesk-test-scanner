@@ -27,7 +27,7 @@ const EULA = () => {
         return;
       }
       
-      const response = await fetch('${API_CONFIG.API_URL}/auth/eula/accept', {
+      const response = await fetch(`${API_CONFIG.API_URL}/auth/eula/accept`, {
         method: 'POST',
         credentials: 'include',
         headers: {

@@ -452,7 +452,7 @@ const StudentDashboard: React.FC = () => {
         });
       });
 
-      await axios.post('${API_CONFIG.API_URL}/tickets/student-submit', formDataToSend, {
+      await axios.post(`${API_CONFIG.API_URL}/tickets/student-submit`, formDataToSend, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 

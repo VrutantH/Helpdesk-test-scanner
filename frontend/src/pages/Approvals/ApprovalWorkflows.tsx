@@ -19,7 +19,7 @@ type LevelForm = {
   approverType: 'role' | 'designation' | 'region';
 };
 
-const API_BASE = '${API_CONFIG.API_URL}';
+const API_BASE = `${API_CONFIG.API_URL}`;
 
 const createEmptyLevel = (index: number): LevelForm => ({
   tempId: `level-${Date.now()}-${index}`,

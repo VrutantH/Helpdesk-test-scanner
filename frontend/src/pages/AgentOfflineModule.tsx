@@ -263,7 +263,7 @@ const AgentOfflineModule: React.FC<Props> = ({ projectId }) => {
     try {
       const token = localStorage.getItem('authToken');
       const response = await axios.post(
-        '${API_CONFIG.API_URL}/users/register-student',
+        `${API_CONFIG.API_URL}/users/register-student`,
         {
           ...userForm,
           projectId,
@@ -373,7 +373,7 @@ const AgentOfflineModule: React.FC<Props> = ({ projectId }) => {
       }
 
       const response = await axios.post(
-        '${API_CONFIG.API_URL}/tickets/offline-submission',
+        `${API_CONFIG.API_URL}/tickets/offline-submission`,
         formData,
         {
           headers: {

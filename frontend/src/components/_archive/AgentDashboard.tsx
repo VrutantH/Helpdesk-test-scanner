@@ -162,7 +162,7 @@ const AgentDashboard: React.FC = () => {
 
   const fetchUserData = async (token: string) => {
     try {
-      const response = await axios.get('${API_CONFIG.API_URL}/auth/me', {
+      const response = await axios.get(`${API_CONFIG.API_URL}/auth/me`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const userData = response.data.data;
@@ -194,7 +194,7 @@ const AgentDashboard: React.FC = () => {
     try {
       const token = localStorage.getItem('authToken');
       const response = await axios.get(
-        '${API_CONFIG.API_URL}/tickets/agent/assigned',
+        `${API_CONFIG.API_URL}/tickets/agent/assigned`,
         {
           headers: { Authorization: `Bearer ${token}` },
           params: { projectId: projectBranding?.projectId },
@@ -212,7 +212,7 @@ const AgentDashboard: React.FC = () => {
     try {
       const token = localStorage.getItem('authToken');
       const response = await axios.get(
-        '${API_CONFIG.API_URL}/tickets/agent/assigned',
+        `${API_CONFIG.API_URL}/tickets/agent/assigned`,
         {
           headers: { Authorization: `Bearer ${token}` },
           params: { projectId: projectBranding?.projectId },

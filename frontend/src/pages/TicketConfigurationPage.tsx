@@ -36,7 +36,7 @@ const TicketConfigurationPage: React.FC = () => {
         return;
       }
 
-      const response = await fetch('${API_CONFIG.API_URL}/projects?limit=100', {
+      const response = await fetch(`${API_CONFIG.API_URL}/projects?limit=100`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
