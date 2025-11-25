@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import DashboardLayout from './DashboardLayout';
 import { MdAdd, MdEdit, MdDelete, MdSave, MdClose } from 'react-icons/md';
+import { usePermissions } from '../hooks/usePermissions';
+import { PERMISSIONS } from '../constants/permissions';
 
 interface MasterItem {
   _id: string;
@@ -32,6 +34,7 @@ const MASTER_CATEGORIES = [
 ];
 
 const MasterDataManagement = () => {
+  const { hasPermission } = usePermissions();
   const [activeTab, setActiveTab] = useState('countries');
   const [items, setItems] = useState<MasterItem[]>([]);
   const [countries, setCountries] = useState<MasterItem[]>([]);
@@ -524,24 +527,26 @@ const MasterDataManagement = () => {
 
         {/* Add Button */}
         <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'flex-end' }}>
-          <button
-            onClick={handleCreate}
-            style={{
-              padding: '10px 20px',
-              background: 'var(--primary-main)',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              fontWeight: '500',
-            }}
-          >
-            <MdAdd size={20} />
-            Add {currentCategory?.label}
-          </button>
+          {hasPermission(PERMISSIONS.MASTER_DATA_CREATE) && (
+            <button
+              onClick={handleCreate}
+              style={{
+                padding: '10px 20px',
+                background: 'var(--primary-main)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontWeight: '500',
+              }}
+            >
+              <MdAdd size={20} />
+              Add {currentCategory?.label}
+            </button>
+          )}
         </div>
 
         {/* Table */}
@@ -628,12 +633,16 @@ const MasterDataManagement = () => {
                             </span>
                           </td>
                           <td style={{ padding: '12px', textAlign: 'center' }}>
-                            <button onClick={() => handleEdit(item)} style={{ marginRight: '8px', padding: '6px', border: 'none', background: '#dbeafe', color: '#1e40af', borderRadius: '4px', cursor: 'pointer' }}>
-                              <MdEdit size={18} />
-                            </button>
-                            <button onClick={() => handleDelete(item._id)} style={{ padding: '6px', border: 'none', background: '#fee2e2', color: '#991b1b', borderRadius: '4px', cursor: 'pointer' }}>
-                              <MdDelete size={18} />
-                            </button>
+                            {hasPermission(PERMISSIONS.MASTER_DATA_EDIT) && (
+                              <button onClick={() => handleEdit(item)} style={{ marginRight: '8px', padding: '6px', border: 'none', background: '#dbeafe', color: '#1e40af', borderRadius: '4px', cursor: 'pointer' }}>
+                                <MdEdit size={18} />
+                              </button>
+                            )}
+                            {hasPermission(PERMISSIONS.MASTER_DATA_DELETE) && (
+                              <button onClick={() => handleDelete(item._id)} style={{ padding: '6px', border: 'none', background: '#fef2f2', color: '#dc2626', borderRadius: '4px', cursor: 'pointer' }}>
+                                <MdDelete size={18} />
+                              </button>
+                            )}
                           </td>
                         </>
                       )}
@@ -654,12 +663,16 @@ const MasterDataManagement = () => {
                             </span>
                           </td>
                           <td style={{ padding: '12px', textAlign: 'center' }}>
-                            <button onClick={() => handleEdit(item)} style={{ marginRight: '8px', padding: '6px', border: 'none', background: '#dbeafe', color: '#1e40af', borderRadius: '4px', cursor: 'pointer' }}>
-                              <MdEdit size={18} />
-                            </button>
-                            <button onClick={() => handleDelete(item._id)} style={{ padding: '6px', border: 'none', background: '#fee2e2', color: '#991b1b', borderRadius: '4px', cursor: 'pointer' }}>
-                              <MdDelete size={18} />
-                            </button>
+                            {hasPermission(PERMISSIONS.MASTER_DATA_EDIT) && (
+                              <button onClick={() => handleEdit(item)} style={{ marginRight: '8px', padding: '6px', border: 'none', background: '#dbeafe', color: '#1e40af', borderRadius: '4px', cursor: 'pointer' }}>
+                                <MdEdit size={18} />
+                              </button>
+                            )}
+                            {hasPermission(PERMISSIONS.MASTER_DATA_DELETE) && (
+                              <button onClick={() => handleDelete(item._id)} style={{ padding: '6px', border: 'none', background: '#fee2e2', color: '#991b1b', borderRadius: '4px', cursor: 'pointer' }}>
+                                <MdDelete size={18} />
+                              </button>
+                            )}
                           </td>
                         </>
                       )}
@@ -681,12 +694,16 @@ const MasterDataManagement = () => {
                             </span>
                           </td>
                           <td style={{ padding: '12px', textAlign: 'center' }}>
-                            <button onClick={() => handleEdit(item)} style={{ marginRight: '8px', padding: '6px', border: 'none', background: '#dbeafe', color: '#1e40af', borderRadius: '4px', cursor: 'pointer' }}>
-                              <MdEdit size={18} />
-                            </button>
-                            <button onClick={() => handleDelete(item._id)} style={{ padding: '6px', border: 'none', background: '#fee2e2', color: '#991b1b', borderRadius: '4px', cursor: 'pointer' }}>
-                              <MdDelete size={18} />
-                            </button>
+                            {hasPermission(PERMISSIONS.MASTER_DATA_EDIT) && (
+                              <button onClick={() => handleEdit(item)} style={{ marginRight: '8px', padding: '6px', border: 'none', background: '#dbeafe', color: '#1e40af', borderRadius: '4px', cursor: 'pointer' }}>
+                                <MdEdit size={18} />
+                              </button>
+                            )}
+                            {hasPermission(PERMISSIONS.MASTER_DATA_DELETE) && (
+                              <button onClick={() => handleDelete(item._id)} style={{ padding: '6px', border: 'none', background: '#fee2e2', color: '#991b1b', borderRadius: '4px', cursor: 'pointer' }}>
+                                <MdDelete size={18} />
+                              </button>
+                            )}
                           </td>
                         </>
                       )}
@@ -709,12 +726,16 @@ const MasterDataManagement = () => {
                             </span>
                           </td>
                           <td style={{ padding: '12px', textAlign: 'center' }}>
-                            <button onClick={() => handleEdit(item)} style={{ marginRight: '8px', padding: '6px', border: 'none', background: '#dbeafe', color: '#1e40af', borderRadius: '4px', cursor: 'pointer' }}>
-                              <MdEdit size={18} />
-                            </button>
-                            <button onClick={() => handleDelete(item._id)} style={{ padding: '6px', border: 'none', background: '#fee2e2', color: '#991b1b', borderRadius: '4px', cursor: 'pointer' }}>
-                              <MdDelete size={18} />
-                            </button>
+                            {hasPermission(PERMISSIONS.MASTER_DATA_EDIT) && (
+                              <button onClick={() => handleEdit(item)} style={{ marginRight: '8px', padding: '6px', border: 'none', background: '#dbeafe', color: '#1e40af', borderRadius: '4px', cursor: 'pointer' }}>
+                                <MdEdit size={18} />
+                              </button>
+                            )}
+                            {hasPermission(PERMISSIONS.MASTER_DATA_DELETE) && (
+                              <button onClick={() => handleDelete(item._id)} style={{ padding: '6px', border: 'none', background: '#fee2e2', color: '#991b1b', borderRadius: '4px', cursor: 'pointer' }}>
+                                <MdDelete size={18} />
+                              </button>
+                            )}
                           </td>
                         </>
                       )}
@@ -748,12 +769,16 @@ const MasterDataManagement = () => {
                             </span>
                           </td>
                           <td style={{ padding: '12px', textAlign: 'center' }}>
-                            <button onClick={() => handleEdit(item)} style={{ marginRight: '8px', padding: '6px', border: 'none', background: '#dbeafe', color: '#1e40af', borderRadius: '4px', cursor: 'pointer' }}>
-                              <MdEdit size={18} />
-                            </button>
-                            <button onClick={() => handleDelete(item._id)} style={{ padding: '6px', border: 'none', background: '#fee2e2', color: '#991b1b', borderRadius: '4px', cursor: 'pointer' }}>
-                              <MdDelete size={18} />
-                            </button>
+                            {hasPermission(PERMISSIONS.MASTER_DATA_EDIT) && (
+                              <button onClick={() => handleEdit(item)} style={{ marginRight: '8px', padding: '6px', border: 'none', background: '#dbeafe', color: '#1e40af', borderRadius: '4px', cursor: 'pointer' }}>
+                                <MdEdit size={18} />
+                              </button>
+                            )}
+                            {hasPermission(PERMISSIONS.MASTER_DATA_DELETE) && (
+                              <button onClick={() => handleDelete(item._id)} style={{ padding: '6px', border: 'none', background: '#fee2e2', color: '#991b1b', borderRadius: '4px', cursor: 'pointer' }}>
+                                <MdDelete size={18} />
+                              </button>
+                            )}
                           </td>
                         </>
                       )}

@@ -10,6 +10,7 @@ import {
   resetPassword,
   getMe,
 } from '../controllers/authController';
+import { refreshPermissions } from '../controllers/permissionController';
 import { auth, authMiddleware } from '../middleware/auth';
 
 const router = Router();
@@ -27,6 +28,11 @@ router.post('/login', authRateLimit, [
 // @route   GET /api/auth/me
 // @access  Private
 router.get('/me', authMiddleware, getMe);
+
+// @desc    Refresh user permissions
+// @route   POST /api/auth/refresh-permissions
+// @access  Private
+router.post('/refresh-permissions', authMiddleware, refreshPermissions);
 
 // @desc    Logout user
 // @route   POST /api/auth/logout

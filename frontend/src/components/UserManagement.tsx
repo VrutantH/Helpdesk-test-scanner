@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import DashboardLayout from './DashboardLayout';
 import { getText } from '../utils/language';
+import { usePermissions } from '../hooks/usePermissions';
 
 
 interface Role {
@@ -45,8 +46,13 @@ interface HRMSEmployee {
   designation: string;
 }
 
-const UserManagement: React.FC = () => {
+interface UserManagementProps {
+  wrapWithLayout?: boolean; // If false, renders content only without DashboardLayout
+}
+
+const UserManagement: React.FC<UserManagementProps> = ({ wrapWithLayout = true }) => {
   const { i18n } = useTranslation();
+  const { hasPermission } = usePermissions();
   
   // State management
   const [users, setUsers] = useState<User[]>([]);
@@ -63,6 +69,10 @@ const UserManagement: React.FC = () => {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [showCredentialsModal, setShowCredentialsModal] = useState(false);
   const [selectedUserForCredentials, setSelectedUserForCredentials] = useState<User | null>(null);
+  const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
+  const [resetPasswordUser, setResetPasswordUser] = useState<User | null>(null);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   
   // Form data
   const [formData, setFormData] = useState({
@@ -92,6 +102,45 @@ const UserManagement: React.FC = () => {
   
   const [saving, setSaving] = useState(false);
 
+  // Helper function to get default password based on user
+  const getDefaultPassword = (user: User | null): string => {
+    if (!user) return 'Welcome@123';
+    
+    // Check by email for specific users
+    if (user.email === 'niraj.mishra1010@gmail.com') {
+      return 'agent@123';
+    }
+    if (user.email === 'priya.sharma@sacreativeservices.com') {
+      return 'agent@123';
+    }
+    if (user.email === 'subhangi.mathur@sacreativeservices.com') {
+      return 'centermanager@123';
+    }
+    if (user.email === 'subhangi.mathur@hubblehox.com') {
+      return 'centermanager@123';
+    }
+    if (user.email === 'admin@sacreativeservices.com') {
+      return 'admin@123';
+    }
+    if (user.email === 'admin@sac.com') {
+      return 'Admin@123';
+    }
+    
+    // Check by role code for general role-based defaults
+    if (user.role?.code === 'AGENT') {
+      return 'agent@123';
+    }
+    if (user.role?.code === 'CENTER_MANAGER') {
+      return 'centermanager@123';
+    }
+    if (user.role?.code === 'SUPER_ADMIN') {
+      return 'admin@123';
+    }
+    
+    // Default fallback
+    return 'Welcome@123';
+  };
+
   // Fetch users
   const fetchUsers = async () => {
     try {
@@ -100,6 +149,11 @@ const UserManagement: React.FC = () => {
       if (searchQuery) params.append('search', searchQuery);
       if (filterRole) params.append('role', filterRole);
       if (filterStatus) params.append('isActive', filterStatus);
+      
+      // Get projectId if in project portal context
+      const projectContextStr = localStorage.getItem('projectContext');
+      const projectId = projectContextStr ? JSON.parse(projectContextStr).projectId : null;
+      if (projectId) params.append('project', projectId); // Backend uses 'project' not 'projectId'
       
       const token = localStorage.getItem('authToken');
       const response = await fetch(`http://localhost:3003/api/users?${params}`, {
@@ -132,29 +186,51 @@ const UserManagement: React.FC = () => {
   const fetchRolesAndProjects = async () => {
     try {
       const token = localStorage.getItem('authToken');
-      const [rolesRes, projectsRes] = await Promise.all([
-        fetch('http://localhost:3003/api/roles', { 
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        }),
-        fetch('http://localhost:3003/api/projects', { 
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        }),
-      ]);
+      
+      // Check if we're in project portal context
+      const projectContextStr = localStorage.getItem('projectContext');
+      const isProjectPortal = !!projectContextStr;
+      const projectContext = projectContextStr ? JSON.parse(projectContextStr) : null;
+      
+      // Fetch roles with project filter if in project portal
+      const rolesUrl = isProjectPortal && projectContext?.projectId
+        ? `http://localhost:3003/api/roles?projectId=${projectContext.projectId}`
+        : 'http://localhost:3003/api/roles';
+      
+      const rolesRes = await fetch(rolesUrl, { 
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
       
       const rolesData = await rolesRes.json();
-      const projectsData = await projectsRes.json();
       
       if (rolesData.success && Array.isArray(rolesData.data)) {
         setRoles(rolesData.data);
       }
-      if (projectsData.success && projectsData.data && Array.isArray(projectsData.data.projects)) {
-        setProjects(projectsData.data.projects);
+      
+      // Only fetch projects if in super admin portal
+      if (!isProjectPortal) {
+        const projectsRes = await fetch('http://localhost:3003/api/projects', { 
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        const projectsData = await projectsRes.json();
+        
+        if (projectsData.success && projectsData.data && Array.isArray(projectsData.data.projects)) {
+          setProjects(projectsData.data.projects);
+        }
+      } else {
+        // In project portal, set the current project from context
+        setProjects([{
+          _id: projectContext.projectId,
+          name: projectContext.projectName,
+          code: projectContext.projectCode,
+        }]);
       }
     } catch (error) {
       console.error('Error fetching roles/projects:', error);
@@ -476,6 +552,50 @@ const UserManagement: React.FC = () => {
     }
   };
 
+  // Handle reset password
+  const handleResetPassword = async () => {
+    if (!resetPasswordUser) return;
+
+    // Validation
+    if (!newPassword || newPassword.length < 6) {
+      alert(getText('Password must be at least 6 characters long', 'पासवर्ड किमान 6 वर्णांचा असणे आवश्यक आहे', 'पासवर्ड किमान 6 वर्णांचा असणे आवश्यक आहे'));
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      alert(getText('Passwords do not match', 'पासवर्ड जुळत नाहीत', 'पासवर्ड जुळत नाहीत'));
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('authToken');
+      const response = await fetch(`http://localhost:3003/api/users/${resetPasswordUser._id}/reset-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        credentials: 'include',
+        body: JSON.stringify({ newPassword }),
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        alert(getText('Password reset successfully!', 'पासवर्ड यशस्वीरित्या रीसेट केला!', 'पासवर्ड यशस्वीरित्या रीसेट केला!'));
+        setShowResetPasswordModal(false);
+        setResetPasswordUser(null);
+        setNewPassword('');
+        setConfirmPassword('');
+      } else {
+        alert(data.error || 'Failed to reset password');
+      }
+    } catch (error) {
+      console.error('Error resetting password:', error);
+      alert('Failed to reset password');
+    }
+  };
+
   const handleAssignRole = async (userId: string, roleId: string) => {
     if (!roleId) return;
     
@@ -508,41 +628,45 @@ const UserManagement: React.FC = () => {
   const filteredUsers = users;
 
   if (loading) {
-    return (
-      <DashboardLayout>
+    const loadingContent = (
+      <div style={{ 
+        padding: '80px 40px', 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        minHeight: '400px',
+        background: '#F9FAFB',
+      }}>
         <div style={{ 
-          padding: '80px 40px', 
-          display: 'flex', 
-          justifyContent: 'center', 
-          alignItems: 'center', 
-          minHeight: '400px',
-          background: '#F9FAFB',
+          textAlign: 'center',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '16px',
         }}>
-          <div style={{ 
-            textAlign: 'center',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '16px',
+          <div style={{
+            width: '48px',
+            height: '48px',
+            border: '3px solid #E5E7EB',
+            borderTop: '3px solid #2563EB',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite',
+          }}></div>
+          <p style={{ 
+            color: '#6B7280', 
+            fontSize: '14px',
+            margin: 0,
+            fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
           }}>
-            <div style={{
-              width: '48px',
-              height: '48px',
-              border: '3px solid #E5E7EB',
-              borderTop: '3px solid #2563EB',
-              borderRadius: '50%',
-              animation: 'spin 1s linear infinite',
-            }}></div>
-            <p style={{ 
-              color: '#6B7280', 
-              fontSize: '14px',
-              margin: 0,
-              fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
-            }}>
-              {getText('Loading users...', 'वापरकर्ते लोड करत आहे...', 'वापरकर्ते लोड करत आहे...')}
-            </p>
-          </div>
+            {getText('Loading users...', 'वापरकर्ते लोड करत आहे...', 'वापरकर्ते लोड करत आहे...')}
+          </p>
         </div>
+      </div>
+    );
+
+    return wrapWithLayout ? (
+      <DashboardLayout>
+        {loadingContent}
         <style>{`
           @keyframes spin {
             0% { transform: rotate(0deg); }
@@ -550,19 +674,28 @@ const UserManagement: React.FC = () => {
           }
         `}</style>
       </DashboardLayout>
+    ) : (
+      <>
+        {loadingContent}
+        <style>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+      </>
     );
   }
 
-  return (
-    <DashboardLayout>
-      <div style={{ 
-        padding: '32px 24px', 
-        maxWidth: '1440px', 
-        margin: '0 auto',
-        background: '#F9FAFB',
-        minHeight: '100vh',
-        fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
-      }}>
+  const mainContent = (
+    <div style={{ 
+      padding: '32px 24px', 
+      maxWidth: '1440px', 
+      margin: '0 auto',
+      background: '#F9FAFB',
+      minHeight: '100vh',
+      fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
+    }}>
         {/* Header */}
         <div style={{ marginBottom: '24px' }}>
           <h1 style={{ 
@@ -706,43 +839,46 @@ const UserManagement: React.FC = () => {
           </div>
 
           <div style={{ display: 'flex', gap: '12px' }}>
-            <button
-              onClick={() => setShowHRMSModal(true)}
-              style={{ 
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '10px 16px',
-                background: '#10b981',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                fontSize: '14px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                boxShadow: '0 2px 6px rgba(16, 185, 129, 0.24)',
-                transition: 'all 0.2s ease',
-                fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
-                outline: 'none',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = '#059669';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.32)';
-                e.currentTarget.style.transform = 'translateY(-1px)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = '#10b981';
-                e.currentTarget.style.boxShadow = '0 2px 6px rgba(16, 185, 129, 0.24)';
-                e.currentTarget.style.transform = 'translateY(0)';
-              }}
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                <polyline points="7 10 12 15 17 10"/>
-                <line x1="12" y1="15" x2="12" y2="3"/>
-              </svg>
+            {hasPermission('USER_CREATE') && (
+              <button
+                onClick={() => setShowHRMSModal(true)}
+                style={{ 
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '10px 16px',
+                  background: '#10b981',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 6px rgba(16, 185, 129, 0.24)',
+                  transition: 'all 0.2s ease',
+                  fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
+                  outline: 'none',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = '#059669';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.32)';
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = '#10b981';
+                  e.currentTarget.style.boxShadow = '0 2px 6px rgba(16, 185, 129, 0.24)';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
               {getText('Add from HRMS', 'HRMS मधून जोडा', 'HRMS मधून जोडा')}
             </button>
+            )}
+            {hasPermission('USER_CREATE') && (
             <button
               onClick={handleOpenCreateModal}
               style={{ 
@@ -779,6 +915,7 @@ const UserManagement: React.FC = () => {
               </svg>
               {getText('Create User', 'वापरकर्ता तयार करा', 'वापरकर्ता तयार करा')}
             </button>
+            )}
           </div>
         </div>
 
@@ -1065,13 +1202,13 @@ const UserManagement: React.FC = () => {
                           display: 'inline-block', 
                           width: '44px', 
                           height: '24px',
-                          cursor: user.role?.code === 'SUPER_ADMIN' ? 'not-allowed' : 'pointer',
+                          cursor: hasPermission('USER_EDIT') ? 'pointer' : 'not-allowed',
                         }}>
                           <input
                             type="checkbox"
                             checked={user.isActive}
                             onChange={() => handleToggleStatus(user._id)}
-                            disabled={user.role?.code === 'SUPER_ADMIN'}
+                            disabled={!hasPermission('USER_EDIT')}
                             style={{ 
                               opacity: 0, 
                               width: 0, 
@@ -1088,7 +1225,7 @@ const UserManagement: React.FC = () => {
                             backgroundColor: user.isActive ? '#10B981' : '#D1D5DB',
                             borderRadius: '24px',
                             transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                            opacity: user.role?.code === 'SUPER_ADMIN' ? 0.5 : 1,
+                            opacity: hasPermission('USER_EDIT') ? 1 : 0.5,
                           }}>
                             <span style={{
                               position: 'absolute',
@@ -1120,69 +1257,73 @@ const UserManagement: React.FC = () => {
                     </td>
                     <td style={{ padding: '16px 24px' }}>
                       <div style={{ display: 'flex', gap: '8px' }}>
-                        <button
-                          onClick={() => handleEditUser(user)}
-                          style={{
-                            padding: '8px',
-                            width: '36px',
-                            height: '36px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            background: 'white',
-                            border: '1.5px solid #E5E7EB',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            transition: 'all 0.15s ease',
-                            outline: 'none',
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background = '#EFF6FF';
-                            e.currentTarget.style.borderColor = '#2563EB';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.background = 'white';
-                            e.currentTarget.style.borderColor = '#E5E7EB';
-                          }}
-                          title={getText('Edit', 'संपादित करा', 'संपादित करा')}
-                        >
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                          </svg>
-                        </button>
-                        <button
-                          onClick={() => handleViewCredentials(user)}
-                          style={{
-                            padding: '8px',
-                            width: '36px',
-                            height: '36px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            background: 'white',
-                            border: '1.5px solid #E5E7EB',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            transition: 'all 0.15s ease',
-                            outline: 'none',
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background = '#F0FDF4';
-                            e.currentTarget.style.borderColor = '#10B981';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.background = 'white';
-                            e.currentTarget.style.borderColor = '#E5E7EB';
-                          }}
-                          title={getText('View Credentials', 'क्रेडेन्शियल पहा', 'क्रेडेन्शियल पहा')}
-                        >
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                            <circle cx="12" cy="12" r="3"/>
-                          </svg>
-                        </button>
-                        {user.role?.code !== 'SUPER_ADMIN' && (
+                        {hasPermission('USER_EDIT') && (
+                          <button
+                            onClick={() => handleEditUser(user)}
+                            style={{
+                              padding: '8px',
+                              width: '36px',
+                              height: '36px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              background: 'white',
+                              border: '1.5px solid #E5E7EB',
+                              borderRadius: '8px',
+                              cursor: 'pointer',
+                              transition: 'all 0.15s ease',
+                              outline: 'none',
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = '#EFF6FF';
+                              e.currentTarget.style.borderColor = '#2563EB';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = 'white';
+                              e.currentTarget.style.borderColor = '#E5E7EB';
+                            }}
+                            title={getText('Edit', 'संपादित करा', 'संपादित करा')}
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                            </svg>
+                          </button>
+                        )}
+                        {hasPermission('USER_VIEW_ALL') && (
+                          <button
+                            onClick={() => handleViewCredentials(user)}
+                            style={{
+                              padding: '8px',
+                              width: '36px',
+                              height: '36px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              background: 'white',
+                              border: '1.5px solid #E5E7EB',
+                              borderRadius: '8px',
+                              cursor: 'pointer',
+                              transition: 'all 0.15s ease',
+                              outline: 'none',
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = '#F0FDF4';
+                              e.currentTarget.style.borderColor = '#10B981';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = 'white';
+                              e.currentTarget.style.borderColor = '#E5E7EB';
+                            }}
+                            title={getText('View Credentials', 'क्रेडेन्शियल पहा', 'क्रेडेन्शियल पहा')}
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                              <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                          </button>
+                        )}
+                        {hasPermission('USER_DELETE') && (
                           <button
                             onClick={() => handleDeleteUser(user._id)}
                             style={{
@@ -1851,7 +1992,7 @@ const UserManagement: React.FC = () => {
                       {selectedUserForCredentials.projects.map((project) => {
                         const projectData = projects.find(p => p._id === project._id);
                         const customPath = (projectData as any)?.branding?.customUrlPath || project.name.toLowerCase().replace(/\s+/g, '');
-                        const loginUrl = `${window.location.origin}/${customPath}`;
+                        const loginUrl = `${window.location.origin}/${customPath}/portal/login`;
                         
                         return (
                           <div key={project._id} style={{
@@ -1954,10 +2095,10 @@ const UserManagement: React.FC = () => {
                     justifyContent: 'space-between',
                     gap: '12px'
                   }}>
-                    <span>Welcome@123</span>
+                    <span>{getDefaultPassword(selectedUserForCredentials)}</span>
                     <button
                       onClick={() => {
-                        navigator.clipboard.writeText('Welcome@123');
+                        navigator.clipboard.writeText(getDefaultPassword(selectedUserForCredentials));
                         alert(getText('Password copied to clipboard!', 'पासवर्ड क्लिपबोर्डवर कॉपी केले!', 'पासवर्ड क्लिपबोर्डवर कॉपी केले!'));
                       }}
                       style={{
@@ -1983,7 +2124,7 @@ const UserManagement: React.FC = () => {
                   marginBottom: '20px'
                 }}>
                   <p style={{ fontSize: '12px', color: '#1E40AF', margin: 0, lineHeight: '1.5' }}>
-                    ℹ️ {getText('Development Phase: Default password is "Welcome@123". Users can change it after first login.', 'विकास टप्पा: डीफॉल्ट पासवर्ड "Welcome@123" आहे. वापरकर्ते पहिल्या लॉगिननंतर ते बदलू शकतात.', 'विकास टप्पा: डीफॉल्ट पासवर्ड "Welcome@123" आहे. वापरकर्ते पहिल्या लॉगिननंतर ते बदलू शकतात.')}
+                    ℹ️ {getText(`Development Phase: Default password is "${getDefaultPassword(selectedUserForCredentials)}". Users can change it after first login.`, `विकास टप्पा: डीफॉल्ट पासवर्ड "${getDefaultPassword(selectedUserForCredentials)}" आहे. वापरकर्ते पहिल्या लॉगिननंतर ते बदलू शकतात.`, `विकास टप्पा: डीफॉल्ट पासवर्ड "${getDefaultPassword(selectedUserForCredentials)}" आहे. वापरकर्ते पहिल्या लॉगिननंतर ते बदलू शकतात.`)}
                   </p>
                 </div>
 
@@ -2008,12 +2149,162 @@ const UserManagement: React.FC = () => {
                   >
                     {getText('Close', 'बंद करा', 'बंद करा')}
                   </button>
+                  {hasPermission('USER_RESET_PASSWORD') && (
+                    <button
+                      onClick={() => {
+                        setShowCredentialsModal(false);
+                        setResetPasswordUser(selectedUserForCredentials);
+                        setShowResetPasswordModal(true);
+                        setSelectedUserForCredentials(null);
+                        setNewPassword('');
+                        setConfirmPassword('');
+                      }}
+                      style={{
+                        flex: 1,
+                        padding: '12px',
+                        border: 'none',
+                        borderRadius: '8px',
+                        background: 'linear-gradient(135deg, #2563EB 0%, #1d4ed8 100%)',
+                        color: 'white',
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {getText('Reset Password', 'पासवर्ड रीसेट करा', 'पासवर्ड रीसेट करा')}
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Reset Password Modal */}
+        {showResetPasswordModal && resetPasswordUser && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '20px'
+          }}>
+            <div style={{
+              backgroundColor: 'white',
+              borderRadius: '12px',
+              maxWidth: '450px',
+              width: '100%',
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+            }}>
+              {/* Header */}
+              <div style={{
+                padding: '24px',
+                borderBottom: '1px solid #e5e7eb'
+              }}>
+                <h3 style={{
+                  fontSize: '18px',
+                  fontWeight: '600',
+                  color: '#111827',
+                  margin: 0
+                }}>
+                  {getText('Reset Password', 'पासवर्ड रीसेट करा', 'पासवर्ड रीसेट करा')}
+                </h3>
+                <p style={{
+                  fontSize: '14px',
+                  color: '#6B7280',
+                  margin: '8px 0 0 0'
+                }}>
+                  {getText('Set new password for', 'यासाठी नवीन पासवर्ड सेट करा', 'यासाठी नवीन पासवर्ड सेट करा')}: {resetPasswordUser.firstName} {resetPasswordUser.lastName}
+                </p>
+              </div>
+
+              {/* Form */}
+              <div style={{ padding: '24px' }}>
+                <div style={{ marginBottom: '16px' }}>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    color: '#374151',
+                    marginBottom: '6px'
+                  }}>
+                    {getText('New Password', 'नवीन पासवर्ड', 'नवीन पासवर्ड')} <span style={{ color: '#ef4444' }}>*</span>
+                  </label>
+                  <input
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder={getText('Enter new password (min. 6 characters)', 'नवीन पासवर्ड एंटर करा (किमान 6 वर्ण)', 'नवीन पासवर्ड एंटर करा (किमान 6 वर्ण)')}
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    color: '#374151',
+                    marginBottom: '6px'
+                  }}>
+                    {getText('Confirm Password', 'पासवर्डची पुष्टी करा', 'पासवर्डची पुष्टी करा')} <span style={{ color: '#ef4444' }}>*</span>
+                  </label>
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder={getText('Re-enter new password', 'नवीन पासवर्ड पुन्हा एंटर करा', 'नवीन पासवर्ड पुन्हा एंटर करा')}
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+
+                {/* Action Buttons */}
+                <div style={{ display: 'flex', gap: '12px' }}>
                   <button
                     onClick={() => {
-                      setShowCredentialsModal(false);
-                      handleEditUser(selectedUserForCredentials);
-                      setSelectedUserForCredentials(null);
+                      setShowResetPasswordModal(false);
+                      setResetPasswordUser(null);
+                      setNewPassword('');
+                      setConfirmPassword('');
                     }}
+                    style={{
+                      flex: 1,
+                      padding: '12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '8px',
+                      backgroundColor: 'white',
+                      color: '#374151',
+                      fontSize: '14px',
+                      fontWeight: '600',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {getText('Cancel', 'रद्द करा', 'रद्द करा')}
+                  </button>
+                  <button
+                    onClick={handleResetPassword}
                     style={{
                       flex: 1,
                       padding: '12px',
@@ -2033,9 +2324,14 @@ const UserManagement: React.FC = () => {
             </div>
           </div>
         )}
-      </div>
-    </DashboardLayout>
+    </div>
   );
+
+  if (wrapWithLayout) {
+    return <DashboardLayout>{mainContent}</DashboardLayout>;
+  }
+  
+  return mainContent;
 };
 
 export default UserManagement;

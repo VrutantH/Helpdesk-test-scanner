@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { authMiddleware } from '../middleware/auth';
+import { checkPermission } from '../middleware/permissions';
 import {
   getAllActivityLogs,
   getActivityLogById,
@@ -16,22 +17,22 @@ router.use(authMiddleware);
 // @desc    Get all activity logs with filters
 // @route   GET /api/activity-logs
 // @access  Private (Admin/Superadmin)
-router.get('/', getAllActivityLogs);
+router.get('/', checkPermission('AUDIT_VIEW_ACTIVITY'), getAllActivityLogs);
 
 // @desc    Get activity log statistics
 // @route   GET /api/activity-logs/stats
 // @access  Private (Admin/Superadmin)
-router.get('/stats', getActivityStats);
+router.get('/stats', checkPermission('AUDIT_VIEW_ACTIVITY'), getActivityStats);
 
 // @desc    Export activity logs
 // @route   GET /api/activity-logs/export
 // @access  Private (Admin/Superadmin)
-router.get('/export', exportActivityLogs);
+router.get('/export', checkPermission('AUDIT_EXPORT'), exportActivityLogs);
 
 // @desc    Get single activity log by ID
 // @route   GET /api/activity-logs/:id
 // @access  Private (Admin/Superadmin)
-router.get('/:id', getActivityLogById);
+router.get('/:id', checkPermission('AUDIT_VIEW_ACTIVITY'), getActivityLogById);
 
 // @desc    Create activity log
 // @route   POST /api/activity-logs

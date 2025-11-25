@@ -55,7 +55,7 @@ export const getAllUsers = async (req: Request, res: Response): Promise<void> =>
     const [users, total] = await Promise.all([
       User.find(filter)
         .select('-password -resetPasswordOTP -resetPasswordOTPExpires')
-        .populate('role', 'name code')
+        .populate('role', 'name code isAgent')
         .populate('projects', 'name code')
         .populate('reportingManager', 'firstName lastName email employeeCode')
         .sort({ createdAt: -1 })
@@ -369,7 +369,16 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
         });
         return;
       }
+      
+      // Check if role is actually changing
+      const roleChanged = user.role.toString() !== role.toString();
       user.role = role;
+      
+      // Increment token version to invalidate existing tokens when role changes
+      if (roleChanged) {
+        console.log(`🔄 Role changed for user ${user.email}. Incrementing token version.`);
+        await user.incrementTokenVersion();
+      }
     }
 
     // Sync from HRMS if requested
@@ -440,14 +449,16 @@ export const deleteUser = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    // Don't allow deleting super admin
-    await user.populate('role', 'code type');
-    if ((user.role as any).code === 'SUPER_ADMIN') {
-      res.status(403).json({
-        success: false,
-        error: 'Cannot delete Super Admin user',
-      });
-      return;
+    // Don't allow deleting super admin - check if user has a role first
+    if (user.role) {
+      await user.populate('role', 'code type');
+      if ((user.role as any)?.code === 'SUPER_ADMIN') {
+        res.status(403).json({
+          success: false,
+          error: 'Cannot delete Super Admin user',
+        });
+        return;
+      }
     }
 
     await User.findByIdAndDelete(id);

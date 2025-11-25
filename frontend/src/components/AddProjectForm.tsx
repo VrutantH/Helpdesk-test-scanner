@@ -63,15 +63,6 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
     announcementBannerMessage: '',
     announcementBannerType: 'plain' as 'plain' | 'rich',
     
-    // Auto Suggest Articles
-    autoSuggestArticles: true,
-    
-    // Ticket Settings
-    restrictTicketEditing: false,
-    restrictCcUsersFromUpdating: false,
-    allowUnauthenticatedTickets: false,
-    allowEndUsersToCloseTickets: true,
-    
     // Ticket Assignment Settings
     enableAutoAssignment: false,
     assignmentType: 'manual' as 'round-robin' | 'load-balanced' | 'manual' | 'condition-based',
@@ -302,32 +293,85 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
     roleId?: string; 
     projects?: string[] 
   }>>([]);
-  const [roles, setRoles] = useState<Array<{ _id: string; name: string; code: string; projectId?: string; projects?: string[]; type?: string }>>([]);
+  const [roles, setRoles] = useState<Array<{ 
+    _id: string; 
+    name: string; 
+    code: string; 
+    projectId?: string; 
+    projects?: string[]; 
+    type?: string;
+    isActive?: boolean;
+    permissions?: Array<{ _id: string; code: string; name: string }> | string[];
+    isAgent?: boolean;
+  }>>([]);
   const [agentRoleId, setAgentRoleId] = useState<string>('');
 
-  // Computed: Filter roles for current project
-  // Shows: System roles + Roles mapped to this specific project
+  // Computed: Filter roles for current project  
   const projectRoles = roles.filter(role => {
-    // System roles (like SuperAdmin) are available to all projects
-    if (role.type === 'system') return true;
+    // Get project ID from either _id or id field
+    const projectId = project?._id || project?.id;
     
-    // When creating new project, show all custom roles
-    if (!project?._id) return true;
+    // When creating new project, show all active roles for selection
+    if (!projectId) return role.isActive !== false;
     
-    // For existing project, show roles mapped to this project
-    if (role.projects && Array.isArray(role.projects)) {
-      return role.projects.includes(project._id);
+    // For existing projects, show ALL active roles (not just mapped ones)
+    // This allows mapping roles during project edit
+    return role.isActive !== false;
+  });
+  
+  // Computed: Check which roles are actually mapped to this project
+  const getMappedStatus = (role: any) => {
+    const projectId = project?._id || project?.id;
+    if (!projectId) return false;
+    
+    if (role.projects && Array.isArray(role.projects) && role.projects.length > 0) {
+      return role.projects.some((p: any) => String(p) === String(projectId));
     }
     
-    // Backward compatibility: check old projectId field
-    return role.projectId === project._id;
-  });
+    if (role.projectId) {
+      return String(role.projectId) === String(projectId);
+    }
+    
+    return false;
+  };
+  
+  // Helper: Check if role has TICKET_ASSIGN permission
+  const hasAssignTicketPermission = (role: any) => {
+    if (!role.permissions || !Array.isArray(role.permissions)) return false;
+    
+    return role.permissions.some((perm: any) => {
+      const permCode = typeof perm === 'string' ? perm : perm.code;
+      return permCode === 'TICKET_ASSIGN';
+    });
+  };
+  
+  // Computed: Filter roles that can manually assign tickets (have TICKET_ASSIGN permission)
+  const rolesWithAssignPermission = projectRoles.filter(role => hasAssignTicketPermission(role));
 
   // DEBUG: Log roles data
   useEffect(() => {
+    console.log('🔍 DEBUG - Full Project Object:', project);
     console.log('🔍 DEBUG - Roles State:', roles.length, roles);
     console.log('🔍 DEBUG - Project ID:', project?._id);
+    console.log('🔍 DEBUG - Project id (lowercase):', project?.id);
+    console.log('🔍 DEBUG - Project ID Type:', typeof project?._id);
+    const actualProjectId = project?._id || project?.id;
+    console.log('🔍 DEBUG - Actual Project ID to use:', actualProjectId);
+    roles.forEach(role => {
+      console.log(`   Role: ${role.name}, Type: ${role.type}, Projects:`, role.projects, 'ProjectId:', role.projectId);
+      if (role.projects && Array.isArray(role.projects)) {
+        console.log(`      Projects array length:`, role.projects.length);
+        console.log(`      Projects types:`, role.projects.map(p => typeof p));
+        role.projects.forEach((p, i) => {
+          console.log(`      Project[${i}]:`, p, '| String:', String(p), '| Match:', String(p) === String(actualProjectId));
+        });
+      }
+      if (role.projectId) {
+        console.log(`      ProjectId match:`, String(role.projectId) === String(actualProjectId));
+      }
+    });
     console.log('🔍 DEBUG - Filtered ProjectRoles:', projectRoles.length, projectRoles);
+    console.log('🔍 DEBUG - ProjectRoles names:', projectRoles.map(r => r.name));
   }, [roles, project, projectRoles]);
 
   // Computed: Filter users mapped to current project
@@ -366,12 +410,15 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
           'Authorization': `Bearer ${token}`,
         };
         
+        // Fetch ALL roles regardless of project - let client-side filter handle it
+        const rolesUrl = `${API_BASE_URL}/roles`;
+        
         const [countriesRes, statesRes, citiesRes, usersRes, rolesRes] = await Promise.all([
           fetch(`${API_BASE_URL}/masters/countries`, { headers, credentials: 'include' }),
           fetch(`${API_BASE_URL}/masters/states`, { headers, credentials: 'include' }),
           fetch(`${API_BASE_URL}/masters/cities`, { headers, credentials: 'include' }),
           fetch(`${API_BASE_URL}/users`, { headers, credentials: 'include' }),
-          fetch(`${API_BASE_URL}/roles`, { headers, credentials: 'include' })
+          fetch(rolesUrl, { headers, credentials: 'include' })
         ]);
 
         const [countries, statesData, citiesData, usersData, rolesData] = await Promise.all([
@@ -388,10 +435,9 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
         if (usersData.success) setUsers(usersData.data);
         if (rolesData.success) {
           console.log('🔍 DEBUG - Roles API Response:', rolesData.data);
+          console.log('🔍 DEBUG - Total roles fetched:', rolesData.data.length);
           setRoles(rolesData.data);
-          // Find Agent role ID
-          const agentRole = rolesData.data.find((r: any) => r.code === 'AGENT' || r.name.toLowerCase() === 'agent');
-          if (agentRole) setAgentRoleId(agentRole._id);
+          // Role IDs no longer needed for filtering - permissions handle access control
         }
       } catch (error) {
         console.error('Error fetching master data:', error);
@@ -399,7 +445,7 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
     };
 
     fetchMasterData();
-  }, []);
+  }, []); // Only fetch once on mount
 
   // Update form data when project changes (for edit mode)
   useEffect(() => {
@@ -429,15 +475,6 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
         announcementBannerMessage: project?.configuration?.announcementBanner?.message || '',
         announcementBannerType: project?.configuration?.announcementBanner?.type || 'plain',
         
-        // Auto Suggest Articles
-        autoSuggestArticles: project?.configuration?.autoSuggestArticles ?? true,
-        
-        // Ticket Settings
-        restrictTicketEditing: project?.configuration?.ticketSettings?.restrictEditing ?? false,
-        restrictCcUsersFromUpdating: project?.configuration?.ticketSettings?.restrictCcUsers ?? false,
-        allowUnauthenticatedTickets: project?.configuration?.ticketSettings?.allowUnauthenticated ?? false,
-        allowEndUsersToCloseTickets: project?.configuration?.ticketSettings?.allowEndUsersToClose ?? true,
-        
         // Ticket Assignment Settings
         enableAutoAssignment: project?.configuration?.ticketAssignmentSettings?.enabled ?? false,
         assignmentType: project?.configuration?.ticketAssignmentSettings?.assignmentType || 'manual',
@@ -466,22 +503,9 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
         inlineImageAttachment: project?.configuration?.fileSettings?.inlineImageAttachment ?? false,
         attachFilesToEmails: project?.configuration?.fileSettings?.attachToEmails ?? false,
         
-        // Google Tag Manager
-        googleTagManagerId: project?.configuration?.googleTagManagerId || '',
-        
         // Login Settings
         enableFormLogin: project?.configuration?.loginSettings?.enableFormLogin ?? true,
         enableGoogleRecaptcha: project?.configuration?.loginSettings?.enableGoogleRecaptcha ?? false,
-        socialLogins: {
-          google: project?.configuration?.loginSettings?.socialLogins?.google ?? false,
-          facebook: project?.configuration?.loginSettings?.socialLogins?.facebook ?? false,
-          microsoft: project?.configuration?.loginSettings?.socialLogins?.microsoft ?? false
-        },
-        ssoSettings: {
-          oauth20: project?.configuration?.loginSettings?.ssoSettings?.oauth20 ?? false,
-          openIdConnect: project?.configuration?.loginSettings?.ssoSettings?.openIdConnect ?? false,
-          jwt: project?.configuration?.loginSettings?.ssoSettings?.jwt ?? false
-        },
         
         // Security Settings
         allowUserSignup: project?.configuration?.securitySettings?.allowUserSignup ?? true,
@@ -688,13 +712,6 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
             message: formData.announcementBannerMessage,
             type: formData.announcementBannerType
           },
-          autoSuggestArticles: formData.autoSuggestArticles,
-          ticketSettings: {
-            restrictEditing: formData.restrictTicketEditing,
-            restrictCcUsers: formData.restrictCcUsersFromUpdating,
-            allowUnauthenticated: formData.allowUnauthenticatedTickets,
-            allowEndUsersToClose: formData.allowEndUsersToCloseTickets
-          },
           ticketAssignmentSettings: {
             enabled: formData.enableAutoAssignment,
             assignmentType: formData.assignmentType,
@@ -729,12 +746,9 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
             privacyPolicy: formData.privacyPolicyUrl,
             cookiePolicy: formData.cookiePolicyUrl
           },
-          googleTagManagerId: formData.googleTagManagerId,
           loginSettings: {
             enableFormLogin: formData.enableFormLogin,
-            enableGoogleRecaptcha: formData.enableGoogleRecaptcha,
-            socialLogins: formData.socialLogins,
-            ssoSettings: formData.ssoSettings
+            enableGoogleRecaptcha: formData.enableGoogleRecaptcha
           },
           securitySettings: {
             allowUserSignup: formData.allowUserSignup,
@@ -781,9 +795,13 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
 
       const method = project ? 'PUT' : 'POST';
 
+      const token = localStorage.getItem('authToken');
       const response = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         credentials: 'include',
         body: JSON.stringify(projectData),
       });
@@ -1684,144 +1702,6 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
                 />
               </div>
 
-              {/* Auto Suggest Articles */}
-              <div>
-                <label style={{
-                  display: 'block',
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  color: '#1f2937',
-                  marginBottom: '12px'
-                }}>
-                  Auto Suggest Articles
-                </label>
-                <label style={{ display: 'flex', alignItems: 'flex-start', cursor: 'pointer', gap: '8px' }}>
-                  <input
-                    type="checkbox"
-                    checked={formData.autoSuggestArticles}
-                    onChange={(e) => setFormData({ ...formData, autoSuggestArticles: e.target.checked })}
-                    style={{ width: '16px', height: '16px', cursor: 'pointer', marginTop: '2px' }}
-                  />
-                  <div>
-                    <span style={{ fontSize: '14px', color: '#374151', display: 'block' }}>
-                      Allow article suggestions during ticket creation
-                    </span>
-                    <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px', marginBottom: 0 }}>
-                      When the knowledge base module and these settings are enabled, the system will automatically suggest the top 5 most relevant knowledge base articles when a user types a subject for a ticket in the customer portal ticket creation page.
-                    </p>
-                  </div>
-                </label>
-              </div>
-
-              {/* Ticket Update Settings */}
-              <div>
-                <label style={{
-                  display: 'block',
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  color: '#1f2937',
-                  marginBottom: '12px'
-                }}>
-                  Ticket Update Settings
-                </label>
-                
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <label style={{ display: 'flex', alignItems: 'flex-start', cursor: 'pointer', gap: '8px' }}>
-                    <input
-                      type="checkbox"
-                      checked={formData.restrictTicketEditing}
-                      onChange={(e) => setFormData({ ...formData, restrictTicketEditing: e.target.checked })}
-                      style={{ width: '16px', height: '16px', cursor: 'pointer', marginTop: '2px' }}
-                    />
-                    <div>
-                      <span style={{ fontSize: '14px', color: '#374151', display: 'block' }}>
-                        Restrict ticket editing in the customer portal
-                      </span>
-                      <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px', marginBottom: 0 }}>
-                        When enabled, users will be unable to edit titles, delete replies, or remove attachments after ticket creation.
-                      </p>
-                    </div>
-                  </label>
-
-                  <label style={{ display: 'flex', alignItems: 'flex-start', cursor: 'pointer', gap: '8px' }}>
-                    <input
-                      type="checkbox"
-                      checked={formData.restrictCcUsersFromUpdating}
-                      onChange={(e) => setFormData({ ...formData, restrictCcUsersFromUpdating: e.target.checked })}
-                      style={{ width: '16px', height: '16px', cursor: 'pointer', marginTop: '2px' }}
-                    />
-                    <div>
-                      <span style={{ fontSize: '14px', color: '#374151', display: 'block' }}>
-                        Restrict cc users from updating tickets via the customer portal
-                      </span>
-                      <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px', marginBottom: 0 }}>
-                        If enabled, cc users will be restricted from adding replies to tickets in the customer portal.
-                      </p>
-                    </div>
-                  </label>
-                </div>
-              </div>
-
-              {/* Ticket Creation Settings */}
-              <div>
-                <label style={{
-                  display: 'block',
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  color: '#1f2937',
-                  marginBottom: '12px'
-                }}>
-                  Ticket Creation Settings
-                </label>
-                
-                <label style={{ display: 'flex', alignItems: 'flex-start', cursor: 'pointer', gap: '8px' }}>
-                  <input
-                    type="checkbox"
-                    checked={formData.allowUnauthenticatedTickets}
-                    onChange={(e) => setFormData({ ...formData, allowUnauthenticatedTickets: e.target.checked })}
-                    style={{ width: '16px', height: '16px', cursor: 'pointer', marginTop: '2px' }}
-                  />
-                  <div>
-                    <span style={{ fontSize: '14px', color: '#374151', display: 'block' }}>
-                      Allow unauthenticated users to create tickets
-                    </span>
-                    <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px', marginBottom: 0 }}>
-                      When enabled, the ticket creation form will be accessible without requiring a login, allowing anonymous users to submit tickets.
-                    </p>
-                  </div>
-                </label>
-              </div>
-
-              {/* Ticket Closure Settings */}
-              <div>
-                <label style={{
-                  display: 'block',
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  color: '#1f2937',
-                  marginBottom: '12px'
-                }}>
-                  Ticket Closure Settings
-                </label>
-                
-                <label style={{ display: 'flex', alignItems: 'flex-start', cursor: 'pointer', gap: '8px' }}>
-                  <input
-                    type="checkbox"
-                    checked={formData.allowEndUsersToCloseTickets}
-                    onChange={(e) => setFormData({ ...formData, allowEndUsersToCloseTickets: e.target.checked })}
-                    style={{ width: '16px', height: '16px', cursor: 'pointer', marginTop: '2px' }}
-                  />
-                  <div>
-                    <span style={{ fontSize: '14px', color: '#374151', display: 'block' }}>
-                      Allow end-users to close tickets through customer portal
-                    </span>
-                    <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px', marginBottom: 0 }}>
-                      If enabled, customers will be able to close their own tickets. If disabled, only agents or automation will be able to close tickets.
-                    </p>
-                  </div>
-                </label>
-              </div>
-
               {/* File Download Settings */}
               <div>
                 <label style={{
@@ -1932,39 +1812,6 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
                   </div>
                 </label>
               </div>
-
-              {/* Google Tag Manager ID */}
-              <div>
-                <label style={{
-                  display: 'block',
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  color: '#1f2937',
-                  marginBottom: '4px'
-                }}>
-                  Google Tag Manager ID
-                </label>
-                <p style={{ fontSize: '13px', color: '#6b7280', marginBottom: '8px' }}>
-                  A Google Tag Manager ID will be added to all pages in the customer portal. Refer to{' '}
-                  <a href="#" style={{ color: '#a855f7', textDecoration: 'none' }}>this guide</a> to generate the tag ID.
-                </p>
-                <input
-                  type="text"
-                  value={formData.googleTagManagerId}
-                  onChange={(e) => setFormData({ ...formData, googleTagManagerId: e.target.value })}
-                  placeholder="Eg: GTM-XXXXXXX"
-                  style={{
-                    width: '100%',
-                    maxWidth: '400px',
-                    padding: '10px 12px',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '6px',
-                    fontSize: '14px',
-                    outline: 'none',
-                    boxSizing: 'border-box'
-                  }}
-                />
-              </div>
             </div>
           )}
 
@@ -2074,303 +1921,6 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
                         Enabling this option allows users to verify with Google reCAPTCHA during sign up and sign in.
                       </p>
                     </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Social Logins Section */}
-              <div>
-                <h3 style={{
-                  fontSize: '16px',
-                  fontWeight: '600',
-                  color: '#1f2937',
-                  marginBottom: '4px'
-                }}>
-                  Social Logins
-                </h3>
-                <p style={{
-                  fontSize: '13px',
-                  color: '#6b7280',
-                  marginBottom: '16px'
-                }}>
-                  Allow customers to login using their social accounts
-                </p>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    padding: '14px 16px',
-                    backgroundColor: '#ffffff',
-                    borderRadius: '6px',
-                    border: '1px solid #e5e7eb'
-                  }}>
-                    <input
-                      type="checkbox"
-                      checked={formData.socialLogins.google}
-                      onChange={(e) => setFormData({
-                        ...formData,
-                        socialLogins: { ...formData.socialLogins, google: e.target.checked }
-                      })}
-                      style={{
-                        width: '18px',
-                        height: '18px',
-                        cursor: 'pointer'
-                      }}
-                    />
-                    <label style={{
-                      fontSize: '14px',
-                      fontWeight: '500',
-                      color: '#1f2937',
-                      cursor: 'pointer',
-                      flex: 1
-                    }}>
-                      Google
-                    </label>
-                  </div>
-
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    padding: '14px 16px',
-                    backgroundColor: '#ffffff',
-                    borderRadius: '6px',
-                    border: '1px solid #e5e7eb'
-                  }}>
-                    <input
-                      type="checkbox"
-                      checked={formData.socialLogins.facebook}
-                      onChange={(e) => setFormData({
-                        ...formData,
-                        socialLogins: { ...formData.socialLogins, facebook: e.target.checked }
-                      })}
-                      style={{
-                        width: '18px',
-                        height: '18px',
-                        cursor: 'pointer'
-                      }}
-                    />
-                    <label style={{
-                      fontSize: '14px',
-                      fontWeight: '500',
-                      color: '#1f2937',
-                      cursor: 'pointer',
-                      flex: 1
-                    }}>
-                      Facebook
-                    </label>
-                  </div>
-
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    padding: '14px 16px',
-                    backgroundColor: '#ffffff',
-                    borderRadius: '6px',
-                    border: '1px solid #e5e7eb'
-                  }}>
-                    <input
-                      type="checkbox"
-                      checked={formData.socialLogins.microsoft}
-                      onChange={(e) => setFormData({
-                        ...formData,
-                        socialLogins: { ...formData.socialLogins, microsoft: e.target.checked }
-                      })}
-                      style={{
-                        width: '18px',
-                        height: '18px',
-                        cursor: 'pointer'
-                      }}
-                    />
-                    <label style={{
-                      fontSize: '14px',
-                      fontWeight: '500',
-                      color: '#1f2937',
-                      cursor: 'pointer',
-                      flex: 1
-                    }}>
-                      Microsoft
-                    </label>
-                  </div>
-                </div>
-              </div>
-
-              {/* Single Sign-On Section */}
-              <div>
-                <h3 style={{
-                  fontSize: '16px',
-                  fontWeight: '600',
-                  color: '#1f2937',
-                  marginBottom: '4px'
-                }}>
-                  Single Sign-on
-                </h3>
-                <p style={{
-                  fontSize: '13px',
-                  color: '#6b7280',
-                  marginBottom: '16px'
-                }}>
-                  Configure your single sign-on (SSO) method using information from your identity provider.
-                </p>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '16px',
-                    backgroundColor: '#ffffff',
-                    borderRadius: '6px',
-                    border: '1px solid #e5e7eb'
-                  }}>
-                    <label style={{
-                      fontSize: '14px',
-                      fontWeight: '500',
-                      color: '#1f2937'
-                    }}>
-                      OAuth 2.0
-                    </label>
-                    <label style={{ position: 'relative', display: 'inline-block', width: '48px', height: '24px' }}>
-                      <input
-                        type="checkbox"
-                        checked={formData.ssoSettings.oauth20}
-                        onChange={(e) => setFormData({
-                          ...formData,
-                          ssoSettings: { ...formData.ssoSettings, oauth20: e.target.checked }
-                        })}
-                        style={{ opacity: 0, width: 0, height: 0 }}
-                      />
-                      <span style={{
-                        position: 'absolute',
-                        cursor: 'pointer',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        backgroundColor: formData.ssoSettings.oauth20 ? 'var(--primary-main)' : 'var(--border-default)',
-                        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                        borderRadius: '24px'
-                      }}>
-                        <span style={{
-                          position: 'absolute',
-                          content: '""',
-                          height: '18px',
-                          width: '18px',
-                          left: formData.ssoSettings.oauth20 ? '26px' : '3px',
-                          bottom: '3px',
-                          backgroundColor: 'white',
-                          transition: '0.3s',
-                          borderRadius: '50%'
-                        }}></span>
-                      </span>
-                    </label>
-                  </div>
-
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '16px',
-                    backgroundColor: '#ffffff',
-                    borderRadius: '6px',
-                    border: '1px solid #e5e7eb'
-                  }}>
-                    <label style={{
-                      fontSize: '14px',
-                      fontWeight: '500',
-                      color: '#1f2937'
-                    }}>
-                      OpenID Connect
-                    </label>
-                    <label style={{ position: 'relative', display: 'inline-block', width: '48px', height: '24px' }}>
-                      <input
-                        type="checkbox"
-                        checked={formData.ssoSettings.openIdConnect}
-                        onChange={(e) => setFormData({
-                          ...formData,
-                          ssoSettings: { ...formData.ssoSettings, openIdConnect: e.target.checked }
-                        })}
-                        style={{ opacity: 0, width: 0, height: 0 }}
-                      />
-                      <span style={{
-                        position: 'absolute',
-                        cursor: 'pointer',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        backgroundColor: formData.ssoSettings.openIdConnect ? 'var(--primary-main)' : 'var(--border-default)',
-                        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                        borderRadius: '24px'
-                      }}>
-                        <span style={{
-                          position: 'absolute',
-                          content: '""',
-                          height: '18px',
-                          width: '18px',
-                          left: formData.ssoSettings.openIdConnect ? '26px' : '3px',
-                          bottom: '3px',
-                          backgroundColor: 'white',
-                          transition: '0.3s',
-                          borderRadius: '50%'
-                        }}></span>
-                      </span>
-                    </label>
-                  </div>
-
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '16px',
-                    backgroundColor: '#ffffff',
-                    borderRadius: '6px',
-                    border: '1px solid #e5e7eb'
-                  }}>
-                    <label style={{
-                      fontSize: '14px',
-                      fontWeight: '500',
-                      color: '#1f2937'
-                    }}>
-                      JWT
-                    </label>
-                    <label style={{ position: 'relative', display: 'inline-block', width: '48px', height: '24px' }}>
-                      <input
-                        type="checkbox"
-                        checked={formData.ssoSettings.jwt}
-                        onChange={(e) => setFormData({
-                          ...formData,
-                          ssoSettings: { ...formData.ssoSettings, jwt: e.target.checked }
-                        })}
-                        style={{ opacity: 0, width: 0, height: 0 }}
-                      />
-                      <span style={{
-                        position: 'absolute',
-                        cursor: 'pointer',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        backgroundColor: formData.ssoSettings.jwt ? 'var(--primary-main)' : 'var(--border-default)',
-                        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                        borderRadius: '24px'
-                      }}>
-                        <span style={{
-                          position: 'absolute',
-                          content: '""',
-                          height: '18px',
-                          width: '18px',
-                          left: formData.ssoSettings.jwt ? '26px' : '3px',
-                          bottom: '3px',
-                          backgroundColor: 'white',
-                          transition: '0.3s',
-                          borderRadius: '50%'
-                        }}></span>
-                      </span>
-                    </label>
                   </div>
                 </div>
               </div>
@@ -2885,43 +2435,18 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
                   color: '#1f2937',
                   marginBottom: '12px'
                 }}>
-                  Automatic Ticket Assignment
+                  Ticket Assignment
                 </label>
                 
-                <label style={{
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: '12px',
-                  cursor: 'pointer',
-                  marginBottom: '16px'
-                }}>
-                  <input
-                    type="checkbox"
-                    checked={formData.enableAutoAssignment}
-                    onChange={(e) => setFormData({ ...formData, enableAutoAssignment: e.target.checked })}
-                    style={{
-                      marginTop: '4px',
-                      width: '18px',
-                      height: '18px',
-                      cursor: 'pointer'
-                    }}
-                  />
-                  <div>
-                    <span style={{ fontSize: '14px', fontWeight: '500', color: '#1f2937' }}>
-                      Enable automatic ticket assignment
-                    </span>
-                    <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#6b7280', lineHeight: '1.5' }}>
-                      When enabled, new tickets from student portal will be automatically assigned to agents based on the selected algorithm
-                    </p>
-                  </div>
-                </label>
+                <p style={{ margin: '0 0 16px 0', fontSize: '13px', color: '#6b7280', lineHeight: '1.5' }}>
+                  Configure how tickets should be assigned to agents in your project.
+                </p>
 
-                {formData.enableAutoAssignment && (
-                  <div style={{
-                    marginLeft: '24px',
-                    paddingLeft: '20px',
-                    borderLeft: '3px solid #3b82f6'
-                  }}>
+                <div style={{
+                  marginLeft: '24px',
+                  paddingLeft: '20px',
+                  borderLeft: '3px solid #3b82f6'
+                }}>
                     {/* Assignment Method */}
                     <div style={{ marginBottom: '20px' }}>
                       <label style={{
@@ -2946,8 +2471,7 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
                         }}
                       >
                         <option value="manual">Manual Assignment (No auto-assignment)</option>
-                        <option value="round-robin">Round Robin (Rotate equally among agents)</option>
-                        <option value="condition-based">Condition Based (Assign based on ticket category)</option>
+                        <option value="round-robin">Round Robin (Auto-assign to agents)</option>
                       </select>
                       
                       {/* Dynamic description based on selected method */}
@@ -2961,484 +2485,108 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
                         lineHeight: '1.5'
                       }}>
                         {formData.assignmentType === 'manual' && (
-                          <span>ℹ️ Tickets will not be automatically assigned. Agents must manually claim or be assigned tickets.</span>
+                          <span>ℹ️ Tickets will not be automatically assigned. Users with "assign ticket" permission can assign tickets to agents in the project.</span>
                         )}
                         {formData.assignmentType === 'round-robin' && (
-                          <span>✓ Tickets will be distributed equally among eligible agents in a rotating sequence. Each agent gets one ticket before the cycle repeats.</span>
-                        )}
-                        {formData.assignmentType === 'condition-based' && (
-                          <span>✓ Tickets will be assigned to specific agents based on ticket category. Define rules below to map categories to agents.</span>
+                          <span>✓ Tickets will be automatically assigned to agents (roles marked as "Agent Role") in a rotating sequence. Each agent gets one ticket before the cycle repeats.</span>
                         )}
                       </div>
                     </div>
 
-                    {/* Eligible Agents - by Roles (Only for Round Robin) */}
+                    {/* Round Robin - Info Box */}
                     {formData.assignmentType === 'round-robin' && (
                       <div style={{ marginBottom: '20px' }}>
-                        <label style={{
-                          display: 'block',
-                          fontSize: '14px',
-                          fontWeight: '500',
-                          color: '#1f2937',
-                          marginBottom: '8px'
-                        }}>
-                          Eligible Roles for Assignment
-                        </label>
-                        <input
-                          type="text"
-                          value={formData.assignToRoles.join(', ')}
-                          onChange={(e) => {
-                            const roles = e.target.value
-                              .split(',')
-                              .map(r => r.trim())
-                              .filter(r => r.length > 0);
-                            setFormData({ ...formData, assignToRoles: roles });
-                          }}
-                          placeholder="Enter role names (comma-separated): Agent, Support, Technician"
-                          style={{
-                            width: '100%',
-                            padding: '10px 12px',
-                            border: '1px solid #d1d5db',
-                            borderRadius: '6px',
-                            fontSize: '14px'
-                          }}
-                        />
-                        <p style={{ margin: '6px 0 0 0', fontSize: '12px', color: '#6b7280' }}>
-                          Only users with these roles will be eligible for automatic assignment. Leave empty to include all agents.
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Manual Assignment Permissions */}
-                    {formData.assignmentType === 'manual' && (
-                      <div style={{ marginBottom: '20px' }}>
                         <div style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          marginBottom: '12px'
-                        }}>
-                          <label style={{
-                            fontSize: '14px',
-                            fontWeight: '500',
-                            color: '#1f2937'
-                          }}>
-                            Assignment Permissions
-                          </label>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setFormData({
-                                ...formData,
-                                manualAssignmentPermissions: [
-                                  ...formData.manualAssignmentPermissions,
-                                  {
-                                    roleId: '',
-                                    canAssignToRoles: []
-                                  }
-                                ]
-                              });
-                            }}
-                            style={{
-                              padding: '8px 16px',
-                              backgroundColor: '#3b82f6',
-                              color: 'white',
-                              border: 'none',
-                              borderRadius: '6px',
-                              fontSize: '13px',
-                              fontWeight: '500',
-                              cursor: 'pointer'
-                            }}
-                          >
-                            + Add Permission
-                          </button>
-                        </div>
-
-                        <div style={{
-                          padding: '12px',
-                          backgroundColor: '#eff6ff',
+                          padding: '16px',
+                          backgroundColor: '#ecfdf5',
+                          border: '1px solid #10b981',
                           borderRadius: '6px',
                           fontSize: '13px',
-                          color: '#1e40af',
-                          marginBottom: '16px'
+                          color: '#065f46',
+                          lineHeight: '1.6'
                         }}>
-                          💡 Define which roles can assign tickets to which other roles. For example: Center Manager can assign to L1, L2, L3 agents.
+                          ✓ <strong>Auto-assignment enabled:</strong> Tickets will be automatically assigned to agents in a rotating sequence.
+                          <br/>
+                          <br/>
+                          Agents are identified by roles marked as "Agent Role" in RBAC Setup. Only users with agent roles mapped to this project will receive auto-assigned tickets.
                         </div>
-
-                        {formData.manualAssignmentPermissions.length === 0 ? (
-                          <div style={{
-                            padding: '20px',
-                            backgroundColor: '#fef3c7',
-                            border: '1px solid #fbbf24',
-                            borderRadius: '6px',
-                            textAlign: 'center',
-                            fontSize: '13px',
-                            color: '#92400e'
-                          }}>
-                            ⚠️ No permissions defined. By default, all roles can assign to anyone.
-                          </div>
-                        ) : (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                            {formData.manualAssignmentPermissions.map((perm, permIndex) => (
-                              <div key={permIndex} style={{
-                                padding: '16px',
-                                backgroundColor: '#f9fafb',
-                                border: '1px solid #e5e7eb',
-                                borderRadius: '6px'
-                              }}>
-                                <div style={{
-                                  display: 'flex',
-                                  justifyContent: 'space-between',
-                                  alignItems: 'center',
-                                  marginBottom: '12px'
-                                }}>
-                                  <span style={{ fontSize: '13px', fontWeight: '600', color: '#4b5563' }}>
-                                    Permission {permIndex + 1}
-                                  </span>
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setFormData({
-                                        ...formData,
-                                        manualAssignmentPermissions: formData.manualAssignmentPermissions.filter((_, i) => i !== permIndex)
-                                      });
-                                    }}
-                                    style={{
-                                      padding: '6px 12px',
-                                      backgroundColor: '#ef4444',
-                                      color: 'white',
-                                      border: 'none',
-                                      borderRadius: '4px',
-                                      fontSize: '12px',
-                                      cursor: 'pointer'
-                                    }}
-                                  >
-                                    Remove
-                                  </button>
-                                </div>
-
-                                {/* Role that can assign */}
-                                <div style={{ marginBottom: '12px' }}>
-                                  <label style={{
-                                    display: 'block',
-                                    fontSize: '12px',
-                                    fontWeight: '500',
-                                    color: '#6b7280',
-                                    marginBottom: '6px'
-                                  }}>
-                                    Role (Who can assign tickets)
-                                  </label>
-                                  <select
-                                    value={perm.roleId}
-                                    onChange={(e) => {
-                                      const newPerms = [...formData.manualAssignmentPermissions];
-                                      newPerms[permIndex].roleId = e.target.value;
-                                      setFormData({ ...formData, manualAssignmentPermissions: newPerms });
-                                    }}
-                                    style={{
-                                      width: '100%',
-                                      padding: '8px 12px',
-                                      border: '1px solid #d1d5db',
-                                      borderRadius: '4px',
-                                      fontSize: '13px',
-                                      backgroundColor: 'white'
-                                    }}
-                                  >
-                                    <option value="">Select a role...</option>
-                                    {projectRoles.map((role) => (
-                                      <option key={role._id} value={role._id}>
-                                        {role.name}
-                                      </option>
-                                    ))}
-                                  </select>
-                                </div>
-
-                                {/* Roles they can assign to */}
-                                <div>
-                                  <label style={{
-                                    display: 'block',
-                                    fontSize: '12px',
-                                    fontWeight: '500',
-                                    color: '#6b7280',
-                                    marginBottom: '6px'
-                                  }}>
-                                    Can Assign To (Multiple roles)
-                                  </label>
-                                  <select
-                                    multiple
-                                    value={perm.canAssignToRoles}
-                                    onChange={(e) => {
-                                      const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
-                                      const newPerms = [...formData.manualAssignmentPermissions];
-                                      newPerms[permIndex].canAssignToRoles = selectedOptions;
-                                      setFormData({ ...formData, manualAssignmentPermissions: newPerms });
-                                    }}
-                                    style={{
-                                      width: '100%',
-                                      minHeight: '100px',
-                                      padding: '8px',
-                                      border: '1px solid #d1d5db',
-                                      borderRadius: '4px',
-                                      fontSize: '13px',
-                                      backgroundColor: 'white'
-                                    }}
-                                  >
-                                    {projectRoles.map((role) => (
-                                      <option key={role._id} value={role._id}>
-                                        {role.name}
-                                      </option>
-                                    ))}
-                                  </select>
-                                  <p style={{ margin: '4px 0 0 0', fontSize: '11px', color: '#9ca3af' }}>
-                                    Hold Ctrl/Cmd to select multiple roles (e.g., L1, L2, L3)
-                                  </p>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
                       </div>
                     )}
 
-                    {/* Condition-Based Assignment Rules */}
-                    {formData.assignmentType === 'condition-based' && (
+                    {/* Manual Assignment - Single Role */}
+                    {formData.assignmentType === 'manual' && (
                       <div style={{ marginBottom: '20px' }}>
-                        <div style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          marginBottom: '12px'
-                        }}>
-                          <label style={{
-                            fontSize: '14px',
-                            fontWeight: '500',
-                            color: '#1f2937'
-                          }}>
-                            Assignment Rules
-                          </label>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setFormData({
-                                ...formData,
-                                conditionRules: [
-                                  ...formData.conditionRules,
-                                  {
-                                    field: 'category',
-                                    operator: 'is',
-                                    categories: [],
-                                    assignToAgents: []
-                                  }
-                                ]
-                              });
-                            }}
-                            style={{
-                              padding: '8px 16px',
-                              backgroundColor: '#3b82f6',
-                              color: 'white',
-                              border: 'none',
-                              borderRadius: '6px',
-                              fontSize: '13px',
-                              fontWeight: '500',
-                              cursor: 'pointer'
-                            }}
-                          >
-                            + Add Rule
-                          </button>
-                        </div>
-
-                        {formData.conditionRules.length === 0 ? (
+                        {!project?._id ? (
                           <div style={{
-                            padding: '20px',
+                            padding: '16px',
                             backgroundColor: '#fef3c7',
                             border: '1px solid #fbbf24',
                             borderRadius: '6px',
-                            textAlign: 'center',
                             fontSize: '13px',
-                            color: '#92400e'
+                            color: '#92400e',
+                            textAlign: 'center'
                           }}>
-                            ⚠️ No rules defined. Click "+ Add Rule" to create assignment conditions.
+                            ℹ️ Manual assignment role selection will be available after you create the project and map roles to it.
+                          </div>
+                        ) : rolesWithAssignPermission.length === 0 ? (
+                          <div style={{
+                            padding: '16px',
+                            backgroundColor: '#fef3c7',
+                            border: '1px solid #fbbf24',
+                            borderRadius: '6px',
+                            fontSize: '13px',
+                            color: '#92400e',
+                            textAlign: 'center'
+                          }}>
+                            ⚠️ No roles with "Assign Ticket" permission are available. Create or edit a role in RBAC Setup to add TICKET_ASSIGN permission.
                           </div>
                         ) : (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                            {formData.conditionRules.map((rule, ruleIndex) => (
-                              <div key={ruleIndex} style={{
-                                padding: '16px',
-                                backgroundColor: '#f9fafb',
-                                border: '1px solid #e5e7eb',
-                                borderRadius: '6px'
-                              }}>
-                                <div style={{
-                                  display: 'flex',
-                                  justifyContent: 'space-between',
-                                  alignItems: 'center',
-                                  marginBottom: '12px'
-                                }}>
-                                  <span style={{ fontSize: '13px', fontWeight: '600', color: '#4b5563' }}>
-                                    Rule {ruleIndex + 1}
-                                  </span>
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setFormData({
-                                        ...formData,
-                                        conditionRules: formData.conditionRules.filter((_, i) => i !== ruleIndex)
-                                      });
-                                    }}
-                                    style={{
-                                      padding: '6px 12px',
-                                      backgroundColor: '#ef4444',
-                                      color: 'white',
-                                      border: 'none',
-                                      borderRadius: '4px',
-                                      fontSize: '12px',
-                                      cursor: 'pointer'
-                                    }}
-                                  >
-                                    Remove
-                                  </button>
-                                </div>
-
-                                {/* Rule Builder: IF [field] [operator] [values] THEN assign to [agents] */}
-                                <div style={{
-                                  display: 'grid',
-                                  gridTemplateColumns: 'auto auto 1fr',
-                                  gap: '8px',
-                                  alignItems: 'center',
-                                  marginBottom: '12px'
-                                }}>
-                                  <span style={{ fontSize: '13px', fontWeight: '600', color: '#6b7280' }}>IF</span>
-                                  
-                                  <select
-                                    value={rule.field}
-                                    onChange={(e) => {
-                                      const newRules = [...formData.conditionRules];
-                                      newRules[ruleIndex].field = e.target.value;
-                                      setFormData({ ...formData, conditionRules: newRules });
-                                    }}
-                                    style={{
-                                      padding: '8px 10px',
-                                      border: '1px solid #d1d5db',
-                                      borderRadius: '4px',
-                                      fontSize: '13px',
-                                      backgroundColor: 'white'
-                                    }}
-                                  >
-                                    <option value="category">Category</option>
-                                  </select>
-
-                                  <select
-                                    value={rule.operator}
-                                    onChange={(e) => {
-                                      const newRules = [...formData.conditionRules];
-                                      newRules[ruleIndex].operator = e.target.value;
-                                      setFormData({ ...formData, conditionRules: newRules });
-                                    }}
-                                    style={{
-                                      padding: '8px 10px',
-                                      border: '1px solid #d1d5db',
-                                      borderRadius: '4px',
-                                      fontSize: '13px',
-                                      backgroundColor: 'white'
-                                    }}
-                                  >
-                                    <option value="is">is</option>
-                                  </select>
-                                </div>
-
-                                {/* Categories Multi-Select */}
-                                <div style={{ marginBottom: '12px' }}>
-                                  <label style={{
-                                    display: 'block',
-                                    fontSize: '12px',
-                                    fontWeight: '500',
-                                    color: '#6b7280',
-                                    marginBottom: '6px'
-                                  }}>
-                                    Select Categories
-                                  </label>
-                                  <select
-                                    multiple
-                                    value={rule.categories}
-                                    onChange={(e) => {
-                                      const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
-                                      const newRules = [...formData.conditionRules];
-                                      newRules[ruleIndex].categories = selectedOptions;
-                                      setFormData({ ...formData, conditionRules: newRules });
-                                    }}
-                                    style={{
-                                      width: '100%',
-                                      minHeight: '100px',
-                                      padding: '8px',
-                                      border: '1px solid #d1d5db',
-                                      borderRadius: '4px',
-                                      fontSize: '13px',
-                                      backgroundColor: 'white'
-                                    }}
-                                  >
-                                    {(() => {
-                                      // Get unique categories from online form fields
-                                      const categoryField = formData.onlineFormFields.find(f => f.fieldName.toLowerCase() === 'category');
-                                      if (categoryField && categoryField.options) {
-                                        return categoryField.options.map((cat, idx) => (
-                                          <option key={idx} value={cat}>{cat}</option>
-                                        ));
-                                      }
-                                      return <option disabled>No categories defined in online form</option>;
-                                    })()}
-                                  </select>
-                                  <p style={{ margin: '4px 0 0 0', fontSize: '11px', color: '#9ca3af' }}>
-                                    Hold Ctrl/Cmd to select multiple categories
-                                  </p>
-                                </div>
-
-                                {/* THEN assign to agents */}
-                                <div>
-                                  <label style={{
-                                    display: 'block',
-                                    fontSize: '12px',
-                                    fontWeight: '500',
-                                    color: '#6b7280',
-                                    marginBottom: '6px'
-                                  }}>
-                                    <span style={{ fontWeight: '600', color: '#3b82f6' }}>THEN</span> Assign to Agents
-                                  </label>
-                                  <select
-                                    multiple
-                                    value={rule.assignToAgents}
-                                    onChange={(e) => {
-                                      const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
-                                      const newRules = [...formData.conditionRules];
-                                      newRules[ruleIndex].assignToAgents = selectedOptions;
-                                      setFormData({ ...formData, conditionRules: newRules });
-                                    }}
-                                    style={{
-                                      width: '100%',
-                                      minHeight: '100px',
-                                      padding: '8px',
-                                      border: '1px solid #d1d5db',
-                                      borderRadius: '4px',
-                                      fontSize: '13px',
-                                      backgroundColor: 'white'
-                                    }}
-                                  >
-                                    {projectAgents.length > 0 ? (
-                                      projectAgents.map((user) => (
-                                        <option key={user._id} value={user._id}>
-                                          {user.name} ({user.email})
-                                        </option>
-                                      ))
-                                    ) : (
-                                      <option disabled>No agents mapped to this project</option>
-                                    )}
-                                  </select>
-                                  <p style={{ margin: '4px 0 0 0', fontSize: '11px', color: '#9ca3af' }}>
-                                    Hold Ctrl/Cmd to select multiple agents
-                                  </p>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
+                          <>
+                            <label style={{
+                              display: 'block',
+                              fontSize: '14px',
+                              fontWeight: '500',
+                              color: '#1f2937',
+                              marginBottom: '8px'
+                            }}>
+                              Who can assign tickets manually?
+                            </label>
+                            <select
+                              value={formData.assignToRoles[0] || ''}
+                              onChange={(e) => {
+                                setFormData({ 
+                                  ...formData, 
+                                  assignToRoles: e.target.value ? [e.target.value] : [] 
+                                });
+                              }}
+                              style={{
+                                width: '100%',
+                                padding: '10px 12px',
+                                border: '1px solid #d1d5db',
+                                borderRadius: '6px',
+                                fontSize: '14px',
+                                backgroundColor: 'white'
+                              }}
+                            >
+                              <option value="">Select a role...</option>
+                              {rolesWithAssignPermission.map((role) => {
+                                const isMapped = getMappedStatus(role);
+                                return (
+                                  <option key={role._id} value={role._id}>
+                                    {role.name} {!isMapped ? '⚠️ (Not mapped to this project)' : '✓'}
+                                  </option>
+                                );
+                              })}
+                            </select>
+                            <p style={{ margin: '6px 0 0 0', fontSize: '12px', color: '#6b7280' }}>
+                              Only roles with "Assign Ticket" permission are shown. Users with this role will have access to the Assign Tickets page where they can assign tickets to any agent in the project.
+                              {rolesWithAssignPermission.some(r => !getMappedStatus(r)) && (
+                                <span style={{ display: 'block', marginTop: '4px', color: '#d97706' }}>
+                                  ⚠️ Some roles are not mapped to this project. Go to RBAC Setup → Edit Role → Map to this project.
+                                </span>
+                              )}
+                            </p>
+                          </>
                         )}
                       </div>
                     )}
@@ -3490,7 +2638,6 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
                       </div>
                     )}
                   </div>
-                )}
               </div>
 
               {/* Welcome & Success Messages */}

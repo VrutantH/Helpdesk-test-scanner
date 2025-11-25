@@ -71,8 +71,11 @@ export const createRole = async (req: AuthRequest, res: Response) => {
   try {
     const { name, code, description, permissions, type, projects, projectId, isMaster } = req.body;
 
+    // Auto-generate code from name if not provided
+    const roleCode = code?.toUpperCase() || name.toUpperCase().replace(/\s+/g, '_').replace(/[^A-Z0-9_]/g, '');
+
     // Check if role with same code already exists
-    const existingRole = await Role.findOne({ code: code?.toUpperCase() });
+    const existingRole = await Role.findOne({ code: roleCode });
     if (existingRole) {
       res.status(400).json({
         success: false,
@@ -84,7 +87,7 @@ export const createRole = async (req: AuthRequest, res: Response) => {
     // Prepare role data
     const roleData: any = {
       name,
-      code: code?.toUpperCase(),
+      code: roleCode,
       description,
       permissions: permissions || [],
       type: type || 'custom',
@@ -129,7 +132,9 @@ export const createRole = async (req: AuthRequest, res: Response) => {
 // @access  Private
 export const updateRole = async (req: AuthRequest, res: Response) => {
   try {
-    const { name, code, description, permissions, projects, projectId, isMaster } = req.body;
+    const { name, code, description, permissions, projects, projectId, isMaster, isAgent } = req.body;
+
+    console.log('🔄 Updating role with body:', { name, code, isMaster, isAgent, projects });
 
     const role = await Role.findById(req.params.id);
     if (!role) {
@@ -165,12 +170,23 @@ export const updateRole = async (req: AuthRequest, res: Response) => {
     role.code = code?.toUpperCase() || role.code;
     role.description = description || role.description;
     
+    // Check if permissions are actually changing
+    let permissionsChanged = false;
     if (permissions !== undefined) {
+      const oldPermissions = role.permissions.map(p => p.toString()).sort();
+      const newPermissions = permissions.map((p: any) => p.toString()).sort();
+      permissionsChanged = JSON.stringify(oldPermissions) !== JSON.stringify(newPermissions);
       role.permissions = permissions;
     }
 
     if (isMaster !== undefined) {
       role.isMaster = isMaster;
+      console.log('✅ Set isMaster to:', isMaster);
+    }
+
+    if (isAgent !== undefined) {
+      role.isAgent = isAgent;
+      console.log('✅ Set isAgent to:', isAgent);
     }
 
     // Update project mapping
@@ -183,6 +199,20 @@ export const updateRole = async (req: AuthRequest, res: Response) => {
     }
 
     await role.save();
+    
+    // Invalidate tokens for all users with this role if permissions changed
+    if (permissionsChanged) {
+      console.log(`🔄 Permissions changed for role ${role.name}. Invalidating tokens for affected users.`);
+      const { User } = await import('../models/User');
+      const affectedUsers = await User.find({ role: role._id });
+      
+      for (const user of affectedUsers) {
+        await user.incrementTokenVersion();
+        console.log(`   - Incremented token version for user: ${user.email}`);
+      }
+      
+      console.log(`✅ Invalidated tokens for ${affectedUsers.length} user(s) with role ${role.name}`);
+    }
 
     const populatedRole = await Role.findById(role._id).populate('permissions');
 
@@ -252,8 +282,12 @@ export const cloneRole = async (req: AuthRequest, res: Response) => {
       return;
     }
 
+    // Auto-generate code from name if not provided
+    const roleName = name || `${masterRole.name} (Copy)`;
+    const roleCode = code?.toUpperCase() || roleName.toUpperCase().replace(/\s+/g, '_').replace(/[^A-Z0-9_]/g, '');
+
     // Check if role with same code already exists
-    const existingRole = await Role.findOne({ code: code?.toUpperCase() });
+    const existingRole = await Role.findOne({ code: roleCode });
     if (existingRole) {
       res.status(400).json({
         success: false,
@@ -264,8 +298,8 @@ export const cloneRole = async (req: AuthRequest, res: Response) => {
 
     // Clone the role with new name, code, and project mapping
     const roleData: any = {
-      name: name || `${masterRole.name} (Copy)`,
-      code: code?.toUpperCase(),
+      name: roleName,
+      code: roleCode,
       description: description || masterRole.description,
       permissions: masterRole.permissions, // Copy all permissions
       type: 'custom', // Cloned roles are always custom

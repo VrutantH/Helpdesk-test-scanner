@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { auth } from '../middleware/auth';
+import { checkPermission } from '../middleware/permissions';
 import {
   getCountries,
   createCountry,
@@ -27,21 +28,21 @@ const router = Router();
 router.use(auth);
 
 // Country routes
-router.get('/countries', getCountries);
-router.post('/countries', createCountry);
-router.put('/countries/:id', updateCountry);
-router.delete('/countries/:id', deleteCountry);
+router.get('/countries', checkPermission('MASTER_DATA_VIEW'), getCountries);
+router.post('/countries', checkPermission('MASTER_DATA_MANAGE_LOCATIONS'), createCountry);
+router.put('/countries/:id', checkPermission('MASTER_DATA_MANAGE_LOCATIONS'), updateCountry);
+router.delete('/countries/:id', checkPermission('MASTER_DATA_MANAGE_LOCATIONS'), deleteCountry);
 
 // State routes
-router.get('/states', getStates);
-router.post('/states', createState);
-router.put('/states/:id', updateState);
-router.delete('/states/:id', deleteState);
+router.get('/states', checkPermission('MASTER_DATA_VIEW'), getStates);
+router.post('/states', checkPermission('MASTER_DATA_MANAGE_LOCATIONS'), createState);
+router.put('/states/:id', checkPermission('MASTER_DATA_MANAGE_LOCATIONS'), updateState);
+router.delete('/states/:id', checkPermission('MASTER_DATA_MANAGE_LOCATIONS'), deleteState);
 
 // City routes
-router.get('/cities', getCities);
-router.post('/cities', createCity);
-router.put('/cities/:id', updateCity);
-router.delete('/cities/:id', deleteCity);
+router.get('/cities', checkPermission('MASTER_DATA_VIEW'), getCities);
+router.post('/cities', checkPermission('MASTER_DATA_MANAGE_LOCATIONS'), createCity);
+router.put('/cities/:id', checkPermission('MASTER_DATA_MANAGE_LOCATIONS'), updateCity);
+router.delete('/cities/:id', checkPermission('MASTER_DATA_MANAGE_LOCATIONS'), deleteCity);
 
 export default router;

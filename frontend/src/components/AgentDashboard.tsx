@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { usePermissions } from '../hooks/usePermissions';
+import { PERMISSIONS } from '../constants/permissions';
 import {
   HomeIcon,
   TicketIcon,
@@ -21,6 +23,7 @@ interface AgentDashboardProps {
 const AgentDashboard: React.FC<AgentDashboardProps> = ({ projectId }) => {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
+  const { hasPermission } = usePermissions();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeModule, setActiveModule] = useState('dashboard');
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -59,34 +62,51 @@ const AgentDashboard: React.FC<AgentDashboardProps> = ({ projectId }) => {
     i18n.changeLanguage(langCode);
   };
 
-  // Agent navigation items
-  const navigation = [
+  // Agent navigation items with permission requirements
+  const allNavigationItems = [
     { 
       name: t('dashboard'), 
       icon: HomeIcon, 
       key: 'dashboard',
-      description: 'Overview and statistics'
+      description: 'Overview and statistics',
+      permission: PERMISSIONS.DASHBOARD_VIEW
     },
     { 
       name: t('myTickets'), 
       icon: TicketIcon, 
       key: 'tickets',
       description: 'View and manage your assigned tickets',
-      badge: '5' // TODO: Get from API
+      badge: '5', // TODO: Get from API
+      permission: [PERMISSIONS.TICKET_VIEW_ALL, PERMISSIONS.TICKET_VIEW_OWN] // OR logic
     },
     { 
       name: t('knowledgeBase'), 
       icon: BookOpenIcon, 
       key: 'kb',
-      description: 'Access help articles and documentation'
+      description: 'Access help articles and documentation',
+      permission: PERMISSIONS.KB_VIEW
     },
     { 
       name: t('myProfile'), 
       icon: UserCircleIcon, 
       key: 'profile',
       description: 'Manage your account settings'
+      // No permission requirement - always visible
     },
   ];
+
+  // Filter navigation items based on permissions
+  const navigation = allNavigationItems.filter(item => {
+    if (!item.permission) return true; // No permission requirement
+    
+    if (Array.isArray(item.permission)) {
+      // OR logic - user needs any one permission
+      return item.permission.some(perm => hasPermission(perm));
+    }
+    
+    // Single permission
+    return hasPermission(item.permission);
+  });
 
   const renderContent = () => {
     switch (activeModule) {

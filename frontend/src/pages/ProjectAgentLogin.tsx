@@ -67,14 +67,7 @@ const ProjectAgentLogin: React.FC = () => {
 
       const { token, user } = response.data.data;
       
-      // Check if user has agent role or appropriate permissions
-      if (user.role.code === 'STUDENT') {
-        setError('Access denied. This portal is for agents only.');
-        setLoading(false);
-        return;
-      }
-
-      // Store token
+      // Store token and let route protection handle access control
       localStorage.setItem('authToken', token);
 
       // Redirect to agent dashboard

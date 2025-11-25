@@ -1,6 +1,8 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import { Permission } from '../models/Permission';
+import { User } from '../models/User';
+import { refreshUserPermissions } from '../utils/jwtUtils';
 
 // @desc    Get all permissions
 // @route   GET /api/permissions
@@ -96,6 +98,90 @@ export const getPermissionById = async (req: AuthRequest, res: Response) => {
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to fetch permission',
+    });
+  }
+};
+
+/**
+ * Refresh user permissions in JWT token
+ * Useful when user role/permissions change without requiring full re-login
+ */
+export const refreshPermissions = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+    
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Unauthorized'
+      });
+    }
+
+    console.log(`🔄 Refreshing permissions for user ID: ${userId}`);
+
+    // Generate new token with updated permissions
+    const newToken = await refreshUserPermissions(userId);
+
+    // Set new HTTP-only cookie
+    res.cookie('authToken', newToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    });
+
+    // Get updated user data
+    const user = await User.findById(userId).populate({
+      path: 'role',
+      populate: {
+        path: 'permissions'
+      }
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Extract permission codes for response
+    const roleData = user.role && typeof user.role === 'object' 
+      ? user.role as any 
+      : { name: 'User', code: 'USER', permissions: [] };
+
+    const permissions = roleData.permissions || [];
+    const permissionCodes = permissions.map((p: any) => p.code || p);
+
+    console.log(`✅ Permissions refreshed: ${permissionCodes.length} permissions`);
+
+    return res.json({
+      success: true,
+      message: 'Permissions refreshed successfully',
+      data: {
+        token: newToken,
+        user: {
+          id: user._id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          name: `${user.firstName} ${user.lastName}`,
+          role: {
+            name: roleData.name,
+            code: roleData.code,
+            _id: roleData._id,
+            permissions: permissionCodes
+          }
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Refresh permissions error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to refresh permissions',
+      error: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 };

@@ -1,6 +1,16 @@
 import { Response, NextFunction } from 'express';
 import { AuthRequest } from './auth';
 
+/**
+ * @deprecated This middleware is no longer used. RBAC system now uses permission-based
+ * checks instead of role-based checks. Use requirePermission middleware instead.
+ * 
+ * This file is kept for backward compatibility but should not be used in new code.
+ * All access control should be based on permissions, not role names.
+ * 
+ * Example: Instead of requireSuperAdmin, use:
+ *   requirePermission('PERMISSION_CODE')
+ */
 export const requireSuperAdmin = (req: AuthRequest, res: Response, next: NextFunction): void => {
   try {
     if (!req.user) {

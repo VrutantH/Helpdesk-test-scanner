@@ -1,11 +1,14 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
 import { validateRequest } from '../middleware/validateRequest';
-import { authRateLimit } from '../middleware/rateLimiter';
+import { authRateLimit, forgotPasswordRateLimit } from '../middleware/rateLimiter';
 import { 
   getProjectBrandingByUrl, 
   projectLogin,
-  projectLoginByUrl
+  projectLoginByUrl,
+  projectForgotPassword,
+  projectVerifyOTP,
+  projectResetPassword
 } from '../controllers/projectAuthController';
 
 const router = Router();
@@ -24,7 +27,6 @@ router.get('/branding/:urlPath', getProjectBrandingByUrl);
 router.post('/:customUrlPath/login', [
   body('email')
     .isEmail()
-    .normalizeEmail()
     .withMessage('Please provide a valid email'),
   body('password')
     .notEmpty()
@@ -38,7 +40,6 @@ router.post('/:customUrlPath/login', [
 router.post('/login', [
   body('email')
     .isEmail()
-    .normalizeEmail()
     .withMessage('Please provide a valid email'),
   body('password')
     .isLength({ min: 6 })
@@ -48,5 +49,41 @@ router.post('/login', [
     .withMessage('Project ID is required'),
   validateRequest
 ], projectLogin);
+
+// @desc    Project-specific forgot password by custom URL path
+// @route   POST /api/project-auth/:customUrlPath/forgot-password
+// @access  Public
+router.post('/:customUrlPath/forgot-password', forgotPasswordRateLimit, [
+  body('email')
+    .isEmail()
+    .withMessage('Please provide a valid email'),
+  validateRequest
+], projectForgotPassword);
+
+// @desc    Project-specific verify OTP by custom URL path
+// @route   POST /api/project-auth/:customUrlPath/verify-otp
+// @access  Public
+router.post('/:customUrlPath/verify-otp', [
+  body('email')
+    .isEmail()
+    .withMessage('Please provide a valid email'),
+  body('otp')
+    .notEmpty()
+    .withMessage('OTP is required'),
+  validateRequest
+], projectVerifyOTP);
+
+// @desc    Project-specific reset password by custom URL path
+// @route   POST /api/project-auth/:customUrlPath/reset-password
+// @access  Public
+router.post('/:customUrlPath/reset-password', [
+  body('email')
+    .isEmail()
+    .withMessage('Please provide a valid email'),
+  body('newPassword')
+    .isLength({ min: 6 })
+    .withMessage('Password must be at least 6 characters long'),
+  validateRequest
+], projectResetPassword);
 
 export default router;

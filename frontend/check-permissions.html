@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Check Permissions</title>
+</head>
+<body>
+    <h1>Permission Checker</h1>
+    <div id="output"></div>
+    
+    <script>
+        const output = document.getElementById('output');
+        
+        // Check localStorage
+        const userPermissions = localStorage.getItem('userPermissions');
+        const authToken = localStorage.getItem('authToken');
+        
+        let html = '<h2>LocalStorage Check</h2>';
+        html += '<p><strong>userPermissions:</strong> ' + (userPermissions ? 'Found ✅' : 'Not Found ❌') + '</p>';
+        html += '<p><strong>authToken:</strong> ' + (authToken ? 'Found ✅' : 'Not Found ❌') + '</p>';
+        
+        if (userPermissions) {
+            try {
+                const perms = JSON.parse(userPermissions);
+                html += '<p><strong>Permission Count:</strong> ' + perms.length + '</p>';
+                html += '<p><strong>First 5 Permissions:</strong></p>';
+                html += '<ul>';
+                perms.slice(0, 5).forEach(p => {
+                    html += '<li>' + p + '</li>';
+                });
+                html += '</ul>';
+            } catch (e) {
+                html += '<p style="color: red;">Error parsing userPermissions: ' + e.message + '</p>';
+            }
+        }
+        
+        if (authToken && !userPermissions) {
+            html += '<h2>Extracting from Token</h2>';
+            try {
+                const parts = authToken.split('.');
+                if (parts.length === 3) {
+                    const payload = JSON.parse(atob(parts[1]));
+                    html += '<p><strong>Token has role:</strong> ' + (payload.role ? 'Yes ✅' : 'No ❌') + '</p>';
+                    if (payload.role) {
+                        html += '<p><strong>Role name:</strong> ' + payload.role.name + '</p>';
+                        html += '<p><strong>Role permissions count:</strong> ' + (payload.role.permissions?.length || 0) + '</p>';
+                        
+                        if (payload.role.permissions && payload.role.permissions.length > 0) {
+                            html += '<p><strong>First 5 Permissions:</strong></p>';
+                            html += '<ul>';
+                            payload.role.permissions.slice(0, 5).forEach(p => {
+                                html += '<li>' + p + '</li>';
+                            });
+                            html += '</ul>';
+                            
+                            // Save to localStorage
+                            localStorage.setItem('userPermissions', JSON.stringify(payload.role.permissions));
+                            html += '<p style="color: green;"><strong>✅ Saved ' + payload.role.permissions.length + ' permissions to localStorage</strong></p>';
+                            html += '<p><a href="javascript:location.reload()">Reload to verify</a></p>';
+                        }
+                    }
+                } else {
+                    html += '<p style="color: red;">Invalid token format</p>';
+                }
+            } catch (e) {
+                html += '<p style="color: red;">Error decoding token: ' + e.message + '</p>';
+            }
+        }
+        
+        output.innerHTML = html;
+    </script>
+</body>
+</html>

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import axios from 'axios';
+import { getFirstAvailableRoute } from '../utils/loginRedirect';
 
 interface LoginFormData {
   email: string;
@@ -62,17 +63,19 @@ const ProjectPortalLogin: React.FC = () => {
 
   useEffect(() => {
     // Check if user is already logged in
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('authToken');
     if (token) {
       axios
         .get('http://localhost:3003/api/auth/me', {
           headers: { Authorization: `Bearer ${token}` },
         })
         .then(() => {
-          navigate(`/${customUrlPath}/portal/dashboard`);
+          // Redirect to first available route based on permissions
+          const redirectPath = getFirstAvailableRoute(JSON.parse(localStorage.getItem('userPermissions') || '[]'));
+          navigate(`/${customUrlPath}/portal/${redirectPath}`);
         })
         .catch(() => {
-          localStorage.removeItem('token');
+          localStorage.removeItem('authToken');
         });
     }
   }, [customUrlPath, navigate]);
@@ -82,7 +85,13 @@ const ProjectPortalLogin: React.FC = () => {
       setBrandingLoading(true);
       setErrorMessage(''); // Clear any previous errors
       const response = await axios.get(
-        `http://localhost:3003/api/projects/branding/${customUrlPath}`
+        `http://localhost:3003/api/projects/branding/${customUrlPath}`,
+        {
+          headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+          }
+        }
       );
       
       console.log('Project branding response:', response.data);
@@ -175,17 +184,19 @@ const ProjectPortalLogin: React.FC = () => {
         const { token, user } = response.data.data;
 
         // Store authentication data
-        localStorage.setItem('token', token); // Fixed: was 'authToken', should be 'token'
-        localStorage.setItem('userId', user._id);
+        localStorage.setItem('authToken', token);
+        localStorage.setItem('userId', user.id);
         localStorage.setItem('userEmail', user.email);
         localStorage.setItem('userName', user.name);
         localStorage.setItem('userRole', user.role.code);
+        localStorage.setItem('userPermissions', JSON.stringify(user.role.permissions || []));
 
         setSuccessMessage('Login successful! Redirecting...');
         
-        // Redirect to portal dashboard
+        // Redirect to first available route based on permissions
         setTimeout(() => {
-          navigate(`/${customUrlPath}/portal/dashboard`);
+          const redirectPath = getFirstAvailableRoute(user.role.permissions || []);
+          navigate(`/${customUrlPath}/portal/${redirectPath}`);
         }, 500);
       } else {
         setErrorMessage(response.data.message || 'Login failed');
@@ -353,7 +364,7 @@ const ProjectPortalLogin: React.FC = () => {
           fontSize: '0.875rem',
           opacity: 0.8,
         }}>
-          © 2025 {projectBranding?.name || 'Portal'}. All rights reserved.
+          {projectBranding?.branding?.footerText || `© 2025 ${projectBranding?.name || 'Portal'}. All rights reserved.`}
         </div>
       </div>
 
@@ -578,20 +589,17 @@ const ProjectPortalLogin: React.FC = () => {
 
               {/* Forgot Password Link */}
               <div style={{ textAlign: 'right' }}>
-                <button
-                  type="button"
+                <Link
+                  to={`/${customUrlPath}/portal/forgot-password`}
                   style={{
-                    background: 'none',
-                    border: 'none',
                     fontSize: '0.875rem',
                     color: primaryColor,
-                    cursor: 'pointer',
                     textDecoration: 'underline',
                     fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
                   }}
                 >
                   Forgot your password?
-                </button>
+                </Link>
               </div>
 
               {/* Submit Button */}

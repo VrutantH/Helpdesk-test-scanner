@@ -243,13 +243,6 @@ export const helpDeskPermissions: HelpDeskPermission[] = [
   },
   {
     module: 'User Management',
-    name: 'Manage User Groups',
-    code: 'USER_MANAGE_GROUPS',
-    description: 'Can create and manage user groups',
-    category: 'user-management',
-  },
-  {
-    module: 'User Management',
     name: 'Import Users',
     code: 'USER_IMPORT',
     description: 'Can import users in bulk',
@@ -355,78 +348,49 @@ export const helpDeskPermissions: HelpDeskPermission[] = [
   // =====================================================
   // APPROVAL PROCESS CATEGORY
   // =====================================================
+  // Approval Setup (Admin Interface)
   {
     module: 'Approval Process',
     name: 'View Approval Workflows',
-    code: 'APPROVAL_VIEW',
-    description: 'Can view approval process configurations',
+    code: 'APPROVAL_WORKFLOWS_VIEW',
+    description: 'Can view approval workflow configurations',
     category: 'approval-process',
   },
   {
     module: 'Approval Process',
     name: 'Create Approval Workflows',
-    code: 'APPROVAL_CREATE',
-    description: 'Can create approval workflows',
+    code: 'APPROVAL_WORKFLOWS_CREATE',
+    description: 'Can create new approval workflows',
     category: 'approval-process',
   },
   {
     module: 'Approval Process',
     name: 'Edit Approval Workflows',
-    code: 'APPROVAL_EDIT',
-    description: 'Can edit approval workflows',
+    code: 'APPROVAL_WORKFLOWS_EDIT',
+    description: 'Can edit existing approval workflows',
     category: 'approval-process',
   },
   {
     module: 'Approval Process',
     name: 'Delete Approval Workflows',
-    code: 'APPROVAL_DELETE',
+    code: 'APPROVAL_WORKFLOWS_DELETE',
     description: 'Can delete approval workflows',
+    category: 'approval-process',
+  },
+  // Approval Inbox (Approver Interface)
+  {
+    module: 'Approval Process',
+    name: 'Approve/Reject Tickets',
+    code: 'APPROVAL_TICKETS_APPROVE_REJECT',
+    description: 'Can approve or reject tickets in approval inbox',
     category: 'approval-process',
   },
   {
     module: 'Approval Process',
-    name: 'Approve/Reject Tickets',
-    code: 'APPROVAL_APPROVE_REJECT',
-    description: 'Can approve or reject tickets requiring approval',
+    name: 'View Approval History',
+    code: 'APPROVAL_HISTORY_VIEW',
+    description: 'Can view approval history and audit trail',
     category: 'approval-process',
-  },
-  // =====================================================
-  // WORKFLOW & ROLE MAPPING CATEGORY
-  // =====================================================
-  {
-    module: 'Workflow & Role Mapping',
-    name: 'View Workflows',
-    code: 'WORKFLOW_VIEW',
-    description: 'Can view ticket workflows',
-    category: 'workflow-role-mapping',
-  },
-  {
-    module: 'Workflow & Role Mapping',
-    name: 'Create Workflows',
-    code: 'WORKFLOW_CREATE',
-    description: 'Can create ticket workflows',
-    category: 'workflow-role-mapping',
-  },
-  {
-    module: 'Workflow & Role Mapping',
-    name: 'Edit Workflows',
-    code: 'WORKFLOW_EDIT',
-    description: 'Can edit workflow configurations',
-    category: 'workflow-role-mapping',
-  },
-  {
-    module: 'Workflow & Role Mapping',
-    name: 'Delete Workflows',
-    code: 'WORKFLOW_DELETE',
-    description: 'Can delete workflows',
-    category: 'workflow-role-mapping',
-  },
-  {
-    module: 'Workflow & Role Mapping',
-    name: 'Map Roles to Workflow Steps',
-    code: 'WORKFLOW_MAP_ROLES',
-    description: 'Can assign roles to workflow steps',
-    category: 'workflow-role-mapping',
   },
   // =====================================================
   // SLA & ESCALATION CATEGORY
@@ -627,6 +591,34 @@ export const helpDeskPermissions: HelpDeskPermission[] = [
     name: 'Manage Third-Party Apps',
     code: 'INTEGRATION_MANAGE_APPS',
     description: 'Can connect and manage third-party applications',
+    category: 'integrations',
+  },
+  {
+    module: 'Email Configuration',
+    name: 'View Email Configuration',
+    code: 'EMAIL_CONFIG_VIEW',
+    description: 'Can view email configuration settings',
+    category: 'integrations',
+  },
+  {
+    module: 'Email Configuration',
+    name: 'Edit Email Configuration',
+    code: 'EMAIL_CONFIG_EDIT',
+    description: 'Can edit email SMTP settings and configurations',
+    category: 'integrations',
+  },
+  {
+    module: 'Email Configuration',
+    name: 'Test Email Configuration',
+    code: 'EMAIL_CONFIG_TEST',
+    description: 'Can send test emails to verify configuration',
+    category: 'integrations',
+  },
+  {
+    module: 'Email Configuration',
+    name: 'Manage Email Triggers',
+    code: 'EMAIL_TRIGGER_MANAGE',
+    description: 'Can manage email triggers and templates',
     category: 'integrations',
   },
   // =====================================================
@@ -981,10 +973,11 @@ const defaultRoles = [
       'TICKET_VIEW_ALL', 'TICKET_CREATE', 'TICKET_EDIT', 'TICKET_DELETE', 'TICKET_ASSIGN', 'TICKET_CHANGE_STATUS',
       'TICKET_CHANGE_PRIORITY', 'TICKET_ADD_COMMENT', 'TICKET_EDIT_COMMENT', 'TICKET_DELETE_COMMENT', 'TICKET_ADD_ATTACHMENT',
       'TICKET_DELETE_ATTACHMENT', 'TICKET_MERGE', 'TICKET_BULK_UPDATE', 'TICKET_EXPORT', 'USER_VIEW_ALL', 'USER_CREATE',
-      'USER_EDIT', 'USER_DELETE', 'USER_TOGGLE_STATUS', 'USER_ASSIGN_ROLE', 'USER_RESET_PASSWORD', 'USER_MANAGE_GROUPS',
+      'USER_EDIT', 'USER_DELETE', 'USER_TOGGLE_STATUS', 'USER_ASSIGN_ROLE', 'USER_RESET_PASSWORD', 'USER_IMPORT',
       'PROJECT_VIEW_ALL', 'PROJECT_EDIT', 'PROJECT_TOGGLE_STATUS', 'PROJECT_MANAGE_SETTINGS', 'REPORT_VIEW_TICKETS',
       'REPORT_VIEW_AGENT_PERFORMANCE', 'REPORT_VIEW_CSAT', 'REPORT_VIEW_SLA', 'REPORT_EXPORT', 'REPORT_CREATE_CUSTOM',
       'REPORT_SCHEDULE', 'FORM_VIEW', 'FORM_CREATE', 'FORM_EDIT', 'FORM_DELETE', 'FORM_ASSIGN_CONTEXT', 'FORM_VIEW_AUDIT_LOGS',
+      'EMAIL_CONFIG_VIEW', 'EMAIL_CONFIG_EDIT', 'EMAIL_CONFIG_TEST', 'EMAIL_TRIGGER_MANAGE',
     ],
   },
   {
@@ -996,9 +989,10 @@ const defaultRoles = [
     permissions: [
       'TICKET_VIEW_ALL', 'TICKET_CREATE', 'TICKET_EDIT', 'TICKET_ASSIGN', 'TICKET_CHANGE_STATUS', 'TICKET_CHANGE_PRIORITY',
       'TICKET_ADD_COMMENT', 'TICKET_EDIT_COMMENT', 'TICKET_ADD_ATTACHMENT', 'TICKET_MERGE', 'TICKET_BULK_UPDATE', 'TICKET_EXPORT',
-      'USER_VIEW_ALL', 'USER_CREATE', 'USER_EDIT', 'USER_TOGGLE_STATUS', 'USER_ASSIGN_ROLE', 'USER_MANAGE_GROUPS',
+      'USER_VIEW_ALL', 'USER_CREATE', 'USER_EDIT', 'USER_TOGGLE_STATUS', 'USER_ASSIGN_ROLE', 'USER_IMPORT',
       'REPORT_VIEW_TICKETS', 'REPORT_VIEW_AGENT_PERFORMANCE', 'REPORT_VIEW_CSAT', 'REPORT_VIEW_SLA', 'REPORT_EXPORT',
       'FORM_VIEW', 'FORM_CREATE', 'FORM_EDIT', 'FORM_DELETE', 'FORM_ASSIGN_CONTEXT', 'FORM_VIEW_AUDIT_LOGS',
+      'EMAIL_CONFIG_VIEW', 'EMAIL_CONFIG_EDIT', 'EMAIL_CONFIG_TEST', 'EMAIL_TRIGGER_MANAGE',
     ],
   },
   {
@@ -1023,6 +1017,16 @@ const defaultRoles = [
     permissions: [
       'TICKET_VIEW_OWN', 'TICKET_CREATE', 'TICKET_EDIT', 'TICKET_CHANGE_STATUS', 'TICKET_ADD_COMMENT', 'TICKET_ADD_ATTACHMENT',
       'OFFLINE_MODULE_ACCESS', 'OFFLINE_STUDENT_REGISTER', 'OFFLINE_TICKET_CREATE', 'OFFLINE_TICKET_RESOLVE', 'OFFLINE_TICKET_ESCALATE', 'OFFLINE_STUDENT_VIEW', 'OFFLINE_STUDENT_EDIT',
+    ],
+  },
+  {
+    module: 'Student',
+    name: 'Student',
+    code: 'STUDENT',
+    description: 'Student user with access to view and manage their own tickets',
+    type: 'system',
+    permissions: [
+      'TICKET_VIEW_OWN', 'TICKET_CREATE', 'TICKET_ADD_COMMENT', 'TICKET_ADD_ATTACHMENT',
     ],
   },
 ];

@@ -399,6 +399,11 @@ export const getProjectBranding = async (req: Request, res: Response) => {
     
     console.log(`✅ Found project branding: ${project.name}`, brandingData);
     
+    // Set cache control headers to prevent stale branding data
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    
     return res.json({
       success: true,
       data: brandingData,
@@ -553,7 +558,9 @@ export const getOfflineSettings = async (req: Request, res: Response) => {
       
       // Ensure category field exists in ticket fields
       if (settings.ticketFields) {
-        const hasCategoryField = settings.ticketFields.some((f: any) => f.fieldType === 'category');
+        const hasCategoryField = settings.ticketFields.some((f: any) => 
+          f.fieldType === 'category' || f.fieldType === 'category-select' || f.fieldName === 'Category'
+        );
         if (!hasCategoryField) {
           settings.ticketFields = [
             { id: 'category-fixed', fieldName: 'Category', fieldType: 'category', required: true, placeholder: 'Select category', isFixed: true, isEnabled: true, order: 1 },
@@ -631,6 +638,62 @@ export const updateOfflineSettings = async (req: AuthRequest, res: Response) => 
     });
   } catch (error) {
     console.error('Update offline settings error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+    });
+  }
+};
+
+/**
+ * Update project ticket settings
+ */
+export const updateProjectTicketSettings = async (req: Request, res: Response) => {
+  try {
+    const { projectId } = req.params;
+    const { numbering, statuses, types } = req.body;
+
+    const project = await Project.findById(projectId);
+    
+    if (!project) {
+      return res.status(404).json({
+        success: false,
+        message: 'Project not found',
+      });
+    }
+
+    // Initialize configuration structure if needed
+    if (!project.configuration) {
+      (project as any).configuration = {};
+    }
+    if (!(project as any).configuration.ticketSubmissionSettings) {
+      (project as any).configuration.ticketSubmissionSettings = {};
+    }
+
+    // Update ticket configuration
+    if (numbering) {
+      (project as any).configuration.ticketSubmissionSettings.numbering = numbering;
+    }
+    if (statuses) {
+      (project as any).configuration.ticketSubmissionSettings.statuses = statuses;
+    }
+    if (types) {
+      (project as any).configuration.ticketSubmissionSettings.types = types;
+    }
+
+    await project.save();
+
+    return res.json({
+      success: true,
+      message: 'Ticket settings updated successfully',
+      data: {
+        numbering: (project as any).configuration?.ticketSubmissionSettings?.numbering,
+        statuses: (project as any).configuration?.ticketSubmissionSettings?.statuses,
+        types: (project as any).configuration?.ticketSubmissionSettings?.types,
+      },
+    });
+  } catch (error) {
+    console.error('Update ticket settings error:', error);
     return res.status(500).json({
       success: false,
       message: 'Internal server error',

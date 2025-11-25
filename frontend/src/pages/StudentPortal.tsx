@@ -75,7 +75,11 @@ interface TicketSubmissionSettings {
   announcement?: string;
 }
 
-const StudentPortal: React.FC = () => {
+interface StudentPortalProps {
+  hideHeader?: boolean;
+}
+
+const StudentPortal: React.FC<StudentPortalProps> = ({ hideHeader = false }) => {
   const { customUrlPath } = useParams<{ customUrlPath: string }>();
   const navigate = useNavigate();
 
@@ -539,60 +543,62 @@ const StudentPortal: React.FC = () => {
     <div
       className="min-h-screen"
       style={{
-        background: `linear-gradient(135deg, ${projectBranding.primaryColor}15 0%, ${projectBranding.secondaryColor}15 100%)`,
+        background: hideHeader ? 'transparent' : `linear-gradient(135deg, ${projectBranding.primaryColor}15 0%, ${projectBranding.secondaryColor}15 100%)`,
       }}
     >
       {/* Header */}
-      <header
-        className="shadow-md"
-        style={{
-          background: `linear-gradient(135deg, ${projectBranding.primaryColor} 0%, ${projectBranding.secondaryColor} 100%)`,
-        }}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              {projectBranding.logoUrl && (
-                <img
-                  src={projectBranding.logoUrl}
-                  alt={projectBranding.name}
-                  className="h-12 w-auto"
-                />
-              )}
-              <div>
-                <h1 className="text-2xl font-bold text-white">{projectBranding.name}</h1>
-                <p className="text-white/80 text-sm">{projectBranding.welcomeText}</p>
+      {!hideHeader && (
+        <header
+          className="shadow-md"
+          style={{
+            background: `linear-gradient(135deg, ${projectBranding.primaryColor} 0%, ${projectBranding.secondaryColor} 100%)`,
+          }}
+        >
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                {projectBranding.logoUrl && (
+                  <img
+                    src={projectBranding.logoUrl}
+                    alt={projectBranding.name}
+                    className="h-12 w-auto"
+                  />
+                )}
+                <div>
+                  <h1 className="text-2xl font-bold text-white">{projectBranding.name}</h1>
+                  <p className="text-white/80 text-sm">{projectBranding.welcomeText}</p>
+                </div>
               </div>
-            </div>
-            {/* Action Buttons */}
-            <div className="flex items-center space-x-3">
-              {/* Knowledge Base Button */}
-              {projectBranding.knowledgeBase && (
+              {/* Action Buttons */}
+              <div className="flex items-center space-x-3">
+                {/* Knowledge Base Button */}
+                {projectBranding.knowledgeBase && (
+                  <button
+                    onClick={() => navigate(`/${customUrlPath}/kb`)}
+                    className="flex items-center space-x-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-white transition-colors duration-200 backdrop-blur-sm"
+                  >
+                    <BookOpenIcon className="h-5 w-5" />
+                    <span className="font-medium">Knowledge Base</span>
+                  </button>
+                )}
+                {/* Login Button */}
                 <button
-                  onClick={() => navigate(`/${customUrlPath}/kb`)}
+                  onClick={() => setShowLoginModal(true)}
                   className="flex items-center space-x-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-white transition-colors duration-200 backdrop-blur-sm"
                 >
-                  <BookOpenIcon className="h-5 w-5" />
-                  <span className="font-medium">Knowledge Base</span>
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  <span className="font-medium">Login</span>
                 </button>
-              )}
-              {/* Login Button */}
-              <button
-                onClick={() => setShowLoginModal(true)}
-                className="flex items-center space-x-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-white transition-colors duration-200 backdrop-blur-sm"
-              >
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-                <span className="font-medium">Login</span>
-              </button>
+              </div>
             </div>
           </div>
-        </div>
-      </header>
+        </header>
+      )}
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <main className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${hideHeader ? 'py-0' : 'py-12'}`}>
         {/* Announcement Banner */}
         {ticketSettings.announcement && (
           <div className="bg-yellow-50 border-l-4 border-yellow-400 rounded-r-xl p-6 mb-8 flex items-start space-x-4">

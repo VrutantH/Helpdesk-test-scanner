@@ -38,10 +38,14 @@ export interface IUser extends Document {
   resetPasswordAttempts?: number;
   resetPasswordLockedUntil?: Date;
   
+  // Token invalidation (incremented when role/permissions change)
+  tokenVersion?: number;
+  
   // Methods
   comparePassword(candidatePassword: string): Promise<boolean>;
   generateResetPasswordOTP(): string;
   isResetPasswordLocked(): boolean;
+  incrementTokenVersion(): Promise<void>;
 }
 
 const userSchema = new Schema<IUser>({
@@ -184,6 +188,10 @@ const userSchema = new Schema<IUser>({
   resetPasswordLockedUntil: {
     type: Date,
   },
+  tokenVersion: {
+    type: Number,
+    default: 0,
+  },
 }, {
   timestamps: true,
 });
@@ -217,6 +225,12 @@ userSchema.methods.generateResetPasswordOTP = function(): string {
 // Check if account is locked for password reset
 userSchema.methods.isResetPasswordLocked = function(): boolean {
   return !!(this.resetPasswordLockedUntil && this.resetPasswordLockedUntil > new Date());
+};
+
+// Increment token version to invalidate existing tokens
+userSchema.methods.incrementTokenVersion = async function(): Promise<void> {
+  this.tokenVersion = (this.tokenVersion || 0) + 1;
+  await this.save();
 };
 
 // Create indexes

@@ -1,13 +1,18 @@
 import { Routes, Route } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { PERMISSIONS } from './constants/permissions'
 import Login from './components/Login'
 import ProjectLogin from './pages/ProjectLogin'
 import AgentDashboard from './components/AgentDashboard'
 import ProjectPortalLogin from './pages/ProjectPortalLogin'
+import ProjectForgotPassword from './pages/ProjectForgotPassword'
 import ProjectPortalDashboard from './pages/ProjectPortalDashboard'
 import StudentPortal from './pages/StudentPortal'
-import StudentKBPage from './pages/StudentKBPage'
-import StudentDashboard from './pages/StudentDashboard'
+import StudentKBPage from './pages/StudentKBPage';
+import StudentLayout from './components/StudentLayout';
+import ConditionalStudentLayout from './components/ConditionalStudentLayout';
+import StudentDashboard from './pages/StudentDashboard';
+import SimpleStudentDashboard from './pages/SimpleStudentDashboard';
 import StudentTicketDetail from './pages/StudentTicketDetail'
 import ForgotPassword from './components/ForgotPassword'
 import EULA from './components/EULA'
@@ -31,6 +36,12 @@ import TicketConfigurationPage from './pages/TicketConfigurationPage'
 import AgentTicketDetail from './pages/AgentTicketDetail'
 import OfflineModuleSettings from './pages/OfflineModuleSettings'
 import OfflineModuleConfigPage from './pages/OfflineModuleConfigPage'
+import ProtectedRoute from './components/ProtectedRoute'
+import ViewTickets from './pages/ViewTickets'
+import TicketAssignment from './pages/TicketAssignment'
+import MyTickets from './pages/MyTickets'
+import NoAccess from './pages/NoAccess'
+import EmailConfigPage from './pages/EmailConfigPage'
 // import BlockedEmailRecipients from './components/BlockedEmailRecipients' // TODO: Implement
 // import EmailFailureLogs from './components/EmailFailureLogs' // TODO: Implement
 // import IntegrationsManagement from './components/IntegrationsManagement' // TODO: Implement
@@ -65,47 +76,307 @@ function App() {
   return (
     <div>
       <Routes>
+        {/* Public Routes - No authentication required */}
         <Route path="/login" element={<Login />} />
-        {/* Project-specific login */}
-        <Route path="/:customUrlPath" element={<ProjectLogin />} />
-        <Route path="/:customUrlPath/dashboard" element={<AgentDashboard />} />
-        <Route path="/:customUrlPath/submit-ticket" element={<StudentPortal />} />
-        <Route path="/:customUrlPath/kb" element={<StudentKBPage />} />
-        {/* Project Portal Routes */}
-        <Route path="/:customUrlPath/portal/login" element={<ProjectPortalLogin />} />
-        <Route path="/:customUrlPath/portal/ticket/:ticketId" element={<AgentTicketDetail />} />
-        <Route path="/:customUrlPath/portal/*" element={<ProjectPortalDashboard />} />
-        {/* Student Dashboard Routes */}
-        <Route path="/:customUrlPath/student/dashboard" element={<StudentDashboard />} />
-        <Route path="/:customUrlPath/student/ticket/:ticketId" element={<StudentTicketDetail />} />
-        <Route path="/:customUrlPath/forgot-password" element={<ForgotPassword />} />
-        <Route path="/:customUrlPath/eula" element={<EULA />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/eula" element={<EULA />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        {/* TODO: Implement ProjectDashboard component */}
-        {/* <Route path="/project-dashboard" element={<ProjectDashboard />} /> */}
-        <Route path="/projects" element={<ProjectManagement />} />
-        <Route path="/master-data" element={<MasterDataManagement />} />
-        <Route path="/rbac" element={<RBACSetup />} />
-        <Route path="/users" element={<UserManagement />} />
-        <Route path="/ticket-config" element={<TicketConfigurationPage />} />
-        <Route path="/ticket-config/settings/:projectId" element={<TicketSettings />} />
-        <Route path="/offline-module" element={<OfflineModuleConfigPage />} />
-        <Route path="/offline-module/settings/:projectId" element={<OfflineModuleSettings />} />
-        {/* TODO: Implement these components */}
-        {/* <Route path="/fields-forms/*" element={<FieldFormManagement />} /> */}
-        {/* <Route path="/ticket-automation/*" element={<TicketAutomation />} /> */}
-        <Route path="/sla" element={<SLARulesPage />} />
-        <Route path="/approvals" element={<ApprovalWorkflows />} />
-        <Route path="/escalation-matrix" element={<EscalationMatrixPage />} />
-        <Route path="/knowledge-base" element={<KnowledgeBaseManagement />} />
-        <Route path="/kb/:articleId" element={<KBArticleView />} />
-        {/* <Route path="/integrations" element={<IntegrationsManagement />} /> */}
-        <Route path="/audit/activity-logs" element={<ActivityLogs />} />
-        <Route path="/audit/access-logs" element={<AccessLogs />} />
-        {/* <Route path="/audit/blocked-email-recipients" element={<BlockedEmailRecipients />} /> */}
-        {/* <Route path="/audit/email-failure-logs" element={<EmailFailureLogs />} /> */}
+        <Route path="/no-access" element={<NoAccess />} />
+        
+        {/* Project-specific public routes */}
+        <Route path="/:customUrlPath" element={<ProjectLogin />} />
+        <Route path="/:customUrlPath/portal/login" element={<ProjectPortalLogin />} />
+        <Route path="/:customUrlPath/portal/forgot-password" element={<ProjectForgotPassword />} />
+        <Route path="/:customUrlPath/forgot-password" element={<ForgotPassword />} />
+        <Route path="/:customUrlPath/eula" element={<EULA />} />
+        
+        {/* Public ticket submission and KB - conditionally wrap with StudentLayout if logged in */}
+        <Route 
+          path="/:customUrlPath/submit-ticket" 
+          element={
+            <ConditionalStudentLayout>
+              <StudentPortal hideHeader={!!localStorage.getItem('authToken')} />
+            </ConditionalStudentLayout>
+          } 
+        />
+        <Route 
+          path="/:customUrlPath/kb" 
+          element={
+            <ConditionalStudentLayout>
+              <StudentKBPage hideHeader={!!localStorage.getItem('authToken')} />
+            </ConditionalStudentLayout>
+          } 
+        />
+        
+        {/* Student Portal Routes - Requires authentication only */}
+        <Route 
+          path="/:customUrlPath/student/dashboard" 
+          element={
+            <ProtectedRoute requireAuth={true}>
+              <SimpleStudentDashboard />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/:customUrlPath/student/ticket/:ticketId" 
+          element={
+            <ProtectedRoute requireAuth={true}>
+              <StudentLayout>
+                <StudentTicketDetail />
+              </StudentLayout>
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/:customUrlPath/student/my-tickets" 
+          element={
+            <ProtectedRoute requireAuth={true}>
+              <StudentLayout>
+                <MyTickets wrapWithLayout={false} />
+              </StudentLayout>
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* Agent Dashboard - Legacy route, requires ticket permissions */}
+        <Route 
+          path="/:customUrlPath/dashboard" 
+          element={
+            <ProtectedRoute modulePrefix="TICKET_">
+              <AgentDashboard />
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* Project Portal Routes - Permission-based */}
+        <Route 
+          path="/:customUrlPath/portal/ticket/:ticketId" 
+          element={
+            <ProtectedRoute permission={['TICKET_VIEW_ALL', 'TICKET_VIEW_OWN']}>
+              <AgentTicketDetail />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/:customUrlPath/portal/*" 
+          element={
+            <ProtectedRoute requireAuth={true}>
+              <ProjectPortalDashboard />
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* Main System Routes - Super Admin & Managers */}
+        
+        {/* Dashboard - Requires authentication only */}
+        <Route 
+          path="/dashboard" 
+          element={
+            <ProtectedRoute requireAuth={true}>
+              <Dashboard />
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* Project Management - Requires PROJECT_* permissions */}
+        <Route 
+          path="/projects" 
+          element={
+            <ProtectedRoute modulePrefix="PROJECT_">
+              <ProjectManagement />
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* Master Data - Requires MASTER_DATA_VIEW */}
+        <Route 
+          path="/master-data" 
+          element={
+            <ProtectedRoute permission="MASTER_DATA_VIEW">
+              <MasterDataManagement />
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* RBAC Setup - Requires RBAC_* permissions */}
+        <Route 
+          path="/rbac" 
+          element={
+            <ProtectedRoute modulePrefix="RBAC_">
+              <RBACSetup />
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* User Management - Requires USER_* permissions */}
+        <Route 
+          path="/users" 
+          element={
+            <ProtectedRoute modulePrefix="USER_">
+              <UserManagement />
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* Tickets - View All Tickets */}
+        <Route 
+          path="/tickets/view" 
+          element={
+            <ProtectedRoute permission={['TICKET_VIEW_ALL', 'TICKET_VIEW_OWN']}>
+              <ViewTickets />
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* Tickets - My Tickets (View Own or View All) */}
+        <Route 
+          path="/tickets/my-tickets" 
+          element={
+            <ProtectedRoute permission={["TICKET_VIEW_OWN", "TICKET_VIEW_ALL"]}>
+              <MyTickets />
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* Tickets - Assign Tickets */}
+        <Route 
+          path="/tickets/assign" 
+          element={
+            <ProtectedRoute permission="TICKET_ASSIGN">
+              <TicketAssignment />
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* Ticket Configuration - Requires TICKET_CONFIG_* permissions */}
+        <Route 
+          path="/ticket-config" 
+          element={
+            <ProtectedRoute permission={['TICKET_CONFIG_VIEW', 'TICKET_CONFIG_MANAGE_CATEGORIES', 'TICKET_CONFIG_MANAGE_STATUSES']}>
+              <TicketConfigurationPage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/ticket-config/settings/:projectId" 
+          element={
+            <ProtectedRoute permission={['TICKET_CONFIG_VIEW', 'TICKET_CONFIG_MANAGE_CATEGORIES']}>
+              <TicketSettings />
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* Offline Module - Requires OFFLINE_* permissions */}
+        <Route 
+          path="/offline-module" 
+          element={
+            <ProtectedRoute modulePrefix="OFFLINE_">
+              <OfflineModuleConfigPage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/offline-module/settings/:projectId" 
+          element={
+            <ProtectedRoute modulePrefix="OFFLINE_">
+              <OfflineModuleSettings />
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* SLA & Escalation - Requires SLA_* permissions */}
+        <Route 
+          path="/sla" 
+          element={
+            <ProtectedRoute modulePrefix="SLA_">
+              <SLARulesPage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/escalation-matrix" 
+          element={
+            <ProtectedRoute permission={PERMISSIONS.SLA_MANAGE_ESCALATIONS}>
+              <EscalationMatrixPage />
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* Approval Workflows - Requires APPROVAL_* permissions */}
+        <Route 
+          path="/approvals" 
+          element={
+            <ProtectedRoute modulePrefix="APPROVAL_">
+              <ApprovalWorkflows />
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* Knowledge Base - Requires KB_* permissions */}
+        <Route 
+          path="/knowledge-base" 
+          element={
+            <ProtectedRoute permission={['KB_VIEW', 'KB_CREATE', 'KB_EDIT', 'KB_DELETE']}>
+              <KnowledgeBaseManagement />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/kb/:articleId" 
+          element={
+            <ProtectedRoute permission="KB_VIEW">
+              <KBArticleView />
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* Audit Logs - Requires AUDIT_* permissions */}
+        <Route 
+          path="/audit/activity-logs" 
+          element={
+            <ProtectedRoute permission="AUDIT_VIEW_ACTIVITY">
+              <ActivityLogs />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/audit/access-logs" 
+          element={
+            <ProtectedRoute permission="AUDIT_VIEW_ACCESS">
+              <AccessLogs />
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* TODO: Implement these routes when components are ready */}
+        {/* <Route path="/audit/blocked-email-recipients" element={
+          <ProtectedRoute permission="AUDIT_VIEW_BLOCKED_EMAILS">
+            <BlockedEmailRecipients />
+          </ProtectedRoute>
+        } /> */}
+        {/* <Route path="/audit/email-failure-logs" element={
+          <ProtectedRoute permission="AUDIT_VIEW_EMAIL_FAILURES">
+            <EmailFailureLogs />
+          </ProtectedRoute>
+        } /> */}
+        {/* <Route path="/integrations" element={
+          <ProtectedRoute modulePrefix="INTEGRATION_">
+            <IntegrationsManagement />
+          </ProtectedRoute>
+        } /> */}
+        
+        {/* Email Configuration - Super Admin */}
+        <Route 
+          path="/email-config" 
+          element={
+            <ProtectedRoute permission="EMAIL_CONFIG_VIEW">
+              <DashboardLayout>
+                <EmailConfigPage />
+              </DashboardLayout>
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* Default Route - Redirect to login */}
         <Route path="/" element={<Login />} />
       </Routes>
     </div>

@@ -1,6 +1,9 @@
 import { Request, Response } from 'express';
 import { User } from '../models/User';
 import { Role } from '../models/Role';
+import { Project } from '../models/Project';
+import { generateProjectJWT, generateUserJWT } from '../utils/jwtUtils';
+import { sendOTPEmail } from '../utils/emailService';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 
@@ -55,21 +58,25 @@ export const sendOTP = async (req: Request, res: Response) => {
 
     console.log(`📧 OTP generated for ${email}: ${otp}`);
 
-    // TODO: Send email with OTP
-    // await sendOTPEmail(email, otp, user.firstName);
+    // Get project ID from user's projects
+    const projectId = user.projects && user.projects.length > 0 ? user.projects[0].toString() : undefined;
 
-    // For development, return OTP in response (REMOVE IN PRODUCTION)
-    if (process.env.NODE_ENV === 'development') {
-      return res.status(200).json({
-        success: true,
-        message: 'OTP sent to your email',
-        data: { otp, email }, // Remove this in production
-      });
+    // Send email with OTP
+    try {
+      const emailSent = await sendOTPEmail(email, otp, projectId);
+      if (emailSent) {
+        console.log(`✅ OTP email sent to ${email}`);
+      } else {
+        console.log(`⚠️  OTP email not sent (email config might be disabled), but OTP is: ${otp}`);
+      }
+    } catch (emailError) {
+      console.error('Failed to send OTP email:', emailError);
+      console.log(`⚠️  Email failed, but OTP is available in console: ${otp}`);
     }
 
     return res.status(200).json({
       success: true,
-      message: 'OTP sent to your email',
+      message: 'OTP sent to your email. Please check your inbox.',
     });
 
   } catch (error) {
@@ -155,6 +162,7 @@ export const verifyOTP = async (req: Request, res: Response) => {
 export const setPassword = async (req: Request, res: Response) => {
   try {
     const { password, confirmPassword } = req.body;
+    const { customUrlPath } = req.params; // Extract from URL params
     const authHeader = req.headers.authorization;
 
     if (!password || !confirmPassword) {
@@ -215,6 +223,9 @@ export const setPassword = async (req: Request, res: Response) => {
       });
     }
 
+    // Cast role for proper typing
+    const role = user.role as any;
+
     // Set password and remove setup flag
     user.password = password; // Will be hashed by pre-save hook
     user.requirePasswordSetup = false;
@@ -222,23 +233,13 @@ export const setPassword = async (req: Request, res: Response) => {
 
     console.log(`🔐 Password set for ${user.email}`);
 
-    // Generate full access token
-    const role = user.role as any;
-    const token = jwt.sign(
-      {
-        userId: user._id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        role: {
-          _id: role._id,
-          code: role.code,
-          name: role.name,
-        },
-      },
-      getJwtSecret(),
-      { expiresIn: JWT_EXPIRY }
-    );
+    // Generate JWT token with dynamic permissions using utility
+    const project = await Project.findOne({ 
+      'branding.customUrlPath': customUrlPath 
+    });
+    const token = project ? 
+      await generateProjectJWT(user, project) : 
+      await generateUserJWT(user);
 
     return res.status(200).json({
       success: true,
@@ -337,6 +338,7 @@ export const login = async (req: Request, res: Response) => {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
+        tokenVersion: user.tokenVersion || 0,
         role: {
           _id: role._id,
           code: role.code,

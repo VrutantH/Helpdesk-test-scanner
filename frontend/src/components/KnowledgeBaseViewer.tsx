@@ -39,7 +39,7 @@ const KnowledgeBaseViewer: React.FC = () => {
   const fetchArticles = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('authToken');
       const response = await fetch(
         `http://localhost:3003/api/kb/project/${projectId}?status=published`,
         {
@@ -65,7 +65,7 @@ const KnowledgeBaseViewer: React.FC = () => {
     
     // Increment view count
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('authToken');
       await fetch(`http://localhost:3003/api/kb/${article._id}/view`, {
         method: 'POST',
         headers: {
@@ -80,7 +80,7 @@ const KnowledgeBaseViewer: React.FC = () => {
 
   const handleFeedback = async (articleId: string, isHelpful: boolean) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('authToken');
       await fetch(`http://localhost:3003/api/kb/${articleId}/feedback`, {
         method: 'POST',
         headers: {

@@ -12,6 +12,7 @@ export interface IRole extends Document {
   isActive: boolean;
   isMaster: boolean; // Can be used as template for creating new roles
   masterRoleId?: mongoose.Types.ObjectId; // Reference to master role if cloned from one
+  isAgent: boolean; // Flag to identify roles that are agents for auto-assignment
   isSystem: boolean; // Virtual property
   createdAt: Date;
   updatedAt: Date;
@@ -70,6 +71,10 @@ const roleSchema = new Schema<IRole>(
       type: Schema.Types.ObjectId,
       ref: 'Role',
       required: false,
+    },
+    isAgent: {
+      type: Boolean,
+      default: false,
     },
   },
   {

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
+import { authUtils } from '../utils/api';
+import { PERMISSIONS } from '../constants/permissions';
 import {
   HomeIcon,
   TicketIcon,
@@ -14,6 +16,8 @@ import {
   BuildingOfficeIcon,
   TableCellsIcon,
 } from '@heroicons/react/24/outline';
+import { TicketsModule } from '../components/modules/TicketsModule';
+import { DashboardModule as EnhancedDashboard } from '../components/dashboard/DashboardModule';
 
 interface ProjectBranding {
   projectId: string;
@@ -30,11 +34,6 @@ interface ProjectBranding {
   };
 }
 
-interface Permission {
-  module: string;
-  actions: string[]; // ['view', 'create', 'edit', 'delete', 'export']
-}
-
 interface User {
   _id: string;
   name: string;
@@ -43,9 +42,12 @@ interface User {
     name: string;
     code: string;
     _id: string;
+    permissions?: string[]; // Array of permission codes from JWT
   };
-  permissions: Permission[];
 }
+
+// Update permission structure - now just array of codes
+type UserPermissions = string[]; // ['TICKET_VIEW_ALL', 'TICKET_ASSIGN', 'USER_CREATE', etc.]
 
 type ActiveModule = 
   | 'dashboard' 
@@ -61,12 +63,7 @@ interface MenuItem {
   id: ActiveModule;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
-  requiredPermission: string; // module name that user must have permission for
-  subItems?: {
-    id: string;
-    label: string;
-    requiredAction?: string; // specific action required (e.g., 'edit', 'create')
-  }[];
+  requiredPermissions: string[]; // Array of permission codes (any match grants access)
 }
 
 const ProjectAgentAdminPortal: React.FC = () => {
@@ -77,7 +74,7 @@ const ProjectAgentAdminPortal: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [projectBranding, setProjectBranding] = useState<ProjectBranding | null>(null);
   const [loading, setLoading] = useState(true);
-  const [userPermissions, setUserPermissions] = useState<Map<string, string[]>>(new Map());
+  const [userPermissions, setUserPermissions] = useState<UserPermissions>([]); // Changed to array of permission codes
 
   // Define all possible menu items
   const allMenuItems: MenuItem[] = [
@@ -85,60 +82,80 @@ const ProjectAgentAdminPortal: React.FC = () => {
       id: 'dashboard',
       label: 'Dashboard',
       icon: HomeIcon,
-      requiredPermission: 'dashboard',
+      requiredPermissions: [PERMISSIONS.DASHBOARD_VIEW],
     },
     {
       id: 'tickets',
       label: 'Tickets',
       icon: TicketIcon,
-      requiredPermission: 'tickets',
-      subItems: [
-        { id: 'my-tickets', label: 'My Tickets' },
-        { id: 'all-tickets', label: 'All Tickets', requiredAction: 'view_all' },
-        { id: 'create-ticket', label: 'Create Ticket', requiredAction: 'create' },
-      ],
+      requiredPermissions: [PERMISSIONS.TICKET_VIEW_ALL, PERMISSIONS.TICKET_VIEW_OWN], // Show if user can view any tickets
     },
     {
       id: 'knowledge-base',
       label: 'Knowledge Base',
       icon: BookOpenIcon,
-      requiredPermission: 'knowledge_base',
-      subItems: [
-        { id: 'browse', label: 'Browse Articles' },
-        { id: 'manage', label: 'Manage Articles', requiredAction: 'edit' },
-      ],
+      requiredPermissions: [PERMISSIONS.KB_VIEW], // Only need view permission to access KB
     },
     {
       id: 'users',
       label: 'User Management',
       icon: UserGroupIcon,
-      requiredPermission: 'users',
+      requiredPermissions: [PERMISSIONS.USER_VIEW_ALL, PERMISSIONS.USER_CREATE, PERMISSIONS.USER_EDIT],
     },
     {
       id: 'projects',
       label: 'Projects',
       icon: BuildingOfficeIcon,
-      requiredPermission: 'projects',
+      requiredPermissions: [PERMISSIONS.PROJECT_VIEW_ALL, PERMISSIONS.PROJECT_CREATE, PERMISSIONS.PROJECT_EDIT],
     },
     {
       id: 'master-data',
       label: 'Master Data',
       icon: TableCellsIcon,
-      requiredPermission: 'master_data',
+      requiredPermissions: [PERMISSIONS.MASTER_DATA_VIEW, PERMISSIONS.MASTER_DATA_MANAGE_CATEGORIES],
     },
     {
       id: 'rbac',
       label: 'RBAC Setup',
       icon: ShieldCheckIcon,
-      requiredPermission: 'rbac',
+      requiredPermissions: [PERMISSIONS.RBAC_VIEW_ROLES, PERMISSIONS.RBAC_CREATE_ROLE, PERMISSIONS.RBAC_EDIT_ROLE],
     },
     {
       id: 'settings',
       label: 'Settings',
       icon: Cog6ToothIcon,
-      requiredPermission: 'settings',
+      requiredPermissions: [PERMISSIONS.PROJECT_MANAGE_SETTINGS], // Remove non-existent SYSTEM_SETTINGS_VIEW
     },
   ];
+
+  // Check token expiration and auto-logout
+  const checkTokenExpiration = () => {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      return;
+    }
+
+    try {
+      // Decode JWT token to check expiration
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const expirationTime = payload.exp * 1000; // Convert to milliseconds
+      const currentTime = Date.now();
+      
+      if (currentTime >= expirationTime) {
+        console.log('⏰ Token expired, logging out...');
+        localStorage.removeItem('authToken');
+        navigate(`/${customUrlPath}/agent/login`);
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('Error checking token expiration:', error);
+      localStorage.removeItem('authToken');
+      navigate(`/${customUrlPath}/agent/login`);
+      return true;
+    }
+  };
 
   useEffect(() => {
     const token = localStorage.getItem('authToken');
@@ -147,8 +164,22 @@ const ProjectAgentAdminPortal: React.FC = () => {
       return;
     }
 
+    // Check if token is expired before fetching data
+    const isExpired = checkTokenExpiration();
+    if (isExpired) {
+      return;
+    }
+
+    // Setup automatic logout when token expires
+    const cleanupAutoLogout = authUtils.setupAutoLogout(customUrlPath);
+
     fetchUserData(token);
     fetchProjectBranding();
+
+    // Cleanup on unmount
+    return () => {
+      if (cleanupAutoLogout) cleanupAutoLogout();
+    };
   }, [customUrlPath, navigate]);
 
   const fetchUserData = async (token: string) => {
@@ -158,52 +189,33 @@ const ProjectAgentAdminPortal: React.FC = () => {
       });
       const userData = response.data.data;
 
-      // Verify not a student
-      if (userData.role.code === 'STUDENT') {
-        localStorage.removeItem('authToken');
-        navigate(`/${customUrlPath}/agent/login`);
-        return;
-      }
-
+      console.log('📋 Full User Data:', userData);
+      console.log('🎭 Role Data:', userData.role);
+      console.log('🔐 Raw Permissions:', userData.role?.permissions);
+      
       setUser(userData);
       
-      // Fetch user permissions
-      await fetchUserPermissions(token, userData._id);
+      // Extract permission codes directly from JWT role object
+      const permissions = userData.role?.permissions || [];
+      console.log('🔑 Extracted Permissions Array:', permissions);
+      console.log('🔑 Permissions Length:', permissions.length);
+      console.log('🔑 First Permission:', permissions[0]);
+      setUserPermissions(permissions);
       
       setLoading(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching user data:', error);
-      localStorage.removeItem('authToken');
-      navigate(`/${customUrlPath}/agent/login`);
-    }
-  };
-
-  const fetchUserPermissions = async (token: string, userId: string) => {
-    try {
-      const response = await axios.get(
-        `http://localhost:3003/api/users/${userId}/permissions`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-          params: { projectId: projectBranding?.projectId },
-        }
-      );
       
-      const permissions = response.data.data || [];
-      const permMap = new Map<string, string[]>();
-      
-      permissions.forEach((perm: Permission) => {
-        permMap.set(perm.module, perm.actions);
-      });
-      
-      setUserPermissions(permMap);
-    } catch (error) {
-      console.error('Error fetching permissions:', error);
-      // Set default permissions for demo
-      setUserPermissions(new Map([
-        ['dashboard', ['view']],
-        ['tickets', ['view', 'create', 'edit']],
-        ['knowledge_base', ['view']],
-      ]));
+      // Check if error is due to token expiration
+      if (error.response?.status === 401 || error.response?.data?.message === 'Invalid token') {
+        console.log('🔒 Token invalid or expired, logging out...');
+        localStorage.removeItem('authToken');
+        alert('Your session has expired. Please login again.');
+        navigate(`/${customUrlPath}/agent/login`);
+      } else {
+        localStorage.removeItem('authToken');
+        navigate(`/${customUrlPath}/agent/login`);
+      }
     }
   };
 
@@ -236,36 +248,27 @@ const ProjectAgentAdminPortal: React.FC = () => {
     }
   };
 
-  const hasPermission = (module: string, action?: string): boolean => {
-    const modulePermissions = userPermissions.get(module);
-    if (!modulePermissions || modulePermissions.length === 0) {
-      return false;
-    }
-    
-    if (!action) {
-      return modulePermissions.includes('view');
-    }
-    
-    return modulePermissions.includes(action);
+  // Updated permission check - now uses RBAC permission codes
+  const hasPermission = (permissionCode: string): boolean => {
+    return userPermissions.includes(permissionCode);
+  };
+
+  // Helper to check multiple permissions (any match)
+  const hasAnyPermission = (...permissionCodes: string[]): boolean => {
+    const result = permissionCodes.some(code => userPermissions.includes(code));
+    console.log(`🔐 Checking permissions [${permissionCodes.join(', ')}] against user permissions:`, userPermissions, 'Result:', result);
+    return result;
   };
 
   const getVisibleMenuItems = (): MenuItem[] => {
-    return allMenuItems.filter(item => {
-      // Check if user has permission for this module
-      if (!hasPermission(item.requiredPermission)) {
-        return false;
-      }
-      
-      // Filter sub-items based on permissions
-      if (item.subItems) {
-        item.subItems = item.subItems.filter(subItem => {
-          if (!subItem.requiredAction) return true;
-          return hasPermission(item.requiredPermission, subItem.requiredAction);
-        });
-      }
-      
-      return true;
+    console.log('🎯 Getting visible menu items with permissions:', userPermissions);
+    const visible = allMenuItems.filter(item => {
+      const hasAccess = hasAnyPermission(...item.requiredPermissions);
+      console.log(`🔍 Menu Item: ${item.label}, Required: [${item.requiredPermissions.join(', ')}], Has Access: ${hasAccess}`);
+      return hasAccess;
     });
+    console.log(`📋 Visible menu items: ${visible.length}/${allMenuItems.length}`, visible.map(v => v.label));
+    return visible;
   };
 
   const handleLogout = () => {
@@ -276,7 +279,7 @@ const ProjectAgentAdminPortal: React.FC = () => {
   const renderModuleContent = () => {
     switch (activeModule) {
       case 'dashboard':
-        return <DashboardModule user={user} permissions={userPermissions} />;
+        return <EnhancedDashboard user={user} permissions={userPermissions} />;
       case 'tickets':
         return <TicketsModule user={user} permissions={userPermissions} />;
       case 'knowledge-base':
@@ -292,7 +295,7 @@ const ProjectAgentAdminPortal: React.FC = () => {
       case 'settings':
         return <SettingsModule user={user} permissions={userPermissions} />;
       default:
-        return <DashboardModule user={user} permissions={userPermissions} />;
+        return <EnhancedDashboard user={user} permissions={userPermissions} />;
     }
   };
 
@@ -366,20 +369,6 @@ const ProjectAgentAdminPortal: React.FC = () => {
                   <Icon className="h-5 w-5" />
                   <span>{item.label}</span>
                 </button>
-                
-                {/* Sub-items */}
-                {item.subItems && item.subItems.length > 0 && isActive && (
-                  <div className="ml-8 mt-2 space-y-1">
-                    {item.subItems.map((subItem) => (
-                      <button
-                        key={subItem.id}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
-                      >
-                        {subItem.label}
-                      </button>
-                    ))}
-                  </div>
-                )}
               </div>
             );
           })}
@@ -456,46 +445,8 @@ const ProjectAgentAdminPortal: React.FC = () => {
 
 // Placeholder Module Components (to be replaced with full implementations)
 
-const DashboardModule: React.FC<{ user: User | null; permissions: Map<string, string[]> }> = ({ user, permissions }) => {
-  return (
-    <div>
-      <h3 className="text-xl font-semibold mb-4">Dashboard Overview</h3>
-      <p className="text-gray-600">Dashboard content for {user?.role.name}</p>
-      <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-        <p className="text-sm text-gray-700">
-          Permissions: {Array.from(permissions.entries()).map(([module, actions]) => 
-            `${module}: ${actions && Array.isArray(actions) ? actions.join(', ') : 'none'}`
-          ).join(' | ') || 'No permissions loaded'}
-        </p>
-      </div>
-    </div>
-  );
-};
-
-const TicketsModule: React.FC<{ user: User | null; permissions: Map<string, string[]> }> = ({ user, permissions }) => {
-  const canCreate = permissions.get('tickets')?.includes('create');
-  const canEdit = permissions.get('tickets')?.includes('edit');
-  
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-xl font-semibold">Tickets</h3>
-        {canCreate && (
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-            Create Ticket
-          </button>
-        )}
-      </div>
-      <p className="text-gray-600">Tickets module for {user?.role.name}</p>
-      <p className="text-sm text-gray-500 mt-2">
-        Permissions: View {canCreate && '• Create'} {canEdit && '• Edit'}
-      </p>
-    </div>
-  );
-};
-
-const KnowledgeBaseModule: React.FC<{ user: User | null; permissions: Map<string, string[]> }> = ({ user, permissions }) => {
-  const canEdit = permissions.get('knowledge_base')?.includes('edit');
+const KnowledgeBaseModule: React.FC<{ user: User | null; permissions: string[] }> = ({ user, permissions }) => {
+  const canEdit = permissions.includes('KB_EDIT') || permissions.includes('KB_CREATE');
   
   return (
     <div>
@@ -515,7 +466,7 @@ const KnowledgeBaseModule: React.FC<{ user: User | null; permissions: Map<string
   );
 };
 
-const UserManagementModule: React.FC<{ user: User | null; permissions: Map<string, string[]> }> = () => {
+const UserManagementModule: React.FC<{ user: User | null; permissions: string[] }> = () => {
   return (
     <div>
       <h3 className="text-xl font-semibold mb-4">User Management</h3>
@@ -524,7 +475,7 @@ const UserManagementModule: React.FC<{ user: User | null; permissions: Map<strin
   );
 };
 
-const ProjectsModule: React.FC<{ user: User | null; permissions: Map<string, string[]> }> = () => {
+const ProjectsModule: React.FC<{ user: User | null; permissions: string[] }> = () => {
   return (
     <div>
       <h3 className="text-xl font-semibold mb-4">Projects</h3>
@@ -533,7 +484,7 @@ const ProjectsModule: React.FC<{ user: User | null; permissions: Map<string, str
   );
 };
 
-const MasterDataModule: React.FC<{ user: User | null; permissions: Map<string, string[]> }> = () => {
+const MasterDataModule: React.FC<{ user: User | null; permissions: string[] }> = () => {
   return (
     <div>
       <h3 className="text-xl font-semibold mb-4">Master Data</h3>
@@ -542,7 +493,7 @@ const MasterDataModule: React.FC<{ user: User | null; permissions: Map<string, s
   );
 };
 
-const RBACModule: React.FC<{ user: User | null; permissions: Map<string, string[]> }> = () => {
+const RBACModule: React.FC<{ user: User | null; permissions: string[] }> = () => {
   return (
     <div>
       <h3 className="text-xl font-semibold mb-4">RBAC Setup</h3>
@@ -551,7 +502,7 @@ const RBACModule: React.FC<{ user: User | null; permissions: Map<string, string[
   );
 };
 
-const SettingsModule: React.FC<{ user: User | null; permissions: Map<string, string[]> }> = () => {
+const SettingsModule: React.FC<{ user: User | null; permissions: string[] }> = () => {
   return (
     <div>
       <h3 className="text-xl font-semibold mb-4">Settings</h3>

@@ -142,14 +142,30 @@ const AgentStudentWorkflow: React.FC<Props> = ({ projectId }) => {
 
   const fetchOfflineSettings = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('authToken');
       const response = await axios.get(
         `http://localhost:3003/api/projects/${projectId}/offline-settings`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
       if (response.data.success) {
-        const settings = response.data.data;
+        let settings = response.data.data;
+        
+        // Remove duplicate Category fields - keep only the first one
+        if (settings.ticketFields) {
+          const seenCategories = new Set();
+          settings.ticketFields = settings.ticketFields.filter((field: any) => {
+            if (field.fieldName === 'Category') {
+              if (seenCategories.has('Category')) {
+                console.log('Removing duplicate Category field:', field.id);
+                return false; // Remove duplicate
+              }
+              seenCategories.add('Category');
+            }
+            return true;
+          });
+        }
+        
         setOfflineSettings(settings);
 
         // Initialize registration form
@@ -180,7 +196,7 @@ const AgentStudentWorkflow: React.FC<Props> = ({ projectId }) => {
 
   const fetchTicketAgents = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('authToken');
       const escalationContactsRes = await axios.get(
         `http://localhost:3003/api/escalation-policies?projectId=${projectId}&isActive=true`,
         { headers: { Authorization: `Bearer ${token}` } }
@@ -222,7 +238,7 @@ const AgentStudentWorkflow: React.FC<Props> = ({ projectId }) => {
 
   const fetchCategories = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('authToken');
       const response = await axios.get(
         `http://localhost:3003/api/categories/project/${projectId}`,
         { headers: { Authorization: `Bearer ${token}` } }
@@ -247,7 +263,7 @@ const AgentStudentWorkflow: React.FC<Props> = ({ projectId }) => {
     setSearchResults([]);
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('authToken');
       const response = await axios.get(
         `http://localhost:3003/api/users/search-students?query=${encodeURIComponent(
           searchQuery
@@ -300,7 +316,7 @@ const AgentStudentWorkflow: React.FC<Props> = ({ projectId }) => {
     setRegistrationError('');
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('authToken');
       const response = await axios.post(
         'http://localhost:3003/api/users/register-student',
         {
@@ -366,16 +382,19 @@ const AgentStudentWorkflow: React.FC<Props> = ({ projectId }) => {
     setTicketMessage('');
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('authToken');
       const formData = new FormData();
 
-      // Map field names to normalize variations (Title, title, Issue Title, etc.)
+      // Debug: Log all ticket form data before processing
+      console.log('=== TICKET FORM DEBUG ===');
+      console.log('Current ticketForm:', ticketForm);
+      console.log('Offline settings ticket fields:', offlineSettings?.ticketFields);
+      console.log('========================');
+
+      // Map field names to normalize variations
       const normalizeFieldName = (name: string): string => {
         const normalized = name.toLowerCase().trim().replace(/\s+/g, '');
         
-        if (normalized.includes('title') || normalized.includes('subject')) {
-          return 'title';
-        }
         if (normalized.includes('description') || normalized.includes('details') || normalized.includes('issue')) {
           return 'description';
         }
@@ -389,19 +408,34 @@ const AgentStudentWorkflow: React.FC<Props> = ({ projectId }) => {
       };
 
       // Add all configured ticket fields with normalized names
+      let hasDescription = false;
+      let hasCategory = false;
+
       offlineSettings?.ticketFields.forEach((field) => {
         const normalizedName = normalizeFieldName(field.fieldName);
+        const fieldValue = ticketForm[field.fieldName];
         
-        if (field.fieldType === 'file' && ticketForm[field.fieldName]) {
-          const files = ticketForm[field.fieldName] as File[];
+        if (field.fieldType === 'file' && fieldValue) {
+          const files = fieldValue as File[];
           files.forEach(file => formData.append('attachments', file));
-        } else if (ticketForm[field.fieldName]) {
-          console.log(`Appending field: ${field.fieldName} -> ${normalizedName} = ${ticketForm[field.fieldName]}`);
-          formData.append(normalizedName, ticketForm[field.fieldName]);
+        } else if (fieldValue !== undefined && fieldValue !== null && fieldValue !== '') {
+          console.log(`Appending field: ${field.fieldName} -> ${normalizedName} = ${fieldValue}`);
+          formData.append(normalizedName, String(fieldValue));
+          
+          // Track required fields
+          if (normalizedName === 'description') hasDescription = true;
+          if (normalizedName === 'category') hasCategory = true;
         } else {
           console.log(`Field ${field.fieldName} is empty or undefined`);
         }
       });
+
+      // Validate required fields before submission
+      if (!hasDescription || !hasCategory) {
+        setTicketMessage(`Missing required fields: ${!hasDescription ? 'Description ' : ''}${!hasCategory ? 'Category' : ''}`);
+        setCreatingTicket(false);
+        return;
+      }
 
       formData.append('userId', currentStudent._id);
       formData.append('studentId', currentStudent._id);

@@ -47,7 +47,7 @@ const SLARulesPage: React.FC = () => {
 
   const fetchProjects = async () => {
     try {
-      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      const token = localStorage.getItem('authToken');
       const response = await fetch('http://localhost:3003/api/projects', {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -82,7 +82,7 @@ const SLARulesPage: React.FC = () => {
   const fetchSLARules = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      const token = localStorage.getItem('authToken');
       console.log('Fetching SLA rules with token:', token ? 'Token exists' : 'No token');
       
       const response = await fetch('http://localhost:3003/api/sla-rules', {
@@ -118,8 +118,8 @@ const SLARulesPage: React.FC = () => {
   const handleDeleteSLARule = async (rule: SLARule) => {
     if (confirm(`Are you sure you want to delete "${rule.name}"?`)) {
       try {
-        const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-        const response = await fetch(`http://localhost:3003/api/sla-rules/${rule._id}`, {
+        const token = localStorage.getItem('authToken');
+        const response = await fetch(`http://localhost:3003/api/sla-rules/${rule._id || rule.id}`, {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
@@ -144,7 +144,7 @@ const SLARulesPage: React.FC = () => {
 
   const handleToggleStatus = async (rule: SLARule) => {
     try {
-      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      const token = localStorage.getItem('authToken');
       const response = await fetch(`http://localhost:3003/api/sla-rules/${rule._id}/toggle-status`, {
         method: 'PATCH',
         headers: {
@@ -169,7 +169,7 @@ const SLARulesPage: React.FC = () => {
     e.preventDefault();
     
     try {
-      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      const token = localStorage.getItem('authToken');
       
       const slaRuleData = {
         name: formData.name,

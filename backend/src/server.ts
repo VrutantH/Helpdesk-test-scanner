@@ -34,6 +34,8 @@ import knowledgeBaseRoutes from './routes/knowledgeBase';
 import approvalRoutes from './routes/approvals';
 import approvalMasterRoutes from './routes/approvalMasters';
 import offlineModuleRoutes from './routes/offlineModule';
+import dashboardRoutes from './routes/dashboard';
+import emailConfigRoutes from './routes/emailConfig';
 // import integrationRoutes from './routes/integrations'; // TODO: Implement
 import { setupSocketHandlers } from './socket/socketHandlers';
 import { initializeDatabase } from './utils/dbInit';
@@ -100,7 +102,7 @@ app.use(cors({
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Cache-Control', 'Pragma'],
   exposedHeaders: ['Content-Range', 'X-Content-Range'],
   maxAge: 86400 // 24 hours
 }));
@@ -156,6 +158,9 @@ app.use('/api/escalation-policies', escalationPolicyRoutes);
 app.use('/api/activity-logs', activityLogRoutes);
 app.use('/api/access-logs', accessLogRoutes);
 
+// Dashboard Routes
+app.use('/api/dashboard', dashboardRoutes);
+
 // Knowledge Base Routes
 app.use('/api/kb', knowledgeBaseRoutes);
 
@@ -165,6 +170,9 @@ app.use('/api/approval-masters', approvalMasterRoutes);
 
 // Offline Module Routes (Agent features for walk-in student support)
 app.use('/api/offline-module', offlineModuleRoutes);
+
+// Email Configuration Routes
+app.use('/api/email-config', emailConfigRoutes);
 
 // Integration Routes (TODO: Implement)
 // app.use('/api/integrations', integrationRoutes);

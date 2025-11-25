@@ -8,6 +8,7 @@ import { Project } from '../models/Project';
 import EulaAcceptance from '../models/EulaAcceptance';
 import { logLogin, logLogout } from '../utils/logger';
 import { AuthRequest } from '../middleware/auth';
+import { generateUserJWT, refreshUserPermissions } from '../utils/jwtUtils';
 
 // In-memory store for OTPs (in production, use Redis or database)
 const otpStore = new Map<string, { otp: string; expires: Date; email: string }>();
@@ -137,28 +138,8 @@ export const login = async (req: Request<{}, {}, LoginRequest>, res: Response) =
       console.log(`   - Version: ${eulaAcceptance.version}`);
     }
 
-    // Generate JWT token with permissions (optimized - only codes)
-    const permissions = (user.role as any)?.permissions || [];
-    const permissionCodes = permissions.map((p: any) => p.code || p);
-    
-    const payload = { 
-      userId: user._id, 
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      role: user.role ? {
-        _id: (user.role as any)._id,
-        code: (user.role as any).code,
-        name: (user.role as any).name,
-        permissions: permissionCodes // Only store permission codes, not full objects
-      } : null
-    };
-    const secret = process.env.JWT_SECRET || 'fallback-secret-key-for-development';
-    const options: SignOptions = { 
-      expiresIn: '7d'
-    };
-    
-    const token = jwt.sign(payload, secret, options);
+    // Generate JWT token with dynamic permissions using utility
+    const token = await generateUserJWT(user);
 
     // Set HTTP-only cookie
     res.cookie('authToken', token, {
@@ -205,6 +186,7 @@ export const login = async (req: Request<{}, {}, LoginRequest>, res: Response) =
 
     // Get role name from populated role or handle if not populated
     let roleName = 'User';
+    let permissions: string[] = [];
     if (user.role) {
       if (typeof user.role === 'object') {
         if ('name' in user.role) {
@@ -212,6 +194,13 @@ export const login = async (req: Request<{}, {}, LoginRequest>, res: Response) =
           console.log('✅ Using populated role name:', roleName);
         } else {
           console.log('⚠️  Role object exists but no name field, keys:', Object.keys(user.role));
+        }
+        // Get permissions from role
+        if ('permissions' in user.role && Array.isArray(user.role.permissions)) {
+          permissions = user.role.permissions
+            .map((p: any) => p.code || (typeof p === 'object' && 'code' in p ? p.code : null))
+            .filter(Boolean);
+          console.log('✅ Extracted permissions:', permissions.length);
         }
       } else {
         console.log('⚠️  Role is not an object:', typeof user.role);
@@ -240,6 +229,7 @@ export const login = async (req: Request<{}, {}, LoginRequest>, res: Response) =
           firstName: user.firstName,
           lastName: user.lastName,
           role: roleName,
+          permissions: permissions, // Include permissions for frontend routing
           eulaAccepted: eulaAccepted
         },
         token
@@ -270,8 +260,13 @@ export const getMe = async (req: AuthRequest, res: Response) => {
       });
     }
 
-    // Find user and populate role
-    const user = await User.findById(userId).populate('role');
+    // Find user and populate role with permissions
+    const user = await User.findById(userId).populate({
+      path: 'role',
+      populate: {
+        path: 'permissions'
+      }
+    });
     
     if (!user) {
       return res.status(404).json({
@@ -280,10 +275,16 @@ export const getMe = async (req: AuthRequest, res: Response) => {
       });
     }
 
-    // Get role information
+    // Get role information with permissions
     const roleData = user.role && typeof user.role === 'object' 
       ? user.role as any 
-      : { name: 'User', code: 'USER' };
+      : { name: 'User', code: 'USER', permissions: [] };
+
+    // Extract permission codes
+    const permissions = roleData.permissions || [];
+    const permissionCodes = permissions.map((p: any) => p.code || p);
+
+    console.log(`🔑 getMe - User: ${user.email}, Permissions: ${permissionCodes.length}`);
 
     return res.json({
       success: true,
@@ -297,7 +298,8 @@ export const getMe = async (req: AuthRequest, res: Response) => {
         role: {
           name: roleData.name,
           code: roleData.code,
-          _id: roleData._id
+          _id: roleData._id,
+          permissions: permissionCodes // Include permission codes
         },
         projects: user.projects,
         isActive: user.isActive

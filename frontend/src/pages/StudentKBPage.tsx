@@ -29,7 +29,11 @@ interface KBArticle {
   notHelpfulCount: number;
 }
 
-const StudentKBPage: React.FC = () => {
+interface StudentKBPageProps {
+  hideHeader?: boolean;
+}
+
+const StudentKBPage: React.FC<StudentKBPageProps> = ({ hideHeader = false }) => {
   const { customUrlPath } = useParams<{ customUrlPath: string }>();
   const navigate = useNavigate();
 
@@ -210,39 +214,41 @@ const StudentKBPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div
-        className="shadow-md"
-        style={{
-          background: `linear-gradient(135deg, ${primaryColor} 0%, ${branding?.secondaryColor || '#764ba2'} 100%)`,
-        }}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => navigate(`/${customUrlPath}/submit-ticket`)}
-                className="text-white hover:bg-white/20 p-2 rounded-lg transition-colors"
-              >
-                <ArrowLeftIcon className="h-6 w-6" />
-              </button>
-              {branding?.logoUrl && (
-                <img
-                  src={branding.logoUrl}
-                  alt="Logo"
-                  className="h-12 w-auto"
-                />
-              )}
-              <div>
-                <h1 className="text-2xl font-bold text-white">Knowledge Base</h1>
-                <p className="text-white/80 text-sm">{branding?.name}</p>
+      {!hideHeader && (
+        <div
+          className="shadow-md"
+          style={{
+            background: `linear-gradient(135deg, ${primaryColor} 0%, ${branding?.secondaryColor || '#764ba2'} 100%)`,
+          }}
+        >
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <button
+                  onClick={() => navigate(`/${customUrlPath}/submit-ticket`)}
+                  className="text-white hover:bg-white/20 p-2 rounded-lg transition-colors"
+                >
+                  <ArrowLeftIcon className="h-6 w-6" />
+                </button>
+                {branding?.logoUrl && (
+                  <img
+                    src={branding.logoUrl}
+                    alt="Logo"
+                    className="h-12 w-auto"
+                  />
+                )}
+                <div>
+                  <h1 className="text-2xl font-bold text-white">Knowledge Base</h1>
+                  <p className="text-white/80 text-sm">{branding?.name}</p>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${hideHeader ? 'py-0' : 'py-8'}`}>
         {/* Search and Filter */}
         <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

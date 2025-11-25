@@ -121,7 +121,7 @@ const TicketSettings: React.FC = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch(`http://localhost:3003/api/projects/${projectId}/ticket-config`, {
+      const response = await fetch(`http://localhost:3003/api/projects/${projectId}/ticket-settings`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -153,7 +153,7 @@ const TicketSettings: React.FC = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch(`http://localhost:3003/api/projects/${projectId}/ticket-config`, {
+      const response = await fetch(`http://localhost:3003/api/projects/${projectId}/ticket-settings`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,

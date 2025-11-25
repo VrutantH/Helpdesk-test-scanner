@@ -25,7 +25,7 @@ const mockEmployees: HRMSEmployeeData[] = [
   {
     firstName: 'Priya',
     lastName: 'Sharma',
-    email: 'priya.sharma@sac.gov.in',
+    email: 'niraj.mishra1010@gmail.com',
     mobile: '9876543211',
     employeeCode: 'EMP002',
     department: 'ICT',
