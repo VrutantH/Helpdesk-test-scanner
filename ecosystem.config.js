@@ -17,8 +17,8 @@ module.exports = {
         MAX_FILE_SIZE: '10485760',
         UPLOAD_PATH: '/var/www/helpdesk/backend/uploads'
       },
-      error_file: '/var/log/pm2/helpdesk-backend-error.log',
-      out_file: '/var/log/pm2/helpdesk-backend-out.log',
+      error_file: '~/.pm2/logs/helpdesk-backend-error.log',
+      out_file: '~/.pm2/logs/helpdesk-backend-out.log',
       log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
       merge_logs: true,
       autorestart: true,
