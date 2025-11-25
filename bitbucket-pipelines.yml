@@ -52,15 +52,17 @@ pipelines:
                 npm run build &&
                 echo "Copying to /var/www/helpdesk/backend..." &&
                 sudo mkdir -p /var/www/helpdesk/backend &&
+                sudo mkdir -p /var/www/helpdesk/backend/uploads &&
+                sudo rm -rf /var/www/helpdesk/backend/dist &&
                 sudo cp -r dist /var/www/helpdesk/backend/ &&
                 sudo cp package*.json /var/www/helpdesk/backend/ &&
-                sudo cp ecosystem.config.js /var/www/helpdesk/backend/ 2>/dev/null || true &&
+                sudo cp ecosystem.config.js /var/www/helpdesk/backend/ &&
                 cd /var/www/helpdesk/backend &&
                 sudo npm ci --omit=dev &&
                 echo "Restarting PM2..." &&
                 pm2 delete helpdesk-backend 2>/dev/null || true &&
                 pm2 delete Backend 2>/dev/null || true &&
-                pm2 start ecosystem.config.js --env production &&
+                pm2 start ecosystem.config.js &&
                 pm2 save &&
                 pm2 list &&
                 echo "Backend deployed successfully!"

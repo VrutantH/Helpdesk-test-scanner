@@ -9,7 +9,13 @@ module.exports = {
       exec_mode: 'cluster',
       env: {
         NODE_ENV: 'production',
-        PORT: 3003
+        PORT: 3003,
+        FRONTEND_URL: 'https://helpdesk.hubblehox.ai',
+        MONGODB_URI: 'mongodb://localhost:27017/sac_helpdesk',
+        JWT_SECRET: 'your-super-secret-jwt-key-change-this-in-production',
+        SESSION_SECRET: 'your-session-secret-key-change-this',
+        MAX_FILE_SIZE: '10485760',
+        UPLOAD_PATH: '/var/www/helpdesk/backend/uploads'
       },
       error_file: '/var/log/pm2/helpdesk-backend-error.log',
       out_file: '/var/log/pm2/helpdesk-backend-out.log',
@@ -17,10 +23,7 @@ module.exports = {
       merge_logs: true,
       autorestart: true,
       watch: false,
-      max_memory_restart: '1G',
-      env_production: {
-        NODE_ENV: 'production'
-      }
+      max_memory_restart: '1G'
     }
   ]
 };
