@@ -11,6 +11,7 @@ pipelines:
                 cd /home/ubuntu/helpdesk/frontend &&
                 node -v &&
                 git checkout dev &&
+                git reset --hard origin/dev &&
                 git pull &&
                 npm install &&
                 npm run build &&
@@ -26,6 +27,7 @@ pipelines:
                 cd /home/ubuntu/helpdesk/backend &&
                 node -v &&
                 git checkout dev &&
+                git reset --hard origin/dev &&
                 git pull &&
                 npm install &&
                 npm run build &&
