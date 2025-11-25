@@ -23,16 +23,8 @@ pipelines:
                 echo "Copying files..." &&
                 sudo cp -rv dist/* /var/www/helpdesk/frontend/ &&
                 sudo chown -R www-data:www-data /var/www/helpdesk/frontend &&
-                sudo chmod -R 755 /var/www/helpdesk/frontend &&
-                echo "Stopping any PM2 frontend processes..." &&
-                pm2 delete Frontend 2>/dev/null || true &&
-                pm2 delete frontend 2>/dev/null || true &&
-                echo "Reloading nginx..." &&
-                sudo nginx -t &&
-                sudo systemctl reload nginx &&
                 echo "Verifying files..." &&
                 ls -la /var/www/helpdesk/frontend/ &&
-                head -5 /var/www/helpdesk/frontend/index.html &&
                 echo "Frontend deployed successfully!"
               '
 
@@ -42,53 +34,13 @@ pipelines:
           script:
             - echo "Backend Deployment Started"
             - ssh -v ubuntu@34.14.157.13 '
-                echo "=== Checking environment ===" &&
+                cd /home/ubuntu/helpdesk/backend &&
                 node -v &&
-                mongo --version 2>/dev/null || mongosh --version 2>/dev/null || echo "MongoDB CLI not found" &&
-                echo "" &&
-                echo "=== Pulling latest code ===" &&
-                cd /home/ubuntu/helpdesk &&
                 git checkout dev &&
                 git reset --hard origin/dev &&
                 git pull &&
-                echo "" &&
-                echo "=== Building backend ===" &&
-                cd backend &&
-                npm ci &&
+                npm install &&
+                chmod +x node_modules/.bin/* &&
                 npm run build &&
-                echo "" &&
-                echo "=== Setting up deployment directory ===" &&
-                mkdir -p /var/www/helpdesk/backend/uploads &&
-                chown -R ubuntu:ubuntu /var/www/helpdesk 2>/dev/null || true &&
-                echo "" &&
-                echo "=== Copying files ===" &&
-                rm -rf /var/www/helpdesk/backend/dist &&
-                cp -r dist /var/www/helpdesk/backend/ &&
-                cp package*.json /var/www/helpdesk/backend/ &&
-                cp ../ecosystem.config.js /var/www/helpdesk/backend/ &&
-                echo "" &&
-                echo "=== Installing production dependencies ===" &&
-                cd /var/www/helpdesk/backend &&
-                npm ci --omit=dev &&
-                echo "" &&
-                echo "=== Restarting PM2 ===" &&
-                echo "Checking PM2 installation..." &&
-                which pm2 &&
-                pm2 --version || (echo "PM2 broken, reinstalling..." && npm install -g pm2@latest) &&
-                pm2 delete all 2>/dev/null || true &&
-                pm2 kill 2>/dev/null || true &&
-                pm2 flush &&
-                pm2 start ecosystem.config.js &&
-                echo "Waiting 5 seconds for startup..." &&
-                sleep 5 &&
-                pm2 save &&
-                echo "" &&
-                pm2 status &&
-                echo "" &&
-                echo "=== Checking logs ===" &&
-                pm2 logs helpdesk-backend --lines 20 --nostream &&
-                echo "" &&
-                echo "=== Setting up nginx ===" &&
-                cd /home/ubuntu/helpdesk &&
-                bash setup-nginx.sh
+                pm2 restart Backend
               '
