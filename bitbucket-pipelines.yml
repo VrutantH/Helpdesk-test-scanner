@@ -47,8 +47,21 @@ pipelines:
                 git checkout dev &&
                 git reset --hard origin/dev &&
                 git pull &&
-                npm install &&
+                npm ci &&
                 chmod +x node_modules/.bin/* &&
                 npm run build &&
-                pm2 restart Backend
+                echo "Copying to /var/www/helpdesk/backend..." &&
+                sudo mkdir -p /var/www/helpdesk/backend &&
+                sudo cp -r dist /var/www/helpdesk/backend/ &&
+                sudo cp package*.json /var/www/helpdesk/backend/ &&
+                sudo cp ecosystem.config.js /var/www/helpdesk/backend/ 2>/dev/null || true &&
+                cd /var/www/helpdesk/backend &&
+                sudo npm ci --omit=dev &&
+                echo "Restarting PM2..." &&
+                pm2 delete helpdesk-backend 2>/dev/null || true &&
+                pm2 delete Backend 2>/dev/null || true &&
+                pm2 start ecosystem.config.js --env production &&
+                pm2 save &&
+                pm2 list &&
+                echo "Backend deployed successfully!"
               '
