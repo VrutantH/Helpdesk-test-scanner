@@ -15,12 +15,6 @@ export default defineConfig({
       'helpdesk.hubblehox.ai',
       '.hubblehox.ai', // Allow all subdomains
     ],
-    hmr: {
-      port: 3001,
-      // Use relative protocol in development, prevents hardcoded URLs in production build
-      protocol: 'ws',
-      host: 'localhost',
-    },
     proxy: {
       '/api': {
         target: 'http://localhost:3003',
@@ -36,7 +30,6 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: true,
-    // Ensure HMR is disabled in production build
     minify: 'esbuild',
   },
 })
