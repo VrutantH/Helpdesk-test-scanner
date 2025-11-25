@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { MdSearch, MdVisibility, MdThumbUp, MdThumbDown } from 'react-icons/md';
+import { API_CONFIG } from '../config/constants';
 
 interface KBArticle {
   _id: string;

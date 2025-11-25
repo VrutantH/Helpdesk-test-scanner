@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { MdSave, MdInfo, MdAdd, MdEdit, MdDelete, MdDragIndicator } from 'react-icons/md';
 import DashboardLayout from './DashboardLayout';
 import { useParams } from 'react-router-dom';
+import { API_CONFIG } from '../config/constants';
 
 interface TicketStatus {
   _id?: string;

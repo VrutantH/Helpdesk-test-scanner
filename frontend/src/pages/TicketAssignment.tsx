@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../components/DashboardLayout';
 import axios from 'axios';
 import { usePermissions } from '../hooks/usePermissions';
+import { API_CONFIG } from '../config/constants';
 
 interface TicketAssignmentProps {
   wrapWithLayout?: boolean;

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import DashboardLayout from './DashboardLayout';
 import AddProjectForm from './AddProjectForm';
 import { usePermissions } from '../hooks/usePermissions';
+import { API_CONFIG } from '../config/constants';
 
 interface Project {
   _id: string;

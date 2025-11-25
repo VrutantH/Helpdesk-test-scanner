@@ -18,6 +18,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { TicketsModule } from '../components/modules/TicketsModule';
 import { DashboardModule as EnhancedDashboard } from '../components/dashboard/DashboardModule';
+import { API_CONFIG } from '../config/constants';
 
 interface ProjectBranding {
   projectId: string;

@@ -20,6 +20,7 @@ import ViewTickets from './ViewTickets';
 import MyTickets from './MyTickets';
 import TicketAssignment from './TicketAssignment';
 import AgentTicketDetail from './AgentTicketDetail';
+import { API_CONFIG } from '../config/constants';
 
 interface ProjectBranding {
   projectId: string;

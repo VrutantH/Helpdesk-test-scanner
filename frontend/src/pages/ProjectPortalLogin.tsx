@@ -87,7 +87,7 @@ const ProjectPortalLogin: React.FC = () => {
       setBrandingLoading(true);
       setErrorMessage(''); // Clear any previous errors
       const response = await axios.get(
-        `${API_CONFIG.API_URL}/projects/branding/${customUrlPath}`,)
+        `${API_CONFIG.API_URL}/projects/branding/${customUrlPath}`,
         {
           headers: {
             'Cache-Control': 'no-cache',

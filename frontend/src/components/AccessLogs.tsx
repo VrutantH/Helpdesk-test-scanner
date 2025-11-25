@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from './DashboardLayout';
+import { API_CONFIG } from '../config/constants';
 
 interface AccessLog {
   _id: string;

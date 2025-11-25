@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { XMarkIcon } from '@heroicons/react/24/outline';
+import { API_CONFIG } from '../config/constants';
 
 interface StudentLoginModalProps {
   isOpen: boolean;

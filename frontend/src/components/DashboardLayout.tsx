@@ -7,7 +7,8 @@ import { LanguageToggle } from './LanguageToggle';
 import { designSystem } from '../styles/designSystem';
 import { usePermissions } from '../hooks/usePermissions';
 import { menuConfig, projectPortalMenuConfig, getFilteredMenuItems } from '../config/menuConfig';
-import { 
+import { API_CONFIG } from '../config/constants';
+import {
   MdDashboard, 
   MdFolder, 
   MdSettings, 

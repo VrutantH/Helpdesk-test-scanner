@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { MdAdd, MdEdit, MdDelete, MdContentCopy, MdStar, MdStarBorder, MdClose, MdSave, MdExpandMore, MdExpandLess } from 'react-icons/md';
 import DashboardLayout from '../components/DashboardLayout';
+import { API_CONFIG } from '../config/constants';
 
 interface Permission {
   _id: string;

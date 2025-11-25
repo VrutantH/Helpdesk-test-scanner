@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { MdMenu, MdLogout, MdDashboard, MdConfirmationNumber, MdBook, MdPerson, MdAdd, MdLocationOn } from 'react-icons/md';
 import axios from 'axios';
 import API_BASE_URL from '../config/api';
+import { API_CONFIG } from '../config/constants';
 
 interface StudentLayoutProps {
   children: ReactNode;

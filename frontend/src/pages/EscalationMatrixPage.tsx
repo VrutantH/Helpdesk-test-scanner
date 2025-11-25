@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../components/DashboardLayout';
 import { AddEscalationMatrixModal } from '../components/AddEscalationMatrixModal';
+import { API_CONFIG } from '../config/constants';
 
 interface EscalationLevel {
   level: number;

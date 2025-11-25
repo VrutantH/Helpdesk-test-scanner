@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_CONFIG } from '../config/constants';
 
 interface EscalationLevel {
   level: number;

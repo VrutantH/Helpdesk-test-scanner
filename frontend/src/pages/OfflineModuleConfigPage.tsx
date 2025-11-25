@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../components/DashboardLayout';
 import { MdSettings, MdArrowForward } from 'react-icons/md';
+import { API_CONFIG } from '../config/constants';
 
 interface Project {
   _id: string;

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_CONFIG } from '../config/constants';
 import {
   UserPlusIcon,
   TicketIcon,
