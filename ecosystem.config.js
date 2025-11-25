@@ -5,8 +5,8 @@ module.exports = {
       name: 'helpdesk-backend',
       script: './dist/server.js',
       cwd: '/var/www/helpdesk/backend',
-      instances: 2,
-      exec_mode: 'cluster',
+      instances: 1,
+      exec_mode: 'fork',
       env: {
         NODE_ENV: 'production',
         PORT: 3003,
@@ -23,7 +23,10 @@ module.exports = {
       merge_logs: true,
       autorestart: true,
       watch: false,
-      max_memory_restart: '1G'
+      max_memory_restart: '1G',
+      restart_delay: 3000,
+      max_restarts: 5,
+      min_uptime: '10s'
     }
   ]
 };
