@@ -5,7 +5,9 @@
 
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosError } from 'axios';
 
-const API_BASE_URL = 'http://localhost:3003/api';
+import { API_CONFIG } from '../config/constants';
+
+const API_BASE_URL = API_CONFIG.API_URL;
 
 // Create axios instance with default config
 const apiClient: AxiosInstance = axios.create({
