@@ -11,6 +11,7 @@ interface Ticket {
   _id: string;
   ticketNumber: string;
   subject: string;
+  title: string;
   description: string;
   status: string;
   priority: string;
@@ -491,7 +492,7 @@ const MyTickets: React.FC<MyTicketsProps> = ({ wrapWithLayout = true }) => {
           <TicketExportModal
             isOpen={showExportModal}
             onClose={() => setShowExportModal(false)}
-            filters={{ status: statusFilter, priority: priorityFilter, search: searchTerm }}
+            filters={{ status: statusFilter, priority: priorityFilter }}
           />
         )}
 

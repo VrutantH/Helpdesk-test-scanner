@@ -119,7 +119,7 @@ const SLARulesPage: React.FC = () => {
     if (confirm(`Are you sure you want to delete "${rule.name}"?`)) {
       try {
         const token = localStorage.getItem('authToken');
-        const response = await fetch(`http://localhost:3003/api/sla-rules/${rule._id || rule.id}`, {
+        const response = await fetch(`http://localhost:3003/api/sla-rules/${rule._id}`, {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',

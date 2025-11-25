@@ -232,6 +232,7 @@ const RBACSetup = () => {
       permissions: [],
       projects: [],
       isMaster: false,
+      isAgent: false,
       roleType: 'custom',
     });
     setShowCloneModal(true);
@@ -245,6 +246,7 @@ const RBACSetup = () => {
       permissions: [],
       projects: [],
       isMaster: false,
+      isAgent: false,
       roleType: 'custom',
     });
   };
