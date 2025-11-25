@@ -72,7 +72,11 @@ pipelines:
                 npm ci --omit=dev &&
                 echo "" &&
                 echo "=== Restarting PM2 ===" &&
+                echo "Checking PM2 installation..." &&
+                which pm2 &&
+                pm2 --version || (echo "PM2 broken, reinstalling..." && npm install -g pm2@latest) &&
                 pm2 delete all 2>/dev/null || true &&
+                pm2 kill 2>/dev/null || true &&
                 pm2 flush &&
                 pm2 start ecosystem.config.js &&
                 echo "Waiting 5 seconds for startup..." &&
