@@ -77,13 +77,18 @@ pipelines:
                 echo "=== Starting PM2 ===" &&
                 pm2 delete helpdesk-backend 2>/dev/null || true &&
                 pm2 delete Backend 2>/dev/null || true &&
-                pm2 start ecosystem.config.js --no-daemon || pm2 start ecosystem.config.js &&
-                sleep 3 &&
+                pm2 start ecosystem.config.js &&
+                echo "Waiting for backend to start..." &&
+                sleep 5 &&
                 pm2 save &&
-                pm2 list &&
-                pm2 logs helpdesk-backend --lines 20 --nostream &&
                 echo "" &&
-                echo "=== Deployment complete ===" &&
-                echo "Backend running on port 3003" &&
-                curl -f http://localhost:3003/api/health || echo "Health check failed - check PM2 logs above"
+                echo "=== PM2 Status ===" &&
+                pm2 list &&
+                pm2 jlist | grep -o '"status":"[^"]*"' | head -1 &&
+                echo "" &&
+                echo "=== Recent Logs ===" &&
+                pm2 logs helpdesk-backend --lines 30 --nostream &&
+                echo "" &&
+                echo "=== Health Check ===" &&
+                curl -f http://localhost:3003/api/health && echo "✅ Backend is healthy!" || (echo "❌ Health check failed" && pm2 logs helpdesk-backend --err --lines 50 --nostream && exit 1)
               '
