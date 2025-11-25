@@ -117,6 +117,32 @@ export const AddEscalationMatrixModal: React.FC<AddEscalationMatrixModalProps> =
     }
   };
 
+  const fetchRoles = async () => {
+    try {
+      const token = localStorage.getItem('authToken');
+      const response = await fetch('http://localhost:3003/api/rbac/roles', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && Array.isArray(data.data)) {
+          setRoles(data.data);
+        } else {
+          setRoles([]);
+        }
+      } else {
+        setRoles([]);
+      }
+    } catch (error) {
+      console.error('Error fetching roles:', error);
+      setRoles([]);
+    }
+  };
+
   const fetchUsers = async () => {
     try {
       const token = localStorage.getItem('authToken');

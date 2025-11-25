@@ -33,7 +33,7 @@ interface RegistrationField {
 interface TicketField {
   id: string;
   fieldName: string;
-  fieldType: 'text' | 'textarea' | 'dropdown' | 'number' | 'date' | 'file' | 'category';
+  fieldType: 'text' | 'textarea' | 'dropdown' | 'number' | 'date' | 'file' | 'category' | 'category-select';
   required: boolean;
   placeholder: string;
   options?: string[];
