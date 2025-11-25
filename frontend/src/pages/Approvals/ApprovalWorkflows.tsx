@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import DashboardLayout from '../../components/DashboardLayout';
 import { usePermissions } from '../../hooks/usePermissions';
+import { API_CONFIG } from '../../config/constants';
 
 type ApprovalCategory = {
   _id: string;

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { getText } from '../utils/language';
+import { API_CONFIG } from '../config/constants';
 
 
 const EULA = () => {

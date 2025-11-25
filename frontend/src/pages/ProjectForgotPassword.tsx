@@ -5,6 +5,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { ArrowLeftIcon, KeyIcon } from '@heroicons/react/24/outline';
 import axios from 'axios';
+import { API_CONFIG } from '../config/constants';
 
 interface ProjectBranding {
   projectId: string;

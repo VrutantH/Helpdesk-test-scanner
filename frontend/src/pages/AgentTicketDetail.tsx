@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import DashboardLayout from '../components/DashboardLayout';
+import { API_CONFIG } from '../config/constants';
 import {
   ArrowLeftIcon,
   PaperClipIcon,

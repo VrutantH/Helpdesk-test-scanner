@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import DashboardLayout from '../components/DashboardLayout';
+import { API_CONFIG } from '../config/constants';
 import {
   PlusIcon,
   TrashIcon,

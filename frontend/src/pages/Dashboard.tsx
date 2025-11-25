@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import DashboardLayout from '../components/DashboardLayout';
+import { API_CONFIG } from '../config/constants';
 
 interface TicketStats {
   total: number;

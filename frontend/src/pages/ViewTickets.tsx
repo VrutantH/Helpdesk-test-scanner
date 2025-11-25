@@ -6,6 +6,7 @@ import { usePermissionContext } from '../context/PermissionContext';
 import { TicketExportModal } from '../components/tickets/TicketExportModal';
 import { TicketMergeModal } from '../components/tickets/TicketMergeModal';
 import { ArrowDownTrayIcon, ArrowsPointingInIcon } from '@heroicons/react/24/outline';
+import { API_CONFIG } from '../config/constants';
 
 interface Ticket {
   _id: string;

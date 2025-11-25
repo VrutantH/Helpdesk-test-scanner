@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../components/DashboardLayout';
+import { API_CONFIG } from '../config/constants';
 
 interface SLARule {
   _id?: string;

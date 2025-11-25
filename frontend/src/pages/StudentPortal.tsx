@@ -12,6 +12,7 @@ import {
   BookOpenIcon,
 } from '@heroicons/react/24/outline';
 import { StudentLoginModal } from '../components/StudentLoginModal';
+import { API_CONFIG } from '../config/constants';
 
 interface ProjectBranding {
   projectId: string;

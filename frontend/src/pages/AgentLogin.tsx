@@ -9,6 +9,7 @@ import {
   ExclamationCircleIcon,
 } from '@heroicons/react/24/outline';
 import { getFirstAvailableRoute } from '../utils/loginRedirect';
+import { API_CONFIG } from '../config/constants';
 
 interface ProjectBranding {
   projectId: string;
