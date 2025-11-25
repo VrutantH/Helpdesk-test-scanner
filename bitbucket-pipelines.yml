@@ -16,8 +16,10 @@ pipelines:
                 npm ci &&
                 chmod +x node_modules/.bin/* &&
                 npm run build &&
+                sudo mkdir -p /var/www/helpdesk/frontend &&
                 sudo rm -rf /var/www/helpdesk/frontend/* &&
                 sudo cp -r dist/* /var/www/helpdesk/frontend/ &&
+                sudo chown -R www-data:www-data /var/www/helpdesk/frontend &&
                 echo "Frontend deployed successfully to /var/www/helpdesk/frontend"
               '
 
