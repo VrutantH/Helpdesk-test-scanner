@@ -382,7 +382,7 @@ const StudentTicketDetail: React.FC = () => {
                             {thread.attachments.map((file, idx) => (
                               <a
                                 key={idx}
-                                href={`${API_CONFIG.BASE_URL}${file.path}`}}
+                                href={`${API_CONFIG.BASE_URL}${file.path}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="flex items-center space-x-2 text-sm text-blue-600 hover:text-blue-700"
