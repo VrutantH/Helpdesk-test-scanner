@@ -24,6 +24,7 @@ interface ProjectBranding {
       accent: string;
       background: string;
     };
+    footerText?: string;
   };
 }
 

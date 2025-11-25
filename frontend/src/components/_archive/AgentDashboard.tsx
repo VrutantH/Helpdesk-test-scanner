@@ -34,7 +34,7 @@ import {
   HandThumbDownIcon,
   BuildingOfficeIcon,
 } from '@heroicons/react/24/outline';
-import AgentOfflineModule from './AgentOfflineModule';
+// import AgentOfflineModule from './AgentOfflineModule'; // File not found - archived component
 
 interface ProjectBranding {
   projectId: string;
@@ -849,13 +849,16 @@ const AgentDashboard: React.FC = () => {
 
           {/* Offline Support Module */}
           {activeModule === 'offline' && user && (
-            <AgentOfflineModule 
+            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded">
+              <p className="text-yellow-800">AgentOfflineModule component is archived and not available</p>
+            </div>
+            /* <AgentOfflineModule 
               projectId={
                 user.projects && user.projects.length > 0 
                   ? (typeof user.projects[0] === 'string' ? user.projects[0] : user.projects[0]._id)
                   : ''
               } 
-            />
+            /> */
           )}
         </main>
       </div>
