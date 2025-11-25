@@ -42,11 +42,12 @@ pipelines:
           script:
             - echo "Backend Deployment Started"
             - ssh -v ubuntu@34.14.157.13 '
-                cd /home/ubuntu/helpdesk/backend &&
+                cd /home/ubuntu/helpdesk &&
                 node -v &&
                 git checkout dev &&
                 git reset --hard origin/dev &&
                 git pull &&
+                cd backend &&
                 npm ci &&
                 chmod +x node_modules/.bin/* &&
                 npm run build &&
@@ -56,7 +57,7 @@ pipelines:
                 sudo rm -rf /var/www/helpdesk/backend/dist &&
                 sudo cp -r dist /var/www/helpdesk/backend/ &&
                 sudo cp package*.json /var/www/helpdesk/backend/ &&
-                sudo cp ecosystem.config.js /var/www/helpdesk/backend/ &&
+                sudo cp ../ecosystem.config.js /var/www/helpdesk/backend/ &&
                 cd /var/www/helpdesk/backend &&
                 sudo npm ci --omit=dev &&
                 echo "Restarting PM2..." &&
