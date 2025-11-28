@@ -5,6 +5,7 @@ import { Category } from '../models/Category';
 import { Status } from '../models/Status';
 import SLARule from '../models/sla-module/SLARule';
 import { AuthRequest } from '../middleware/auth';
+import { logActivity } from '../utils/logger';
 
 /**
  * Get all projects with optional filtering
@@ -143,6 +144,29 @@ export const createProject = async (req: Request, res: Response) => {
     
     console.log(`✅ Created new project: ${project.name} (${project.projectId})`);
     
+    // Log activity
+    try {
+      const currentUser = (req as any).user;
+      if (currentUser) {
+        await logActivity({
+          userId: currentUser.userId,
+          userName: `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim(),
+          userEmail: currentUser.email,
+          action: 'create',
+          entity: 'project',
+          entityId: project._id.toString(),
+          entityName: project.name,
+          projectId: project._id.toString(),
+          projectName: project.name,
+          description: `Project ${project.name} (${project.code}) created`,
+          req,
+          metadata: { projectId: project.projectId, code: project.code }
+        });
+      }
+    } catch (logError) {
+      console.error('Failed to log activity:', logError);
+    }
+    
     return res.status(201).json({
       success: true,
       data: { project },
@@ -204,6 +228,33 @@ export const updateProject = async (req: Request, res: Response) => {
     
     console.log(`✅ Updated project: ${project.name} (${project.projectId})`);
     
+    // Log activity
+    try {
+      const currentUser = (req as any).user;
+      if (currentUser) {
+        const changes = Object.keys(updateData)
+          .filter(key => !['updatedBy', 'updatedAt'].includes(key))
+          .map(key => ({ field: key, oldValue: 'previous value', newValue: updateData[key] }));
+        
+        await logActivity({
+          userId: currentUser.userId,
+          userName: `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim(),
+          userEmail: currentUser.email,
+          action: 'update',
+          entity: 'project',
+          entityId: project._id.toString(),
+          entityName: project.name,
+          projectId: project._id.toString(),
+          projectName: project.name,
+          changes: changes.length > 0 ? changes : undefined,
+          description: `Project ${project.name} updated`,
+          req
+        });
+      }
+    } catch (logError) {
+      console.error('Failed to log activity:', logError);
+    }
+    
     return res.json({
       success: true,
       data: { project },
@@ -226,7 +277,8 @@ export const deleteProject = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     
-    const project = await Project.findByIdAndDelete(id);
+    // Fetch project first to get its data
+    const project = await Project.findById(id);
     
     if (!project) {
       return res.status(404).json({
@@ -235,7 +287,39 @@ export const deleteProject = async (req: Request, res: Response) => {
       });
     }
     
-    console.log(`🗑️ Deleted project: ${project.name} (${project.projectId})`);
+    // Store project data before deletion
+    const deletedProjectData = {
+      id: project._id.toString(),
+      name: project.name,
+      code: project.code,
+      projectId: project.projectId
+    };
+    
+    // Delete the project
+    await Project.findByIdAndDelete(id);
+    
+    console.log(`🗑️ Deleted project: ${deletedProjectData.name} (${deletedProjectData.projectId})`);
+    
+    // Log activity
+    try {
+      const currentUser = (req as any).user;
+      if (currentUser) {
+        await logActivity({
+          userId: currentUser.userId,
+          userName: `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim(),
+          userEmail: currentUser.email,
+          action: 'delete',
+          entity: 'project',
+          entityId: deletedProjectData.id,
+          entityName: deletedProjectData.name,
+          description: `Project ${deletedProjectData.name} (${deletedProjectData.code}) deleted`,
+          req,
+          metadata: { projectId: deletedProjectData.projectId, code: deletedProjectData.code }
+        });
+      }
+    } catch (logError) {
+      console.error('Failed to log activity:', logError);
+    }
     
     return res.json({
       success: true,
@@ -694,6 +778,66 @@ export const updateProjectTicketSettings = async (req: Request, res: Response) =
     });
   } catch (error) {
     console.error('Update ticket settings error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+    });
+  }
+};
+
+/**
+ * Get project configuration by domain
+ * Public endpoint for login page to fetch branding, favicon, background image, announcement banner
+ */
+export const getProjectByDomain = async (req: Request, res: Response) => {
+  try {
+    const { domain } = req.params;
+    
+    console.log(`🔍 Looking for project with domain: ${domain}`);
+    
+    // Try to find by custom URL path first, then by domain
+    let project = await Project.findOne({ 'branding.customUrlPath': domain });
+    
+    if (!project) {
+      console.log(`❌ Project not found with domain: ${domain}`);
+      return res.status(404).json({
+        success: false,
+        message: 'Project not found',
+      });
+    }
+    
+    // Return project configuration needed for login page
+    const projectConfig = {
+      _id: project._id,
+      name: project.name,
+      code: project.code,
+      branding: {
+        logo: project.branding?.logo,
+        favicon: project.branding?.favicon,
+        headerText: project.branding?.headerText,
+        footerText: project.branding?.footerText,
+        customUrlPath: project.branding?.customUrlPath,
+        colorTheme: project.branding?.colorTheme,
+      },
+      configuration: {
+        announcementBanner: (project as any).configuration?.announcementBanner,
+        customizationSettings: {
+          loginPageBackgroundImage: (project as any).configuration?.customizationSettings?.loginPageBackgroundImage,
+        },
+        security: (project as any).configuration?.security,
+      },
+    };
+    
+    console.log(`✅ Found project: ${project.name}`);
+    
+    // Set cache control headers
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    
+    return res.json(projectConfig);
+  } catch (error) {
+    console.error('Get project by domain error:', error);
     return res.status(500).json({
       success: false,
       message: 'Internal server error',

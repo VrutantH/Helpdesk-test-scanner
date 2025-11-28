@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import {
   MapPinIcon,
@@ -12,6 +13,7 @@ import {
   BookOpenIcon,
 } from '@heroicons/react/24/outline';
 import { StudentLoginModal } from '../components/StudentLoginModal';
+import { LanguageToggle } from '../components/LanguageToggle';
 import { API_CONFIG } from '../config/constants';
 
 interface ProjectBranding {
@@ -83,6 +85,7 @@ interface StudentPortalProps {
 const StudentPortal: React.FC<StudentPortalProps> = ({ hideHeader = false }) => {
   const { customUrlPath } = useParams<{ customUrlPath: string }>();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -572,6 +575,8 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ hideHeader = false }) => 
               </div>
               {/* Action Buttons */}
               <div className="flex items-center space-x-3">
+                {/* Language Toggle */}
+                <LanguageToggle />
                 {/* Knowledge Base Button */}
                 {projectBranding.knowledgeBase && (
                   <button
@@ -579,7 +584,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ hideHeader = false }) => 
                     className="flex items-center space-x-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-white transition-colors duration-200 backdrop-blur-sm"
                   >
                     <BookOpenIcon className="h-5 w-5" />
-                    <span className="font-medium">Knowledge Base</span>
+                    <span className="font-medium">{t('knowledgeBase')}</span>
                   </button>
                 )}
                 {/* Login Button */}
@@ -590,7 +595,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ hideHeader = false }) => 
                   <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
-                  <span className="font-medium">Login</span>
+                  <span className="font-medium">{t('login')}</span>
                 </button>
               </div>
             </div>
@@ -661,7 +666,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ hideHeader = false }) => 
                 backgroundColor: activeTab === 'online' ? projectBranding.primaryColor : 'transparent',
               }}
             >
-              Submit Online
+              {t('submitOnline')}
             </button>
             <button
               onClick={() => setActiveTab('offline')}
@@ -674,7 +679,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ hideHeader = false }) => 
                 backgroundColor: activeTab === 'offline' ? projectBranding.primaryColor : 'transparent',
               }}
             >
-              Visit Center
+              {t('visitCenter')}
             </button>
           </div>
         )}
@@ -683,7 +688,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ hideHeader = false }) => 
         {/* Online Form */}
         {showOnline && (ticketSettings.mode !== 'both' || activeTab === 'online') && (
           <div className="bg-white rounded-xl shadow-md p-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Submit Your Ticket</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">{t('submitYourTicket')}</h2>
             <form onSubmit={handleSubmit} className="space-y-6">
               {ticketSettings.onlineFormFields.map((field) => (
                 <div key={field.fieldName}>
@@ -704,7 +709,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ hideHeader = false }) => 
                   background: `linear-gradient(135deg, ${projectBranding.primaryColor} 0%, ${projectBranding.secondaryColor} 100%)`,
                 }}
               >
-                {submitting ? 'Submitting...' : 'Submit Ticket'}
+                {submitting ? t('submitting') : t('submitTicket')}
               </button>
             </form>
           </div>
@@ -713,7 +718,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ hideHeader = false }) => 
         {/* Offline Centers */}
         {showOffline && (ticketSettings.mode !== 'both' || activeTab === 'offline') && (
           <div className="bg-white rounded-xl shadow-md p-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Find Nearest Center</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">{t('findNearestCenter')}</h2>
 
             {/* Filter Buttons */}
             <div className="mb-4 flex flex-wrap gap-2">
@@ -731,7 +736,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ hideHeader = false }) => 
                   backgroundColor: filterType === 'all' ? projectBranding.primaryColor : undefined,
                 }}
               >
-                All Centers
+                {t('allCenters')}
               </button>
               <button
                 onClick={() => {
@@ -747,7 +752,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ hideHeader = false }) => 
                   backgroundColor: filterType === 'state' ? projectBranding.primaryColor : undefined,
                 }}
               >
-                By State
+                {t('byState')}
               </button>
               <button
                 onClick={() => {
@@ -763,7 +768,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ hideHeader = false }) => 
                   backgroundColor: filterType === 'city' ? projectBranding.primaryColor : undefined,
                 }}
               >
-                By City
+                {t('byCity')}
               </button>
               <button
                 onClick={() => {
@@ -779,7 +784,7 @@ const StudentPortal: React.FC<StudentPortalProps> = ({ hideHeader = false }) => 
                   backgroundColor: filterType === 'pincode' ? projectBranding.primaryColor : undefined,
                 }}
               >
-                By Pincode
+                {t('byPincode')}
               </button>
             </div>
 

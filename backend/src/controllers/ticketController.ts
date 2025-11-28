@@ -4,10 +4,54 @@ import { Project } from '../models/Project';
 import { User } from '../models/User';
 import { Role } from '../models/Role';
 import mongoose from 'mongoose';
+import jwt from 'jsonwebtoken';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { sendTicketCreatedEmail, sendStudentWelcomeEmail } from '../utils/emailService';
+import { logActivity } from '../utils/logger';
+import { config } from '../config';
+
+/**
+ * Check if user has authorization to modify a ticket
+ * Authorized users:
+ * - Ticket creator (student who submitted)
+ * - Assigned agent
+ * - Project admins/managers
+ * - Super admins
+ */
+const canModifyTicket = async (userId: string, ticket: any, user: any): Promise<boolean> => {
+  // Super admins can modify any ticket
+  if (user?.role?.code === 'SUPER_ADMIN') {
+    return true;
+  }
+
+  // Center managers can modify tickets in their projects
+  if (user?.role?.code === 'CENTER_MANAGER') {
+    return true;
+  }
+
+  // Ticket creator can modify their own ticket
+  if (ticket.submittedBy?.toString() === userId) {
+    return true;
+  }
+
+  // Assigned agent can modify the ticket
+  if (ticket.assignedTo?.toString() === userId) {
+    return true;
+  }
+
+  // Check if user is an agent on this project
+  const projectId = ticket.metadata?.projectId;
+  if (projectId) {
+    const userDoc = await User.findById(userId);
+    if (userDoc?.projects?.some((p: any) => p.toString() === projectId.toString())) {
+      return true;
+    }
+  }
+
+  return false;
+};
 
 /**
  * Get next agent for round-robin assignment
@@ -60,13 +104,34 @@ const getLeastLoadedAgent = async (eligibleUserIds: mongoose.Types.ObjectId[]): 
  * Submit a ticket from student portal
  */
 export const submitTicket = async (req: Request, res: Response) => {
+  const perfStart = Date.now();
+  console.time('⏱️ Total submitTicket');
+  
   try {
     const { projectId, formData } = req.body;
     
     console.log(`📝 Submitting ticket for project: ${projectId}`);
     
+    // Check if user is authenticated (optional for this endpoint)
+    const authHeader = req.headers.authorization;
+    let authenticatedUserId: string | null = null;
+    
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      try {
+        const token = authHeader.substring(7);
+        const decoded = jwt.verify(token, config.jwt.secret) as any;
+        authenticatedUserId = decoded.userId;
+        console.log(`🔐 Authenticated submission from user: ${authenticatedUserId}`);
+      } catch (error) {
+        console.log(`⚠️ Invalid token, treating as public submission`);
+      }
+    }
+    
     // Validate project exists
+    console.time('⏱️ Project lookup');
     const project = await Project.findById(projectId);
+    console.timeEnd('⏱️ Project lookup');
+    
     if (!project) {
       return res.status(404).json({
         success: false,
@@ -94,6 +159,7 @@ export const submitTicket = async (req: Request, res: Response) => {
     }
     
     // Generate unique ticket number with retry mechanism
+    console.time('⏱️ Generate ticket number');
     const generateUniqueTicketNumber = async (): Promise<string> => {
       const today = new Date();
       const datePrefix = `TKT-${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}`;
@@ -128,9 +194,11 @@ export const submitTicket = async (req: Request, res: Response) => {
     };
     
     const ticketNumber = await generateUniqueTicketNumber();
+    console.timeEnd('⏱️ Generate ticket number');
     console.log(`🎫 Generated ticket number: ${ticketNumber}`);
     
     // Auto-assignment logic
+    console.time('⏱️ Auto-assignment');
     let assignedAgent: mongoose.Types.ObjectId | null = null;
     
     if (project.configuration?.ticketAssignmentSettings?.enabled) {
@@ -176,27 +244,42 @@ export const submitTicket = async (req: Request, res: Response) => {
           break;
       }
     }
+    console.timeEnd('⏱️ Auto-assignment');
     
     // Check if student user exists, create if first time (MUST DO THIS BEFORE CREATING TICKET)
+    console.time('⏱️ Student user lookup/create');
     const studentEmail = ticketData.Email;
     const studentName = ticketData.Name || 'Student';
     let studentUserId: mongoose.Types.ObjectId;
     let isNewStudent = false;
     
-    if (studentEmail) {
-      let studentUser = await User.findOne({ email: studentEmail });
+    // If authenticated, use the authenticated user's ID
+    if (authenticatedUserId) {
+      console.log(`🔐 Using authenticated user ID: ${authenticatedUserId}`);
+      studentUserId = new mongoose.Types.ObjectId(authenticatedUserId);
+      
+      // Get student info from database for notifications
+      const authenticatedUser = await User.findById(authenticatedUserId);
+      if (authenticatedUser) {
+        ticketData.Email = authenticatedUser.email;
+        ticketData.Name = `${authenticatedUser.firstName} ${authenticatedUser.lastName}`.trim();
+      }
+    } else if (studentEmail) {
+      // Public submission - check if student exists or create new
+      // Parallelize student user lookup and role lookup
+      const [studentUser, studentRole] = await Promise.all([
+        User.findOne({ email: studentEmail }),
+        Role.findOne({ code: 'STUDENT' })
+      ]);
       
       if (!studentUser) {
         console.log(`📧 First-time student submission detected: ${studentEmail}`);
         isNewStudent = true;
         
-        // Get STUDENT role
-        const studentRole = await Role.findOne({ code: 'STUDENT' });
-        
         if (studentRole) {
           // Create new student user
           const nameParts = studentName.split(' ');
-          studentUser = await User.create({
+          const newStudent = await User.create({
             email: studentEmail,
             firstName: nameParts[0] || 'Student',
             lastName: nameParts.slice(1).join(' ') || '',
@@ -207,25 +290,25 @@ export const submitTicket = async (req: Request, res: Response) => {
             registrationSource: 'online', // Mark as online registration
           });
           
-          console.log(`✅ Student user created: ${studentUser._id} | ${studentEmail}`);
-          
-          // TODO: Send welcome email with OTP link
-          // await sendStudentWelcomeEmail(studentEmail, project.name);
+          console.log(`✅ Student user created: ${newStudent._id} | ${studentEmail}`);
+          studentUserId = newStudent._id as mongoose.Types.ObjectId;
         } else {
           console.error('⚠️ STUDENT role not found - cannot create student user');
           // Use a placeholder if role doesn't exist
           studentUserId = new mongoose.Types.ObjectId();
         }
+      } else {
+        // Use the existing student user ID
+        studentUserId = studentUser._id as mongoose.Types.ObjectId;
       }
-      
-      // Use the actual student user ID
-      studentUserId = studentUser!._id as mongoose.Types.ObjectId;
     } else {
       // No email provided - use placeholder (shouldn't happen in normal flow)
       studentUserId = new mongoose.Types.ObjectId();
     }
+    console.timeEnd('⏱️ Student user lookup/create');
     
     // Create ticket (using actual student user ID)
+    console.time('⏱️ Ticket save');
     const ticket = new Ticket({
       ticketNumber,
       title: ticketData.Subject || 'New Ticket',
@@ -252,43 +335,73 @@ export const submitTicket = async (req: Request, res: Response) => {
     });
     
     await ticket.save();
+    console.timeEnd('⏱️ Ticket save');
     
     console.log(`✅ Ticket created successfully: ${ticket._id} | Created by: ${studentUserId}${assignedAgent ? ` | Assigned to: ${assignedAgent}` : ' | Unassigned'}`);
     
-    // Send email notifications to student
-    if (studentEmail) {
+    // Log activity (non-blocking - fire and forget)
+    (async () => {
       try {
-        // Send welcome email if this is a new student
-        if (isNewStudent) {
-          const customUrlPath = project.branding?.customUrlPath || 'portal';
-          const loginUrl = `${process.env.FRONTEND_URL || 'http://localhost:3001'}/${customUrlPath}/student/login`;
-          
-          await sendStudentWelcomeEmail(
-            studentEmail,
-            studentName,
-            project.name,
-            loginUrl,
-            projectId
-          );
-        }
-        
-        // Send ticket creation confirmation
-        await sendTicketCreatedEmail(
-          studentEmail,
-          ticket.ticketNumber,
-          ticket.title,
-          projectId,
-          {
-            studentName: studentName,
-            status: ticket.status,
-            priority: ticket.priority
-          }
-        );
-      } catch (emailError) {
-        console.error('Failed to send email notifications:', emailError);
-        // Don't fail the request if email fails
+        await logActivity({
+          userId: studentUserId.toString(),
+          userName: studentName || 'Student',
+          userEmail: studentEmail || 'unknown@student.com',
+          action: 'create',
+          entity: 'ticket',
+          entityId: ticket._id.toString(),
+          entityName: ticket.title,
+          projectId: projectId,
+          projectName: project.name,
+          description: `Ticket ${ticket.ticketNumber} created via online submission`,
+          req,
+          metadata: { ticketNumber: ticket.ticketNumber, source: 'online' }
+        });
+      } catch (logError) {
+        console.error('Failed to log activity:', logError);
       }
+    })();
+    
+    // Send email notifications to student (non-blocking - fire and forget)
+    if (studentEmail) {
+      // Send emails in background without blocking the response
+      (async () => {
+        try {
+          // Send welcome email if this is a new student
+          if (isNewStudent) {
+            const customUrlPath = project.branding?.customUrlPath || 'portal';
+            const loginUrl = `${process.env.FRONTEND_URL || 'http://localhost:3001'}/${customUrlPath}/student/login`;
+            
+            await sendStudentWelcomeEmail(
+              studentEmail,
+              studentName,
+              project.name,
+              loginUrl,
+              projectId
+            );
+          }
+          
+          // Send ticket creation confirmation
+          await sendTicketCreatedEmail(
+            studentEmail,
+            ticket.ticketNumber,
+            ticket.title,
+            projectId,
+            {
+              studentName: studentName,
+              status: ticket.status,
+              priority: ticket.priority
+            }
+          );
+        } catch (emailError) {
+          console.error('Failed to send email notifications:', emailError);
+          // Don't fail the request if email fails
+        }
+      })();
     }
+    
+    console.timeEnd('⏱️ Total submitTicket');
+    const totalTime = Date.now() - perfStart;
+    console.log(`⚡ Total API response time: ${totalTime}ms`);
     
     return res.status(201).json({
       success: true,
@@ -300,6 +413,7 @@ export const submitTicket = async (req: Request, res: Response) => {
     });
     
   } catch (error) {
+    console.timeEnd('⏱️ Total submitTicket');
     console.error('Submit ticket error:', error);
     return res.status(500).json({
       success: false,
@@ -345,23 +459,29 @@ export const getMyTickets = async (req: Request, res: Response) => {
     const permissionCodes = permissions.map((p: any) => p.code).filter((c: any) => c); // Filter out undefined
     const hasViewAll = permissionCodes.includes('TICKET_VIEW_ALL');
     const hasViewOwn = permissionCodes.includes('TICKET_VIEW_OWN');
+    const isSuperAdmin = role?.code === 'SUPER_ADMIN';
     
     // Check if user is a student based on role code
     const isStudent = role?.code === 'STUDENT';
     const isAgent = role?.isAgent === true;
 
-    console.log(`🔍 [PERMISSIONS] User: ${user.email}`);
-    console.log(`🔍 [PERMISSIONS] Role: ${role?.name} (${role?.code})`);
-    console.log(`🔍 [PERMISSIONS] isStudent: ${isStudent}, isAgent: ${isAgent}`);
-    console.log(`🔍 [PERMISSIONS] Permission codes:`, permissionCodes);
-    console.log(`🔍 [PERMISSIONS] hasViewAll: ${hasViewAll}, hasViewOwn: ${hasViewOwn}`);
+    console.log(`🔍 [MY_TICKETS] User: ${user.email}`);
+    console.log(`🔍 [MY_TICKETS] Role: ${role?.name} (${role?.code})`);
+    console.log(`🔍 [MY_TICKETS] isSuperAdmin: ${isSuperAdmin}, isStudent: ${isStudent}, isAgent: ${isAgent}`);
+    console.log(`🔍 [MY_TICKETS] Permission codes:`, permissionCodes);
+    console.log(`🔍 [MY_TICKETS] hasViewAll: ${hasViewAll}, hasViewOwn: ${hasViewOwn}`);
 
     // Build query based on permissions and role type
     let query: any = {};
 
-    if (hasViewAll) {
-      // If user has TICKET_VIEW_ALL, show all tickets (no filter on user)
-      console.log(`🔍 [QUERY] Using TICKET_VIEW_ALL - no user filter`);
+    // Super Admin should see EMPTY list in My Tickets (no tickets assigned to them)
+    if (isSuperAdmin) {
+      console.log(`🔍 [MY_TICKETS] Super Admin - returning empty list`);
+      return res.status(200).json({
+        success: true,
+        data: [],
+        message: 'Super Admin has no assigned tickets. Use View Tickets to see all tickets.'
+      });
     } else if (hasViewOwn) {
       // For TICKET_VIEW_OWN: Students see tickets created by them, Agents see tickets assigned to them
       if (isStudent) {
@@ -422,6 +542,120 @@ export const getMyTickets = async (req: Request, res: Response) => {
 
   } catch (error) {
     console.error('Get my tickets error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch tickets',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+};
+
+/**
+ * Get all tickets for View Tickets page
+ * - Super Admin: ALL tickets across all projects
+ * - Other roles: Only tickets from their assigned projects
+ */
+export const getAllTickets = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.userId;
+    
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Unauthorized',
+      });
+    }
+
+    // Get user with their role and permissions
+    const user = await User.findById(userId).populate({
+      path: 'role',
+      populate: {
+        path: 'permissions',
+        model: 'Permission'
+      }
+    }).populate('projects');
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
+    const role = user.role as any;
+    const isSuperAdmin = role?.code === 'SUPER_ADMIN';
+    const permissions = role?.permissions || [];
+    const permissionCodes = permissions.map((p: any) => p.code).filter((c: any) => c);
+    const hasViewAll = permissionCodes.includes('TICKET_VIEW_ALL');
+
+    console.log(`🔍 [VIEW_TICKETS] User: ${user.email}`);
+    console.log(`🔍 [VIEW_TICKETS] Role: ${role?.name} (${role?.code})`);
+    console.log(`🔍 [VIEW_TICKETS] isSuperAdmin: ${isSuperAdmin}, hasViewAll: ${hasViewAll}`);
+
+    let query: any = {};
+
+    // Super Admin sees ALL tickets across all projects
+    if (isSuperAdmin) {
+      console.log(`🔍 [VIEW_TICKETS] Super Admin - showing all tickets`);
+      // No filter - show everything
+    } else if (hasViewAll) {
+      // Other roles with TICKET_VIEW_ALL see only tickets from their assigned projects
+      const assignedProjectIds = ((user as any).projects as any[])?.map(p => p._id) || [];
+      if (assignedProjectIds.length > 0) {
+        query['metadata.projectId'] = { $in: assignedProjectIds };
+        console.log(`🔍 [VIEW_TICKETS] User with TICKET_VIEW_ALL - filter by assigned projects:`, assignedProjectIds);
+      } else {
+        console.log(`🔍 [VIEW_TICKETS] User has no assigned projects - returning empty`);
+        return res.status(200).json({
+          success: true,
+          data: [],
+        });
+      }
+    } else {
+      // Users without TICKET_VIEW_ALL should not access this endpoint
+      return res.status(403).json({
+        success: false,
+        message: 'You do not have permission to view all tickets',
+      });
+    }
+
+    console.log(`🔍 [VIEW_TICKETS] Final query:`, JSON.stringify(query));
+
+    // Find tickets based on query
+    const tickets = await Ticket.find(query)
+      .populate('assignedTo', 'firstName lastName email')
+      .populate('category', 'name')
+      .sort({ createdAt: -1 });
+
+    console.log(`🔍 [VIEW_TICKETS] Tickets found: ${tickets.length}`);
+
+    // Manually populate project data
+    const ticketsWithProject = await Promise.all(
+      tickets.map(async (ticket) => {
+        const ticketObj = ticket.toObject();
+        if (ticketObj.metadata?.projectId) {
+          const project = await Project.findById(ticketObj.metadata.projectId).select('name code');
+          if (project) {
+            ticketObj.metadata.projectId = {
+              _id: project._id,
+              name: project.name,
+              code: project.code,
+            };
+          }
+        }
+        return ticketObj;
+      })
+    );
+
+    console.log(`📋 Retrieved ${tickets.length} tickets for View Tickets`);
+
+    return res.status(200).json({
+      success: true,
+      data: ticketsWithProject,
+    });
+
+  } catch (error) {
+    console.error('Get all tickets error:', error);
     return res.status(500).json({
       success: false,
       message: 'Failed to fetch tickets',
@@ -829,6 +1063,7 @@ export const updateTicketStatus = async (req: Request, res: Response) => {
     const { id } = req.params;
     const { status } = req.body;
     const userId = (req as any).user?.userId;
+    const user = (req as any).user;
 
     const ticket = await Ticket.findById(id);
     if (!ticket) {
@@ -838,9 +1073,41 @@ export const updateTicketStatus = async (req: Request, res: Response) => {
       });
     }
 
+    // Authorization check
+    if (!await canModifyTicket(userId, ticket, user)) {
+      return res.status(403).json({
+        success: false,
+        message: 'You are not authorized to modify this ticket',
+      });
+    }
+
+    const oldStatus = ticket.status;
     ticket.status = status;
     ticket.updatedAt = new Date();
     await ticket.save();
+    
+    // Log activity
+    if (user) {
+      try {
+        const projectData = await Project.findById(ticket.metadata?.projectId);
+        await logActivity({
+          userId: user.userId,
+          userName: user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+          userEmail: user.email,
+          action: 'update',
+          entity: 'ticket',
+          entityId: ticket._id.toString(),
+          entityName: ticket.title,
+          projectId: ticket.metadata?.projectId,
+          projectName: projectData?.name,
+          changes: [{ field: 'status', oldValue: oldStatus, newValue: status }],
+          description: `Ticket ${ticket.ticketNumber} status changed from ${oldStatus} to ${status}`,
+          req
+        });
+      } catch (logError) {
+        console.error('Failed to log activity:', logError);
+      }
+    }
 
     return res.status(200).json({
       success: true,
@@ -862,6 +1129,8 @@ export const updateTicketCategory = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { category } = req.body;
+    const userId = (req as any).user?.userId;
+    const user = (req as any).user;
 
     const ticket = await Ticket.findById(id);
     if (!ticket) {
@@ -871,9 +1140,41 @@ export const updateTicketCategory = async (req: Request, res: Response) => {
       });
     }
 
+    // Authorization check
+    if (!await canModifyTicket(userId, ticket, user)) {
+      return res.status(403).json({
+        success: false,
+        message: 'You are not authorized to modify this ticket',
+      });
+    }
+
+    const oldCategory = ticket.category;
     ticket.category = category;
     ticket.updatedAt = new Date();
     await ticket.save();
+    
+    // Log activity
+    if (user) {
+      try {
+        const projectData = await Project.findById(ticket.metadata?.projectId);
+        await logActivity({
+          userId: user.userId,
+          userName: user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+          userEmail: user.email,
+          action: 'update',
+          entity: 'ticket',
+          entityId: ticket._id.toString(),
+          entityName: ticket.title,
+          projectId: ticket.metadata?.projectId,
+          projectName: projectData?.name,
+          changes: [{ field: 'category', oldValue: oldCategory, newValue: category }],
+          description: `Ticket ${ticket.ticketNumber} category changed from ${oldCategory} to ${category}`,
+          req
+        });
+      } catch (logError) {
+        console.error('Failed to log activity:', logError);
+      }
+    }
 
     return res.status(200).json({
       success: true,
@@ -895,6 +1196,8 @@ export const updateTicketPriority = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { priority } = req.body;
+    const userId = (req as any).user?.userId;
+    const user = (req as any).user;
 
     const ticket = await Ticket.findById(id);
     if (!ticket) {
@@ -904,9 +1207,41 @@ export const updateTicketPriority = async (req: Request, res: Response) => {
       });
     }
 
+    // Authorization check
+    if (!await canModifyTicket(userId, ticket, user)) {
+      return res.status(403).json({
+        success: false,
+        message: 'You are not authorized to modify this ticket',
+      });
+    }
+
+    const oldPriority = ticket.priority;
     ticket.priority = priority;
     ticket.updatedAt = new Date();
     await ticket.save();
+    
+    // Log activity
+    if (user) {
+      try {
+        const projectData = await Project.findById(ticket.metadata?.projectId);
+        await logActivity({
+          userId: user.userId,
+          userName: user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+          userEmail: user.email,
+          action: 'update',
+          entity: 'ticket',
+          entityId: ticket._id.toString(),
+          entityName: ticket.title,
+          projectId: ticket.metadata?.projectId,
+          projectName: projectData?.name,
+          changes: [{ field: 'priority', oldValue: oldPriority, newValue: priority }],
+          description: `Ticket ${ticket.ticketNumber} priority changed from ${oldPriority} to ${priority}`,
+          req
+        });
+      } catch (logError) {
+        console.error('Failed to log activity:', logError);
+      }
+    }
 
     return res.status(200).json({
       success: true,
@@ -1128,8 +1463,17 @@ export const assignTicket = async (req: Request, res: Response) => {
     const { id } = req.params;
     const { agentId } = req.body;
 
+    // Get current user info from auth middleware
+    const currentUser = await User.findById((req as any).user.userId).populate('role');
+    if (!currentUser) {
+      return res.status(401).json({
+        success: false,
+        message: 'Unauthorized',
+      });
+    }
+
     // Validate ticket exists
-    const ticket = await Ticket.findById(id);
+    const ticket = await Ticket.findById(id).populate('metadata.projectId', 'name');
     if (!ticket) {
       return res.status(404).json({
         success: false,
@@ -1153,10 +1497,44 @@ export const assignTicket = async (req: Request, res: Response) => {
       });
     }
 
+    // Store old assignment for logging
+    const oldAssignedTo = ticket.assignedTo;
+
     // Update ticket assignment
     ticket.assignedTo = new mongoose.Types.ObjectId(agentId);
     ticket.updatedAt = new Date();
     await ticket.save();
+
+    // Log activity
+    const agentName = `${agent.firstName} ${agent.lastName}`;
+    const projectInfo = ticket.metadata?.projectId as any;
+    
+    await logActivity({
+      userId: currentUser._id.toString(),
+      userName: `${currentUser.firstName} ${currentUser.lastName}`,
+      userEmail: currentUser.email,
+      action: 'update',
+      entity: 'ticket',
+      entityId: ticket._id.toString(),
+      entityName: `Ticket #${ticket.ticketNumber}`,
+      changes: [{
+        field: 'assignedTo',
+        oldValue: oldAssignedTo ? oldAssignedTo.toString() : 'Unassigned',
+        newValue: agentName
+      }],
+      description: `Assigned ticket #${ticket.ticketNumber} to ${agentName}`,
+      req,
+      projectId: projectInfo?._id?.toString(),
+      projectName: projectInfo?.name,
+      role: (currentUser.role as any)?.name,
+      metadata: {
+        ticketId: ticket._id.toString(),
+        ticketNumber: ticket.ticketNumber,
+        agentId: agent._id.toString(),
+        agentName: agentName,
+        agentEmail: agent.email
+      }
+    });
 
     // Populate assignedTo for response
     const updatedTicket = await Ticket.findById(id)
@@ -1491,6 +1869,32 @@ export const createOfflineTicket = async (req: Request, res: Response) => {
     await ticket.save();
 
     console.log(`✅ Offline ticket created: ${ticket._id} | ${ticketNumber} | Agent: ${agent.email} | Student: ${student.email}`);
+    
+    // Log activity
+    try {
+      const projectData = await Project.findById(projectId);
+      await logActivity({
+        userId: agent.userId,
+        userName: `${agent.firstName || ''} ${agent.lastName || ''}`.trim(),
+        userEmail: agent.email,
+        action: 'create',
+        entity: 'ticket',
+        entityId: ticket._id.toString(),
+        entityName: ticket.title,
+        projectId: projectId,
+        projectName: projectData?.name,
+        description: `Offline ticket ${ticketNumber} created on behalf of ${student.firstName} ${student.lastName}`,
+        req,
+        metadata: { 
+          ticketNumber, 
+          source: 'offline', 
+          studentId, 
+          resolvedAtCreation: resolvedAtCreation === 'true' 
+        }
+      });
+    } catch (logError) {
+      console.error('Failed to log activity:', logError);
+    }
 
     return res.status(201).json({
       success: true,

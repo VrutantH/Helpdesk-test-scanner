@@ -8,6 +8,7 @@ import ProjectPortalLogin from './pages/ProjectPortalLogin'
 import ProjectForgotPassword from './pages/ProjectForgotPassword'
 import ProjectPortalDashboard from './pages/ProjectPortalDashboard'
 import StudentPortal from './pages/StudentPortal'
+import AuthenticatedStudentSubmitTicket from './pages/AuthenticatedStudentSubmitTicket'
 import StudentKBPage from './pages/StudentKBPage';
 import StudentLayout from './components/StudentLayout';
 import ConditionalStudentLayout from './components/ConditionalStudentLayout';
@@ -25,8 +26,9 @@ import DashboardLayout from './components/DashboardLayout'
 // import { FieldFormManagement } from './components/FieldFormManagement' // TODO: Implement
 // import { TicketAutomation } from './components/TicketAutomation' // TODO: Implement
 import SLARulesPage from './pages/SLARulesPage'
-import ApprovalWorkflows from './pages/Approvals/ApprovalWorkflows'
+// import ApprovalWorkflows from './pages/Approvals/ApprovalWorkflows' // HIDDEN: Module not ready
 import EscalationMatrixPage from './pages/EscalationMatrixPage'
+import TicketListReport from './pages/TicketListReport'
 import ActivityLogs from './components/ActivityLogs'
 import AccessLogs from './components/AccessLogs'
 import KnowledgeBaseManagement from './components/KnowledgeBaseManagement'
@@ -42,6 +44,8 @@ import TicketAssignment from './pages/TicketAssignment'
 import MyTickets from './pages/MyTickets'
 import NoAccess from './pages/NoAccess'
 import EmailConfigPage from './pages/EmailConfigPage'
+import EmailLogsPage from './pages/EmailLogsPage'
+import WebhookFailureLogs from './pages/WebhookFailureLogs'
 // import BlockedEmailRecipients from './components/BlockedEmailRecipients' // TODO: Implement
 // import EmailFailureLogs from './components/EmailFailureLogs' // TODO: Implement
 // import IntegrationsManagement from './components/IntegrationsManagement' // TODO: Implement
@@ -89,12 +93,16 @@ function App() {
         <Route path="/:customUrlPath/forgot-password" element={<ForgotPassword />} />
         <Route path="/:customUrlPath/eula" element={<EULA />} />
         
-        {/* Public ticket submission and KB - conditionally wrap with StudentLayout if logged in */}
+        {/* Public ticket submission and KB - conditionally show authenticated vs public view */}
         <Route 
           path="/:customUrlPath/submit-ticket" 
           element={
             <ConditionalStudentLayout>
-              <StudentPortal hideHeader={!!localStorage.getItem('authToken')} />
+              {localStorage.getItem('authToken') ? (
+                <AuthenticatedStudentSubmitTicket hideHeader={true} />
+              ) : (
+                <StudentPortal hideHeader={false} />
+              )}
             </ConditionalStudentLayout>
           } 
         />
@@ -221,7 +229,7 @@ function App() {
         <Route 
           path="/tickets/view" 
           element={
-            <ProtectedRoute permission={['TICKET_VIEW_ALL', 'TICKET_VIEW_OWN']}>
+            <ProtectedRoute permission="TICKET_VIEW_ALL">
               <ViewTickets />
             </ProtectedRoute>
           } 
@@ -231,7 +239,7 @@ function App() {
         <Route 
           path="/tickets/my-tickets" 
           element={
-            <ProtectedRoute permission={["TICKET_VIEW_OWN", "TICKET_VIEW_ALL"]}>
+            <ProtectedRoute permission="TICKET_VIEW_OWN">
               <MyTickets />
             </ProtectedRoute>
           } 
@@ -301,15 +309,25 @@ function App() {
           } 
         />
         
-        {/* Approval Workflows - Requires APPROVAL_* permissions */}
+        {/* Reports - Requires REPORT_* permissions */}
         <Route 
+          path="/reports" 
+          element={
+            <ProtectedRoute modulePrefix="REPORT_">
+              <TicketListReport />
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* Approval Workflows - HIDDEN: Module not ready */}
+        {/* <Route 
           path="/approvals" 
           element={
             <ProtectedRoute modulePrefix="APPROVAL_">
               <ApprovalWorkflows />
             </ProtectedRoute>
           } 
-        />
+        /> */}
         
         {/* Knowledge Base - Requires KB_* permissions */}
         <Route 
@@ -346,23 +364,31 @@ function App() {
             </ProtectedRoute>
           } 
         />
+        <Route 
+          path="/audit/email-logs" 
+          element={
+            <ProtectedRoute permission="EMAIL_CONFIG_VIEW">
+              <EmailLogsPage />
+            </ProtectedRoute>
+          } 
+        />
         
         {/* TODO: Implement these routes when components are ready */}
-        {/* <Route path="/audit/blocked-email-recipients" element={
-          <ProtectedRoute permission="AUDIT_VIEW_BLOCKED_EMAILS">
-            <BlockedEmailRecipients />
-          </ProtectedRoute>
-        } /> */}
-        {/* <Route path="/audit/email-failure-logs" element={
-          <ProtectedRoute permission="AUDIT_VIEW_EMAIL_FAILURES">
-            <EmailFailureLogs />
-          </ProtectedRoute>
-        } /> */}
         {/* <Route path="/integrations" element={
           <ProtectedRoute modulePrefix="INTEGRATION_">
             <IntegrationsManagement />
           </ProtectedRoute>
         } /> */}
+        
+        {/* Webhook & API Failure Logs - Super Admin */}
+        <Route 
+          path="/audit/webhook-failure-logs" 
+          element={
+            <ProtectedRoute permission={['AUDIT_VIEW_WEBHOOK_FAILURES', 'AUDIT_VIEW_INTEGRATION_FAILURES']}>
+              <WebhookFailureLogs />
+            </ProtectedRoute>
+          } 
+        />
         
         {/* Email Configuration - Super Admin */}
         <Route 

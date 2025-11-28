@@ -1,4 +1,4 @@
-import { ReactNode, useState, useEffect } from 'react';
+import { ReactNode, useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
@@ -58,11 +58,54 @@ interface DashboardLayoutProps {
 const DashboardLayout = ({ children, logoutRedirectPath }: DashboardLayoutProps) => {
   const location = useLocation();
   const { i18n } = useTranslation();
-  const [expandedMenu, setExpandedMenu] = useState<string | null>(null);
+  
+  // Load expanded menus from sessionStorage on mount
+  const [expandedMenus, setExpandedMenus] = useState<Set<string>>(() => {
+    const saved = sessionStorage.getItem('expandedMenus');
+    if (saved) {
+      try {
+        return new Set(JSON.parse(saved));
+      } catch {
+        return new Set();
+      }
+    }
+    return new Set();
+  });
+  
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState<{ top: number; left: number } | null>(null);
   const [projectBranding, setProjectBranding] = useState<any>(null);
+  const sidebarRef = useRef<HTMLElement>(null);
+  
+  // Save sidebar scroll position to sessionStorage
+  useEffect(() => {
+    const sidebar = sidebarRef.current;
+    if (!sidebar) return;
+
+    const handleScroll = () => {
+      sessionStorage.setItem('sidebarScrollPosition', sidebar.scrollTop.toString());
+    };
+
+    sidebar.addEventListener('scroll', handleScroll);
+    return () => sidebar.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Restore sidebar scroll position on mount and location change
+  useEffect(() => {
+    const sidebar = sidebarRef.current;
+    if (!sidebar) return;
+
+    const savedPosition = sessionStorage.getItem('sidebarScrollPosition');
+    if (savedPosition) {
+      sidebar.scrollTop = parseInt(savedPosition, 10);
+    }
+  }, [location.pathname]);
+  
+  // Save expanded menus to sessionStorage whenever it changes
+  useEffect(() => {
+    sessionStorage.setItem('expandedMenus', JSON.stringify(Array.from(expandedMenus)));
+  }, [expandedMenus]);
   
   // Get user permissions from the permission context
   const { permissions } = usePermissions();
@@ -145,6 +188,26 @@ const DashboardLayout = ({ children, logoutRedirectPath }: DashboardLayoutProps)
     }
   }, [projectBranding]);
 
+  // Auto-expand menu that contains the active route on initial load only
+  useEffect(() => {
+    const currentPath = location.pathname;
+    const activeMenuItem = menuConfig.find(item => 
+      item.subItems?.some(sub => {
+        if (!sub.path) return false;
+        return currentPath === sub.path || currentPath.includes(sub.path);
+      })
+    );
+    
+    if (activeMenuItem?.label && !isSidebarCollapsed) {
+      setExpandedMenus(prev => {
+        const newSet = new Set(prev);
+        newSet.add(activeMenuItem.label);
+        return newSet;
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty dependency array - only run on mount
+
   // Helper function to get label in current language
   const getLabel = (item: any): string => {
     if (i18n.language === 'hi' && item.labelHi) return item.labelHi;
@@ -201,6 +264,7 @@ const DashboardLayout = ({ children, logoutRedirectPath }: DashboardLayoutProps)
       >
       {/* Sidebar Navigation */}
       <aside 
+        ref={sidebarRef}
         role="navigation"
         aria-label={getText('Main navigation', 'मुख्य नेविगेशन', 'मुख्य नेव्हिगेशन')}
         style={{
@@ -334,7 +398,7 @@ const DashboardLayout = ({ children, logoutRedirectPath }: DashboardLayoutProps)
         >
           {menuItems.map((item, index) => {
             const hasSubItems = item.subItems && item.subItems.length > 0;
-            const isExpanded = expandedMenu === item.label && !isSidebarCollapsed;
+            const isExpanded = expandedMenus.has(item.label) && !isSidebarCollapsed;
             
             // Smart path matching that handles dynamic route prefixes
             const isActive = item.path ? (() => {
@@ -436,9 +500,17 @@ const DashboardLayout = ({ children, logoutRedirectPath }: DashboardLayoutProps)
                     onClick={() => {
                       if (isSidebarCollapsed) {
                         setIsSidebarCollapsed(false);
-                        setExpandedMenu(item.label);
+                        setExpandedMenus(prev => new Set(prev).add(item.label));
                       } else {
-                        setExpandedMenu(isExpanded ? null : item.label);
+                        setExpandedMenus(prev => {
+                          const newSet = new Set(prev);
+                          if (isExpanded) {
+                            newSet.delete(item.label);
+                          } else {
+                            newSet.add(item.label);
+                          }
+                          return newSet;
+                        });
                       }
                     }}
                     aria-expanded={isExpanded}
@@ -644,6 +716,10 @@ const DashboardLayout = ({ children, logoutRedirectPath }: DashboardLayoutProps)
                           to={subItem.path!}
                           aria-label={getLabel(subItem)}
                           aria-current={isSubActive ? 'page' : undefined}
+                          onClick={(e) => {
+                            // Prevent submenu from collapsing when clicking on a link
+                            e.stopPropagation();
+                          }}
                           style={{
                             display: 'flex',
                             alignItems: 'center',
@@ -655,7 +731,7 @@ const DashboardLayout = ({ children, logoutRedirectPath }: DashboardLayoutProps)
                             backgroundColor: isSubActive ? 'var(--primary-light)' : 'transparent',
                             color: isSubActive ? 'var(--primary-main)' : 'var(--text-primary)',
                             textDecoration: 'none',
-                            fontSize: '16px',
+                            fontSize: '14px',
                             fontWeight: '400',
                             lineHeight: '1.5',
                             transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -701,10 +777,12 @@ const DashboardLayout = ({ children, logoutRedirectPath }: DashboardLayoutProps)
                             {subItem.icon}
                           </span>
                           <span style={{ 
+                            flex: 1,
                             whiteSpace: 'nowrap', 
                             overflow: 'hidden', 
                             textOverflow: 'ellipsis',
-                            lineHeight: '1.5'
+                            lineHeight: '1.5',
+                            minWidth: 0
                           }}>
                             {getLabel(subItem)}
                           </span>

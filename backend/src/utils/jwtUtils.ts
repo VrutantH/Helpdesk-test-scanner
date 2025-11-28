@@ -2,6 +2,7 @@ import jwt, { SignOptions } from 'jsonwebtoken';
 import { User } from '../models/User';
 import { IUser } from '../models/User';
 import mongoose from 'mongoose';
+import { config } from '../config';
 
 /**
  * Centralized JWT Token Generation Utility
@@ -29,16 +30,11 @@ export interface JWTPayload {
 }
 
 /**
- * Get JWT secret from environment or fallback
+ * Get JWT secret from centralized config
+ * @deprecated Use config.jwt.secret directly instead
  */
 export function getJwtSecret(): string {
-  const secret = process.env.JWT_SECRET || 'fallback-secret-key-for-development';
-  
-  if (!process.env.JWT_SECRET) {
-    console.warn('⚠️  Using fallback JWT secret. Set JWT_SECRET in environment for production!');
-  }
-  
-  return secret;
+  return config.jwt.secret;
 }
 
 /**
@@ -108,10 +104,9 @@ export async function generateUserJWT(
     const token = jwt.sign(payload, secret, options);
 
     console.log(`✅ JWT generated: ${token.length} chars, ${permissionCodes.length} permissions`);
-    
-    return token;
+    console.log(`🔍 JWT Payload being signed:`, JSON.stringify(payload, null, 2));
 
-  } catch (error) {
+    return token;  } catch (error) {
     console.error('❌ JWT Generation Error:', error);
     throw new Error(`Failed to generate JWT token: ${error}`);
   }

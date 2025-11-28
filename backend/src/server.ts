@@ -28,6 +28,7 @@ import statusRoutes from './routes/statuses';
 // import { ticketFieldRoutes, autoAssignmentRoutes } from './routes/ticket-module'; // TODO: Implement
 import slaRuleRoutes from './routes/sla-module/slaRuleRoutes';
 import escalationPolicyRoutes from './routes/sla-module/escalationPolicyRoutes';
+import priorityRoutes from './routes/priorityRoutes';
 import activityLogRoutes from './routes/activityLogs';
 import accessLogRoutes from './routes/accessLogs';
 import knowledgeBaseRoutes from './routes/knowledgeBase';
@@ -36,6 +37,8 @@ import approvalMasterRoutes from './routes/approvalMasters';
 import offlineModuleRoutes from './routes/offlineModule';
 import dashboardRoutes from './routes/dashboard';
 import emailConfigRoutes from './routes/emailConfig';
+import emailLogRoutes from './routes/emailLogs';
+import apiLogRoutes from './routes/apiLogs';
 // import integrationRoutes from './routes/integrations'; // TODO: Implement
 import { setupSocketHandlers } from './socket/socketHandlers';
 import { initializeDatabase } from './utils/dbInit';
@@ -153,6 +156,7 @@ app.use('/api/statuses', statusRoutes);
 // SLA Module Routes
 app.use('/api/sla-rules', slaRuleRoutes);
 app.use('/api/escalation-policies', escalationPolicyRoutes);
+app.use('/api/priorities', priorityRoutes);
 
 // Audit Logs Routes
 app.use('/api/activity-logs', activityLogRoutes);
@@ -173,6 +177,12 @@ app.use('/api/offline-module', offlineModuleRoutes);
 
 // Email Configuration Routes
 app.use('/api/email-config', emailConfigRoutes);
+
+// Email Logs Routes
+app.use('/api/email-logs', emailLogRoutes);
+
+// API Logs Routes (Webhook/Integration failures)
+app.use('/api/api-logs', apiLogRoutes);
 
 // Integration Routes (TODO: Implement)
 // app.use('/api/integrations', integrationRoutes);

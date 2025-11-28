@@ -3,11 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../components/DashboardLayout';
 import { API_CONFIG } from '../config/constants';
 
-interface SLARule {
+interface Priority {
   _id?: string;
   name: string;
+  code?: string;
+  color?: string;
+  order?: number;
   description?: string;
-  priority: 'Critical' | 'Urgent' | 'High' | 'Normal' | 'Low';
   responseTime: {
     value: number;
     unit: 'minutes' | 'hours' | 'days';
@@ -17,32 +19,44 @@ interface SLARule {
     unit: 'minutes' | 'hours' | 'days';
   };
   isActive: boolean;
-  projectIds?: string[];
+  isDefault?: boolean;
+  projectId?: string;
+  project?: {
+    _id: string;
+    name: string;
+    code: string;
+  };
   createdAt?: Date;
   updatedAt?: Date;
 }
 
+// Keep SLARule alias for backward compatibility
+type SLARule = Priority;
+
 const SLARulesPage: React.FC = () => {
   const navigate = useNavigate();
-  const [slaRules, setSlaRules] = useState<SLARule[]>([]);
+  const [priorities, setPriorities] = useState<Priority[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [editingRule, setEditingRule] = useState<SLARule | null>(null);
+  const [editingPriority, setEditingPriority] = useState<Priority | null>(null);
   const [projects, setProjects] = useState<any[]>([]);
   const [formData, setFormData] = useState({
     name: '',
+    code: '',
+    color: '#6b7280',
+    order: 0,
     description: '',
-    priority: 'Normal' as 'Critical' | 'Urgent' | 'High' | 'Normal' | 'Low',
     responseTimeValue: '',
     responseTimeUnit: 'minutes' as 'minutes' | 'hours' | 'days',
     resolutionTimeValue: '',
     resolutionTimeUnit: 'hours' as 'minutes' | 'hours' | 'days',
     isActive: true,
-    projectIds: [] as string[],
+    isDefault: false,
+    projectId: '',
   });
 
   useEffect(() => {
-    fetchSLARules();
+    fetchPriorities();
     fetchProjects();
   }, []);
 
@@ -58,8 +72,6 @@ const SLARulesPage: React.FC = () => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Projects data received:', data);
-        // Handle nested structure: {success: true, data: {projects: [...], pagination: {...}}}
         if (data.success && data.data && Array.isArray(data.data.projects)) {
           setProjects(data.data.projects);
         } else if (data.success && Array.isArray(data.data)) {
@@ -67,11 +79,9 @@ const SLARulesPage: React.FC = () => {
         } else if (Array.isArray(data)) {
           setProjects(data);
         } else {
-          console.warn('Projects data is not in expected format:', data);
           setProjects([]);
         }
       } else {
-        console.error('Failed to fetch projects, status:', response.status);
         setProjects([]);
       }
     } catch (error) {
@@ -80,13 +90,13 @@ const SLARulesPage: React.FC = () => {
     }
   };
 
-  const fetchSLARules = async () => {
+  const fetchPriorities = async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('authToken');
-      console.log('Fetching SLA rules with token:', token ? 'Token exists' : 'No token');
+      console.log('Fetching priorities with token:', token ? 'Token exists' : 'No token');
       
-      const response = await fetch(`${API_CONFIG.API_URL}/sla-rules`, {
+      const response = await fetch(`${API_CONFIG.API_URL}/priorities`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -100,27 +110,27 @@ const SLARulesPage: React.FC = () => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('SLA Rules data received:', data);
+        console.log('Priorities data received:', data);
         if (data.success && data.data) {
-          setSlaRules(data.data);
-          console.log('SLA Rules set:', data.data.length, 'rules');
+          setPriorities(data.data);
+          console.log('Priorities set:', data.data.length, 'priorities');
         }
       } else {
         const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
-        console.error('Failed to fetch SLA rules:', response.status, errorData);
+        console.error('Failed to fetch priorities:', response.status, errorData);
       }
     } catch (error) {
-      console.error('Error fetching SLA rules:', error);
+      console.error('Error fetching priorities:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDeleteSLARule = async (rule: SLARule) => {
-    if (confirm(`Are you sure you want to delete "${rule.name}"?`)) {
+  const handleDeletePriority = async (priority: Priority) => {
+    if (confirm(`Are you sure you want to delete "${priority.name}"?`)) {
       try {
         const token = localStorage.getItem('authToken');
-        const response = await fetch(`${API_CONFIG.API_URL}/sla-rules/${rule._id}`, {
+        const response = await fetch(`${API_CONFIG.API_URL}/priorities/${priority._id}`, {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
@@ -130,52 +140,56 @@ const SLARulesPage: React.FC = () => {
         });
 
         if (response.ok) {
-          alert('SLA rule deleted successfully!');
-          fetchSLARules();
+          alert('Priority deleted successfully!');
+          fetchPriorities();
         } else {
           const errorData = await response.json().catch(() => ({ message: 'Failed to delete' }));
-          alert(`Failed to delete SLA rule: ${errorData.message}`);
+          alert(`Failed to delete priority: ${errorData.message}`);
         }
       } catch (error) {
-        console.error('Error deleting SLA rule:', error);
-        alert('Error deleting SLA rule');
+        console.error('Error deleting priority:', error);
+        alert('Error deleting priority');
       }
     }
   };
 
-  const handleToggleStatus = async (rule: SLARule) => {
+  const handleToggleStatus = async (priority: Priority) => {
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch(`${API_CONFIG.API_URL}/sla-rules/${rule._id}/toggle-status`, {
-        method: 'PATCH',
+      // Toggle isActive and update
+      const response = await fetch(`${API_CONFIG.API_URL}/priorities/${priority._id}`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
         credentials: 'include',
+        body: JSON.stringify({ ...priority, isActive: !priority.isActive }),
       });
 
       if (response.ok) {
-        fetchSLARules();
+        fetchPriorities();
       } else {
-        alert('Failed to toggle SLA rule status');
+        alert('Failed to toggle priority status');
       }
     } catch (error) {
-      console.error('Error toggling SLA rule status:', error);
-      alert('Error toggling SLA rule status');
+      console.error('Error toggling priority status:', error);
+      alert('Error toggling priority status');
     }
   };
 
-  const handleSaveSLARule = async (e: React.FormEvent) => {
+  const handleSavePriority = async (e: React.FormEvent) => {
     e.preventDefault();
     
     try {
       const token = localStorage.getItem('authToken');
       
-      const slaRuleData = {
+      const priorityData = {
         name: formData.name,
+        code: formData.code || formData.name.toUpperCase().replace(/\s+/g, '_'),
+        color: formData.color,
+        order: formData.order,
         description: formData.description,
-        priority: formData.priority,
         responseTime: {
           value: parseInt(formData.responseTimeValue),
           unit: formData.responseTimeUnit,
@@ -185,13 +199,14 @@ const SLARulesPage: React.FC = () => {
           unit: formData.resolutionTimeUnit,
         },
         isActive: formData.isActive,
-        projectIds: formData.projectIds,
+        isDefault: formData.isDefault,
+        projectId: formData.projectId,
       };
 
-      const isEditing = editingRule !== null;
+      const isEditing = editingPriority !== null;
       const url = isEditing 
-        ? `${API_CONFIG.API_URL}/sla-rules/${editingRule._id}`
-        : `${API_CONFIG.API_URL}/sla-rules`;
+        ? `${API_CONFIG.API_URL}/priorities/${editingPriority._id}`
+        : `${API_CONFIG.API_URL}/priorities`;
       const method = isEditing ? 'PUT' : 'POST';
 
       const response = await fetch(url, {
@@ -201,55 +216,55 @@ const SLARulesPage: React.FC = () => {
           'Authorization': `Bearer ${token}`,
         },
         credentials: 'include',
-        body: JSON.stringify(slaRuleData),
+        body: JSON.stringify(priorityData),
       });
 
       if (response.ok) {
-        alert(`SLA rule ${isEditing ? 'updated' : 'created'} successfully!`);
+        alert(`Priority ${isEditing ? 'updated' : 'created'} successfully!`);
         setShowCreateModal(false);
-        setEditingRule(null);
+        setEditingPriority(null);
         // Reset form
         setFormData({
           name: '',
+          code: '',
+          color: '#6b7280',
+          order: 0,
           description: '',
-          priority: 'Normal',
           responseTimeValue: '',
           responseTimeUnit: 'minutes',
           resolutionTimeValue: '',
           resolutionTimeUnit: 'hours',
           isActive: true,
-          projectIds: [],
+          isDefault: false,
+          projectId: '',
         });
-        fetchSLARules();
+        fetchPriorities();
       } else {
         const errorData = await response.json().catch(() => ({ message: `Failed to ${isEditing ? 'update' : 'create'}` }));
-        alert(`Failed to ${isEditing ? 'update' : 'create'} SLA rule: ${errorData.message}`);
+        alert(`Failed to ${isEditing ? 'update' : 'create'} priority: ${errorData.message}`);
       }
     } catch (error) {
-      console.error(`Error ${editingRule ? 'updating' : 'creating'} SLA rule:`, error);
-      alert(`Error ${editingRule ? 'updating' : 'creating'} SLA rule`);
+      console.error(`Error ${editingPriority ? 'updating' : 'creating'} priority:`, error);
+      alert(`Error ${editingPriority ? 'updating' : 'creating'} priority`);
     }
   };
 
-  const handleEditSLARule = (rule: SLARule) => {
-    setEditingRule(rule);
-    
-    // Extract project IDs from either populated objects or string IDs
-    const projectIds = rule.projectIds?.map((p: any) => {
-      if (typeof p === 'string') return p;
-      return p._id || p;
-    }).filter(Boolean) || [];
+  const handleEditPriority = (priority: Priority) => {
+    setEditingPriority(priority);
 
     setFormData({
-      name: rule.name,
-      description: rule.description || '',
-      priority: rule.priority || 'Normal',
-      responseTimeValue: rule.responseTime.value.toString(),
-      responseTimeUnit: rule.responseTime.unit,
-      resolutionTimeValue: rule.resolutionTime.value.toString(),
-      resolutionTimeUnit: rule.resolutionTime.unit,
-      isActive: rule.isActive,
-      projectIds: projectIds,
+      name: priority.name,
+      code: priority.code || '',
+      color: priority.color || '#6b7280',
+      order: priority.order || 0,
+      description: priority.description || '',
+      responseTimeValue: priority.responseTime?.value?.toString() || '',
+      responseTimeUnit: priority.responseTime?.unit || 'minutes',
+      resolutionTimeValue: priority.resolutionTime?.value?.toString() || '',
+      resolutionTimeUnit: priority.resolutionTime?.unit || 'hours',
+      isActive: priority.isActive,
+      isDefault: priority.isDefault || false,
+      projectId: priority.projectId || (priority.project as any)?._id || '',
     });
     setShowCreateModal(true);
   };
@@ -258,7 +273,12 @@ const SLARulesPage: React.FC = () => {
     return `${time.value} ${time.unit}`;
   };
 
-  const getPriorityColor = (priority: string) => {
+  // Get color from priority or use default based on name
+  const getPriorityColor = (priority: Priority | string) => {
+    if (typeof priority === 'object' && priority.color) {
+      return priority.color;
+    }
+    const name = typeof priority === 'string' ? priority : priority.name;
     const colors: Record<string, string> = {
       'Critical': '#dc2626',
       'Urgent': '#ea580c',
@@ -266,7 +286,7 @@ const SLARulesPage: React.FC = () => {
       'Normal': '#0891b2',
       'Low': '#059669',
     };
-    return colors[priority] || '#6b7280';
+    return colors[name] || '#6b7280';
   };
 
   if (loading) {
@@ -290,7 +310,7 @@ const SLARulesPage: React.FC = () => {
           marginBottom: '16px',
         }}>
           <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 600 }}>
-            SLA & Escalation Management
+            Priority & Escalation Management
           </h1>
         </div>
 
@@ -317,7 +337,7 @@ const SLARulesPage: React.FC = () => {
               cursor: 'pointer',
             }}
           >
-            SLA Rules
+            Priority
           </button>
           <button
             onClick={() => navigate('/escalation-matrix')}
@@ -348,7 +368,7 @@ const SLARulesPage: React.FC = () => {
           marginBottom: '24px',
         }}>
           <p style={{ margin: 0, color: '#6b7280', fontSize: '14px' }}>
-            Define Service Level Agreement rules based on ticket priority
+            Define priority levels with SLA response and resolution times
           </p>
           <button
             onClick={() => setShowCreateModal(true)}
@@ -367,12 +387,12 @@ const SLARulesPage: React.FC = () => {
             }}
           >
             <span>+</span>
-            Add SLA Rule
+            Add Priority
           </button>
         </div>
 
-        {/* SLA Rules List */}
-        {slaRules.length === 0 ? (
+        {/* Priority List */}
+        {priorities.length === 0 ? (
           <div style={{
             backgroundColor: 'white',
             borderRadius: '8px',
@@ -382,10 +402,10 @@ const SLARulesPage: React.FC = () => {
           }}>
             <div style={{ fontSize: '48px', marginBottom: '16px' }}>📋</div>
             <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', fontWeight: 600, color: '#1f2937' }}>
-              No SLA Rules Found
+              No Priorities Found
             </h3>
             <p style={{ margin: '0 0 24px 0', color: '#6b7280', fontSize: '14px' }}>
-              Create your first SLA rule to define response and resolution times
+              Create your first priority to define response and resolution times
             </p>
             <button
               onClick={() => setShowCreateModal(true)}
@@ -400,14 +420,14 @@ const SLARulesPage: React.FC = () => {
                 cursor: 'pointer',
               }}
             >
-              Create SLA Rule
+              Create Priority
             </button>
           </div>
         ) : (
           <div style={{ display: 'grid', gap: '16px' }}>
-            {slaRules.map((rule) => (
+            {priorities.map((priority) => (
               <div
-                key={rule._id}
+                key={priority._id}
                 style={{
                   backgroundColor: 'white',
                   borderRadius: '8px',
@@ -422,7 +442,7 @@ const SLARulesPage: React.FC = () => {
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
                       <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: '#1f2937' }}>
-                        {rule.name}
+                        {priority.name}
                       </h3>
                       <span
                         style={{
@@ -430,11 +450,11 @@ const SLARulesPage: React.FC = () => {
                           borderRadius: '12px',
                           fontSize: '12px',
                           fontWeight: 500,
-                          backgroundColor: `${getPriorityColor(rule.priority)}15`,
-                          color: getPriorityColor(rule.priority),
+                          backgroundColor: `${getPriorityColor(priority)}15`,
+                          color: getPriorityColor(priority),
                         }}
                       >
-                        {rule.priority}
+                        {priority.name}
                       </span>
                       <span
                         style={{
@@ -442,63 +462,43 @@ const SLARulesPage: React.FC = () => {
                           borderRadius: '12px',
                           fontSize: '12px',
                           fontWeight: 500,
-                          backgroundColor: rule.isActive ? '#dcfce7' : '#fee2e2',
-                          color: rule.isActive ? '#166534' : '#991b1b',
+                          backgroundColor: priority.isActive ? '#dcfce7' : '#fee2e2',
+                          color: priority.isActive ? '#166534' : '#991b1b',
                         }}
                       >
-                        {rule.isActive ? 'Active' : 'Inactive'}
+                        {priority.isActive ? 'Active' : 'Inactive'}
                       </span>
                     </div>
-                    {rule.description && (
+                    {priority.description && (
                       <p style={{ margin: '0 0 12px 0', color: '#6b7280', fontSize: '14px' }}>
-                        {rule.description}
+                        {priority.description}
                       </p>
                     )}
-                    {rule.projectIds && rule.projectIds.length > 0 && (
+                    {(priority.project || priority.projectId) && (
                       <div style={{ marginTop: '8px' }}>
-                        <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px', fontWeight: 500 }}>
-                          Mapped to {rule.projectIds.length} project{rule.projectIds.length > 1 ? 's' : ''}
-                        </div>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                          {rule.projectIds.slice(0, 3).map((projectId: string, idx: number) => {
-                            const project = projects.find(p => p._id === projectId);
-                            return project ? (
-                              <span
-                                key={idx}
-                                style={{
-                                  padding: '2px 8px',
-                                  backgroundColor: '#ede9fe',
-                                  color: '#7c3aed',
-                                  borderRadius: '4px',
-                                  fontSize: '11px',
-                                  fontWeight: 500,
-                                }}
-                              >
-                                {project.code || project.name}
-                              </span>
-                            ) : null;
-                          })}
-                          {rule.projectIds.length > 3 && (
-                            <span
-                              style={{
-                                padding: '2px 8px',
-                                backgroundColor: '#f3f4f6',
-                                color: '#6b7280',
-                                borderRadius: '4px',
-                                fontSize: '11px',
-                                fontWeight: 500,
-                              }}
-                            >
-                              +{rule.projectIds.length - 3} more
-                            </span>
-                          )}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ fontSize: '12px', color: '#6b7280', fontWeight: 500 }}>
+                            Project:
+                          </span>
+                          <span
+                            style={{
+                              padding: '2px 8px',
+                              backgroundColor: '#ede9fe',
+                              color: '#7c3aed',
+                              borderRadius: '4px',
+                              fontSize: '11px',
+                              fontWeight: 500,
+                            }}
+                          >
+                            {priority.project?.code || priority.project?.name || projects.find(p => p._id === priority.projectId)?.code || 'Unknown'}
+                          </span>
                         </div>
                       </div>
                     )}
                   </div>
                   <div style={{ display: 'flex', gap: '8px' }}>
                     <button
-                      onClick={() => handleEditSLARule(rule)}
+                      onClick={() => handleEditPriority(priority)}
                       style={{
                         padding: '6px 12px',
                         backgroundColor: '#f3f4f6',
@@ -513,11 +513,11 @@ const SLARulesPage: React.FC = () => {
                       Edit
                     </button>
                     <button
-                      onClick={() => handleToggleStatus(rule)}
+                      onClick={() => handleToggleStatus(priority)}
                       style={{
                         padding: '6px 12px',
-                        backgroundColor: rule.isActive ? '#fef3c7' : '#dcfce7',
-                        color: rule.isActive ? '#92400e' : '#166534',
+                        backgroundColor: priority.isActive ? '#fef3c7' : '#dcfce7',
+                        color: priority.isActive ? '#92400e' : '#166534',
                         border: 'none',
                         borderRadius: '6px',
                         fontSize: '13px',
@@ -525,10 +525,10 @@ const SLARulesPage: React.FC = () => {
                         cursor: 'pointer',
                       }}
                     >
-                      {rule.isActive ? 'Deactivate' : 'Activate'}
+                      {priority.isActive ? 'Deactivate' : 'Activate'}
                     </button>
                     <button
-                      onClick={() => handleDeleteSLARule(rule)}
+                      onClick={() => handleDeletePriority(priority)}
                       style={{
                         padding: '6px 12px',
                         backgroundColor: '#fee2e2',
@@ -551,7 +551,7 @@ const SLARulesPage: React.FC = () => {
                       Response Time
                     </div>
                     <div style={{ fontSize: '20px', fontWeight: 600, color: '#1f2937' }}>
-                      {formatTime(rule.responseTime)}
+                      {priority.responseTime ? formatTime(priority.responseTime) : 'Not set'}
                     </div>
                   </div>
                   <div style={{ padding: '16px', backgroundColor: '#f9fafb', borderRadius: '6px' }}>
@@ -559,7 +559,7 @@ const SLARulesPage: React.FC = () => {
                       Resolution Time
                     </div>
                     <div style={{ fontSize: '20px', fontWeight: 600, color: '#1f2937' }}>
-                      {formatTime(rule.resolutionTime)}
+                      {priority.resolutionTime ? formatTime(priority.resolutionTime) : 'Not set'}
                     </div>
                   </div>
                 </div>
@@ -599,21 +599,21 @@ const SLARulesPage: React.FC = () => {
               onClick={(e) => e.stopPropagation()}
             >
               <h2 style={{ margin: '0 0 24px 0', fontSize: '20px', fontWeight: 600 }}>
-                {editingRule ? 'Edit SLA Rule' : 'Create SLA Rule'}
+                {editingPriority ? 'Edit Priority' : 'Create Priority'}
               </h2>
               
-              <form onSubmit={handleSaveSLARule}>
-                {/* Name */}
+              <form onSubmit={handleSavePriority}>
+                {/* Name - This IS the Priority Name */}
                 <div style={{ marginBottom: '20px' }}>
                   <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 500, color: '#374151' }}>
-                    Rule Name <span style={{ color: '#dc2626' }}>*</span>
+                    Priority Name <span style={{ color: '#dc2626' }}>*</span>
                   </label>
                   <input
                     type="text"
                     required
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="e.g., Critical Priority SLA"
+                    placeholder="e.g., Critical, High, Normal, Low"
                     style={{
                       width: '100%',
                       padding: '10px 12px',
@@ -632,7 +632,7 @@ const SLARulesPage: React.FC = () => {
                   <textarea
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="Brief description of this SLA rule"
+                    placeholder="Brief description of this priority level"
                     rows={3}
                     style={{
                       width: '100%',
@@ -646,29 +646,66 @@ const SLARulesPage: React.FC = () => {
                   />
                 </div>
 
-                {/* Priority */}
-                <div style={{ marginBottom: '20px' }}>
-                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 500, color: '#374151' }}>
-                    Priority <span style={{ color: '#dc2626' }}>*</span>
-                  </label>
-                  <select
-                    required
-                    value={formData.priority}
-                    onChange={(e) => setFormData({ ...formData, priority: e.target.value as any })}
-                    style={{
-                      width: '100%',
-                      padding: '10px 12px',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                    }}
-                  >
-                    <option value="Low">Low</option>
-                    <option value="Normal">Normal</option>
-                    <option value="High">High</option>
-                    <option value="Urgent">Urgent</option>
-                    <option value="Critical">Critical</option>
-                  </select>
+                {/* Color and Order - Row */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
+                  {/* Color */}
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 500, color: '#374151' }}>
+                      Color
+                    </label>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <input
+                        type="color"
+                        value={formData.color}
+                        onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                        style={{
+                          width: '48px',
+                          height: '40px',
+                          padding: '2px',
+                          border: '1px solid #d1d5db',
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                        }}
+                      />
+                      <input
+                        type="text"
+                        value={formData.color}
+                        onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                        placeholder="#6b7280"
+                        style={{
+                          flex: 1,
+                          padding: '10px 12px',
+                          border: '1px solid #d1d5db',
+                          borderRadius: '6px',
+                          fontSize: '14px',
+                        }}
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Order */}
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 500, color: '#374151' }}>
+                      Display Order
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={formData.order}
+                      onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) || 0 })}
+                      placeholder="0"
+                      style={{
+                        width: '100%',
+                        padding: '10px 12px',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '6px',
+                        fontSize: '14px',
+                      }}
+                    />
+                    <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
+                      Lower numbers appear first
+                    </div>
+                  </div>
                 </div>
 
                 {/* Response Time */}
@@ -752,70 +789,30 @@ const SLARulesPage: React.FC = () => {
                 {/* Project Mapping */}
                 <div style={{ marginBottom: '20px' }}>
                   <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 500, color: '#374151' }}>
-                    Map to Projects (Optional)
+                    Project <span style={{ color: '#dc2626' }}>*</span>
                   </label>
-                  <div style={{ 
-                    border: '1px solid #d1d5db', 
-                    borderRadius: '6px', 
-                    padding: '12px',
-                    maxHeight: '200px',
-                    overflowY: 'auto',
-                    backgroundColor: '#f9fafb',
-                  }}>
-                    {!Array.isArray(projects) || projects.length === 0 ? (
-                      <p style={{ margin: 0, fontSize: '13px', color: '#6b7280' }}>
-                        No projects available
-                      </p>
-                    ) : (
-                      projects.map((project) => (
-                        <label 
-                          key={project._id}
-                          style={{ 
-                            display: 'flex', 
-                            alignItems: 'center', 
-                            gap: '8px', 
-                            padding: '8px',
-                            cursor: 'pointer',
-                            borderRadius: '4px',
-                            marginBottom: '4px',
-                          }}
-                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
-                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={formData.projectIds.includes(project._id)}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setFormData({ 
-                                  ...formData, 
-                                  projectIds: [...formData.projectIds, project._id] 
-                                });
-                              } else {
-                                setFormData({ 
-                                  ...formData, 
-                                  projectIds: formData.projectIds.filter(id => id !== project._id) 
-                                });
-                              }
-                            }}
-                            style={{ width: '16px', height: '16px', cursor: 'pointer' }}
-                          />
-                          <div style={{ flex: 1 }}>
-                            <div style={{ fontSize: '14px', fontWeight: 500, color: '#374151' }}>
-                              {project.name}
-                            </div>
-                            {project.code && (
-                              <div style={{ fontSize: '12px', color: '#6b7280' }}>
-                                Code: {project.code}
-                              </div>
-                            )}
-                          </div>
-                        </label>
-                      ))
-                    )}
-                  </div>
+                  <select
+                    required
+                    value={formData.projectId}
+                    onChange={(e) => setFormData({ ...formData, projectId: e.target.value })}
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      backgroundColor: 'white',
+                    }}
+                  >
+                    <option value="">Select a project</option>
+                    {projects.map((project) => (
+                      <option key={project._id} value={project._id}>
+                        {project.name} {project.code ? `(${project.code})` : ''}
+                      </option>
+                    ))}
+                  </select>
                   <p style={{ margin: '8px 0 0 0', fontSize: '12px', color: '#6b7280' }}>
-                    Select projects where this SLA rule should apply. Leave empty to apply to all projects.
+                    Each priority must be mapped to a specific project.
                   </p>
                 </div>
 
@@ -829,7 +826,7 @@ const SLARulesPage: React.FC = () => {
                       style={{ width: '16px', height: '16px', cursor: 'pointer' }}
                     />
                     <span style={{ fontSize: '14px', fontWeight: 500, color: '#374151' }}>
-                      Active (rule will be applied immediately)
+                      Active (priority will be available immediately)
                     </span>
                   </label>
                 </div>
@@ -840,17 +837,20 @@ const SLARulesPage: React.FC = () => {
                     type="button"
                     onClick={() => {
                       setShowCreateModal(false);
-                      setEditingRule(null);
+                      setEditingPriority(null);
                       setFormData({
                         name: '',
+                        code: '',
+                        color: '#6b7280',
+                        order: 0,
                         description: '',
-                        priority: 'Normal',
                         responseTimeValue: '',
                         responseTimeUnit: 'minutes',
                         resolutionTimeValue: '',
                         resolutionTimeUnit: 'hours',
                         isActive: true,
-                        projectIds: [],
+                        isDefault: false,
+                        projectId: '',
                       });
                     }}
                     style={{
@@ -879,7 +879,7 @@ const SLARulesPage: React.FC = () => {
                       cursor: 'pointer',
                     }}
                   >
-                    {editingRule ? 'Update SLA Rule' : 'Create SLA Rule'}
+                    {editingPriority ? 'Update Priority' : 'Create Priority'}
                   </button>
                 </div>
               </form>

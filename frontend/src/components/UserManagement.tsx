@@ -103,43 +103,36 @@ const UserManagement: React.FC<UserManagementProps> = ({ wrapWithLayout = true }
   
   const [saving, setSaving] = useState(false);
 
-  // Helper function to get default password based on user
+  // Generate a secure random password
+  const generateSecurePassword = (): string => {
+    const length = 12;
+    const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const lowercase = 'abcdefghijklmnopqrstuvwxyz';
+    const numbers = '0123456789';
+    const special = '@#$%&*!';
+    const allChars = uppercase + lowercase + numbers + special;
+    
+    // Ensure at least one of each type
+    let password = '';
+    password += uppercase[Math.floor(Math.random() * uppercase.length)];
+    password += lowercase[Math.floor(Math.random() * lowercase.length)];
+    password += numbers[Math.floor(Math.random() * numbers.length)];
+    password += special[Math.floor(Math.random() * special.length)];
+    
+    // Fill the rest randomly
+    for (let i = password.length; i < length; i++) {
+      password += allChars[Math.floor(Math.random() * allChars.length)];
+    }
+    
+    // Shuffle the password
+    return password.split('').sort(() => Math.random() - 0.5).join('');
+  };
+
+  // Helper function to get default password based on user (for display only)
   const getDefaultPassword = (user: User | null): string => {
-    if (!user) return 'Welcome@123';
-    
-    // Check by email for specific users
-    if (user.email === 'niraj.mishra1010@gmail.com') {
-      return 'agent@123';
-    }
-    if (user.email === 'priya.sharma@sacreativeservices.com') {
-      return 'agent@123';
-    }
-    if (user.email === 'subhangi.mathur@sacreativeservices.com') {
-      return 'centermanager@123';
-    }
-    if (user.email === 'subhangi.mathur@hubblehox.com') {
-      return 'centermanager@123';
-    }
-    if (user.email === 'admin@sacreativeservices.com') {
-      return 'admin@123';
-    }
-    if (user.email === 'admin@sac.com') {
-      return 'Admin@123';
-    }
-    
-    // Check by role code for general role-based defaults
-    if (user.role?.code === 'AGENT') {
-      return 'agent@123';
-    }
-    if (user.role?.code === 'CENTER_MANAGER') {
-      return 'centermanager@123';
-    }
-    if (user.role?.code === 'SUPER_ADMIN') {
-      return 'admin@123';
-    }
-    
-    // Default fallback
-    return 'Welcome@123';
+    // In production, passwords are generated randomly and sent via email
+    // This is just for display purposes during user creation
+    return generateSecurePassword();
   };
 
   // Fetch users

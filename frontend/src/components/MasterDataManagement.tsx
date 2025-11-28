@@ -20,18 +20,31 @@ interface MasterItem {
   projectId?: string;
   isClosed?: boolean;
   description?: string;
+  defaultPriority?: string;
   createdAt?: string;
   updatedAt?: string;
 }
 
-const DEFAULT_PROJECT_ID = '6908806855106de325cb1354'; // Default project ID from MongoDB
+interface Priority {
+  _id: string;
+  name: string;
+  code: string;
+  color?: string;
+}
+
+interface Project {
+  _id: string;
+  name: string;
+  code: string;
+  projectId: string;
+}
 
 const MASTER_CATEGORIES = [
-  { key: 'countries', label: 'Countries', icon: '🌍', api: '/api/master/countries' },
-  { key: 'states', label: 'States', icon: '🗺️', api: '/api/master/states' },
-  { key: 'cities', label: 'Cities', icon: '🏙️', api: '/api/master/cities' },
-  { key: 'categories', label: 'Categories', icon: '📁', api: `/api/categories/project/${DEFAULT_PROJECT_ID}` },
-  { key: 'statuses', label: 'Status', icon: '🏷️', api: `/api/statuses/project/${DEFAULT_PROJECT_ID}` },
+  { key: 'countries', label: 'Countries', icon: '🌍', api: '/api/master/countries', requiresProject: false },
+  { key: 'states', label: 'States', icon: '🗺️', api: '/api/master/states', requiresProject: false },
+  { key: 'cities', label: 'Cities', icon: '🏙️', api: '/api/master/cities', requiresProject: false },
+  { key: 'categories', label: 'Categories', icon: '📁', api: '/api/categories/project', requiresProject: true },
+  { key: 'statuses', label: 'Status', icon: '🏷️', api: '/api/statuses/project', requiresProject: true },
 ];
 
 const MasterDataManagement = () => {
@@ -40,6 +53,9 @@ const MasterDataManagement = () => {
   const [items, setItems] = useState<MasterItem[]>([]);
   const [countries, setCountries] = useState<MasterItem[]>([]);
   const [states, setStates] = useState<MasterItem[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [priorities, setPriorities] = useState<Priority[]>([]);
+  const [selectedProjectId, setSelectedProjectId] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState<MasterItem | null>(null);
@@ -53,6 +69,7 @@ const MasterDataManagement = () => {
     displayOrder: 0,
     color: '#3b82f6',
     description: '',
+    defaultPriority: '',
     isActive: true,
   });
 
@@ -62,11 +79,38 @@ const MasterDataManagement = () => {
   useEffect(() => {
     fetchCountries();
     fetchStates();
+    fetchProjects();
   }, []);
 
   useEffect(() => {
+    const category = MASTER_CATEGORIES.find(c => c.key === activeTab);
+    if (category?.requiresProject && !selectedProjectId) {
+      // Don't fetch if project is required but not selected
+      setItems([]);
+      return;
+    }
     fetchItems();
-  }, [activeTab]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, selectedProjectId]);
+
+  const fetchProjects = async () => {
+    try {
+      const token = localStorage.getItem('authToken');
+      const response = await axios.get(`${API_CONFIG.API_URL}/projects?limit=1000`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (response.data.success) {
+        const projectsList = response.data.data?.projects || [];
+        setProjects(projectsList);
+        // Auto-select first project for categories/statuses
+        if (projectsList.length > 0 && !selectedProjectId) {
+          setSelectedProjectId(projectsList[0]._id);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching projects:', error);
+    }
+  };
 
   const fetchCountries = async () => {
     try {
@@ -96,21 +140,61 @@ const MasterDataManagement = () => {
     }
   };
 
+  const fetchPriorities = async () => {
+    if (!selectedProjectId) return;
+    try {
+      const token = localStorage.getItem('authToken');
+      const response = await axios.get(`${API_CONFIG.API_URL}/priorities?projectId=${selectedProjectId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (response.data.success) {
+        setPriorities(response.data.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching priorities:', error);
+    }
+  };
+
+  // Fetch priorities when project changes
+  useEffect(() => {
+    if (selectedProjectId) {
+      fetchPriorities();
+    }
+  }, [selectedProjectId]);
+
   const fetchItems = async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('authToken');
-      const url = `${API_CONFIG.BASE_URL}${currentCategory?.api}?includeInactive=true`;
       
+      // Build URL based on whether category requires project
+      let url: string;
+      if (currentCategory?.requiresProject && selectedProjectId) {
+        url = `${API_CONFIG.BASE_URL}${currentCategory.api}/${selectedProjectId}?includeInactive=true`;
+      } else if (currentCategory?.requiresProject && !selectedProjectId) {
+        // Project required but not selected
+        setItems([]);
+        setLoading(false);
+        return;
+      } else {
+        url = `${API_CONFIG.BASE_URL}${currentCategory?.api}?includeInactive=true`;
+      }
+      
+      console.log(`Fetching ${currentCategory?.label} from:`, url);
       const response = await axios.get(url, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
+      console.log(`${currentCategory?.label} response:`, response.data);
+      
       if (response.data.success) {
-        setItems(response.data.data || []);
+        const fetchedData = response.data.data || [];
+        console.log(`Loaded ${fetchedData.length} ${currentCategory?.label}:`, fetchedData);
+        setItems(fetchedData);
       }
     } catch (error) {
-      console.error('Error fetching items:', error);
+      console.error(`Error fetching ${currentCategory?.label}:`, error);
+      setItems([]);
     } finally {
       setLoading(false);
     }
@@ -128,6 +212,7 @@ const MasterDataManagement = () => {
       displayOrder: 0,
       color: '#3b82f6',
       description: '',
+      defaultPriority: '',
       isActive: true,
     });
     setShowModal(true);
@@ -147,6 +232,7 @@ const MasterDataManagement = () => {
       description: item.description || '',
       isActive: item.isActive,
       isClosed: item.isClosed || false,
+      defaultPriority: item.defaultPriority || '',
     });
     setShowModal(true);
   };
@@ -170,7 +256,11 @@ const MasterDataManagement = () => {
           method = 'put';
         } else {
           // Create: POST /api/categories/project/:projectId or POST /api/statuses/project/:projectId
-          url = `${API_CONFIG.BASE_URL}${currentCategory?.api}`;
+          if (!selectedProjectId) {
+            alert('Please select a project first');
+            return;
+          }
+          url = `${API_CONFIG.BASE_URL}${currentCategory?.api}/${selectedProjectId}`;
           method = 'post';
         }
       } else {
@@ -214,6 +304,7 @@ const MasterDataManagement = () => {
           name: formData.name,
           description: formData.description,
           color: formData.color,
+          defaultPriority: formData.defaultPriority,
           isActive: formData.isActive,
         };
       } else if (activeTab === 'statuses') {
@@ -423,6 +514,19 @@ const MasterDataManagement = () => {
               />
             </div>
             <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Default Priority</label>
+              <select
+                value={formData.defaultPriority || ''}
+                onChange={(e) => setFormData({ ...formData, defaultPriority: e.target.value })}
+                style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+              >
+                <option value="">No default priority</option>
+                {priorities.map(p => (
+                  <option key={p._id} value={p.code}>{p.name}</option>
+                ))}
+              </select>
+            </div>
+            <div style={{ marginBottom: '16px' }}>
               <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Color</label>
               <input
                 type="color"
@@ -526,22 +630,58 @@ const MasterDataManagement = () => {
           </div>
         </div>
 
+        {/* Project Selector - Show only for categories and statuses */}
+        {currentCategory?.requiresProject && (
+          <div style={{ marginBottom: '16px', background: 'white', padding: '16px', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#374151' }}>
+              Select Project *
+            </label>
+            <select
+              value={selectedProjectId}
+              onChange={(e) => setSelectedProjectId(e.target.value)}
+              style={{ 
+                width: '100%', 
+                maxWidth: '400px',
+                padding: '10px', 
+                border: '1px solid #d1d5db', 
+                borderRadius: '6px',
+                fontSize: '14px',
+                cursor: 'pointer'
+              }}
+            >
+              <option value="">-- Select a Project --</option>
+              {projects.map(project => (
+                <option key={project._id} value={project._id}>
+                  {project.name} ({project.code})
+                </option>
+              ))}
+            </select>
+            {!selectedProjectId && (
+              <p style={{ marginTop: '8px', fontSize: '13px', color: '#ef4444' }}>
+                Please select a project to view and manage {currentCategory?.label.toLowerCase()}
+              </p>
+            )}
+          </div>
+        )}
+
         {/* Add Button */}
         <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'flex-end' }}>
           {hasPermission(PERMISSIONS.MASTER_DATA_CREATE) && (
             <button
               onClick={handleCreate}
+              disabled={currentCategory?.requiresProject && !selectedProjectId}
               style={{
                 padding: '10px 20px',
-                background: 'var(--primary-main)',
+                background: (currentCategory?.requiresProject && !selectedProjectId) ? '#9ca3af' : 'var(--primary-main)',
                 color: 'white',
                 border: 'none',
                 borderRadius: '6px',
-                cursor: 'pointer',
+                cursor: (currentCategory?.requiresProject && !selectedProjectId) ? 'not-allowed' : 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
                 fontWeight: '500',
+                opacity: (currentCategory?.requiresProject && !selectedProjectId) ? 0.6 : 1,
               }}
             >
               <MdAdd size={20} />
@@ -553,6 +693,12 @@ const MasterDataManagement = () => {
         {/* Table */}
         {loading ? (
           <div style={{ textAlign: 'center', padding: '40px' }}>Loading...</div>
+        ) : currentCategory?.requiresProject && !selectedProjectId ? (
+          <div style={{ background: 'white', borderRadius: '8px', padding: '40px', textAlign: 'center', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+            <p style={{ fontSize: '16px', color: '#6b7280' }}>
+              Please select a project to view {currentCategory?.label.toLowerCase()}
+            </p>
+          </div>
         ) : (
           <div style={{ background: 'white', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -589,7 +735,7 @@ const MasterDataManagement = () => {
                   {activeTab === 'categories' && (
                     <>
                       <th style={{ padding: '12px', textAlign: 'left' }}>Category Name</th>
-                      <th style={{ padding: '12px', textAlign: 'left' }}>Description</th>
+                      <th style={{ padding: '12px', textAlign: 'left' }}>Default Priority</th>
                       <th style={{ padding: '12px', textAlign: 'center' }}>Color</th>
                       <th style={{ padding: '12px', textAlign: 'center' }}>Status</th>
                       <th style={{ padding: '12px', textAlign: 'center' }}>Actions</th>
@@ -710,8 +856,26 @@ const MasterDataManagement = () => {
                       )}
                       {activeTab === 'categories' && (
                         <>
-                          <td style={{ padding: '12px' }}>{item.name || item.description || 'N/A'}</td>
-                          <td style={{ padding: '12px' }}>{item.name ? item.description : ''}</td>
+                          <td style={{ padding: '12px' }}>{item.name || 'N/A'}</td>
+                          <td style={{ padding: '12px' }}>
+                            {(() => {
+                              const priority = priorities.find(p => p.code === item.defaultPriority);
+                              if (priority) {
+                                return (
+                                  <span style={{
+                                    padding: '4px 12px',
+                                    borderRadius: '12px',
+                                    fontSize: '12px',
+                                    background: priority.color ? `${priority.color}20` : '#dbeafe',
+                                    color: priority.color || '#1e40af',
+                                  }}>
+                                    {priority.name}
+                                  </span>
+                                );
+                              }
+                              return <span style={{ color: '#9ca3af' }}>Not set</span>;
+                            })()}
+                          </td>
                           <td style={{ padding: '12px', textAlign: 'center' }}>
                             <div style={{ width: '30px', height: '30px', background: item.color, borderRadius: '4px', margin: '0 auto' }}></div>
                           </td>
@@ -822,6 +986,24 @@ const MasterDataManagement = () => {
                   <MdClose size={24} />
                 </button>
               </div>
+
+              {/* Show project info for categories and statuses */}
+              {currentCategory?.requiresProject && selectedProjectId && (
+                <div style={{ 
+                  marginBottom: '20px', 
+                  padding: '12px', 
+                  background: '#eff6ff', 
+                  border: '1px solid #bfdbfe',
+                  borderRadius: '6px'
+                }}>
+                  <p style={{ fontSize: '14px', color: '#1e40af', margin: 0 }}>
+                    <strong>Project:</strong> {projects.find(p => p._id === selectedProjectId)?.name}
+                  </p>
+                  <p style={{ fontSize: '12px', color: '#6b7280', margin: '4px 0 0 0' }}>
+                    This {currentCategory?.label.toLowerCase().slice(0, -1)} will be available for both online and offline ticket submission in this project.
+                  </p>
+                </div>
+              )}
 
               <form onSubmit={handleSubmit}>
                 {renderFormFields()}

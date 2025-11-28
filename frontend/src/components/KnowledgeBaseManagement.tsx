@@ -28,12 +28,86 @@ interface Project {
 }
 
 const KnowledgeBaseManagement: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<'articles' | 'settings'>('articles');
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedProject, setSelectedProject] = useState<string>('');
   const [articles, setArticles] = useState<KBArticle[]>([]);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editingArticle, setEditingArticle] = useState<KBArticle | null>(null);
+  
+  // KB Settings state
+  const [kbSettings, setKbSettings] = useState({
+    enabled: true,
+    kbHomeConfiguration: {
+      bannerHeading: 'How can we help you?',
+      bannerDescription: '',
+      bannerTextColor: '#008000',
+      bannerBackgroundType: 'color' as 'color' | 'image',
+      bannerBackgroundColor: '#4B0082',
+      bannerBackgroundImage: null as File | null,
+      showPopularArticles: true,
+      popularArticlesCount: 10,
+      portalViewableBy: 'all' as 'all' | 'loggedin'
+    },
+    articleConfiguration: {
+      showAuthorName: false,
+      showPublishedDate: true,
+      showLastUpdatedDate: false,
+      enableTableOfContents: false,
+      showRelatedArticles: true,
+      relatedArticlesCount: 5,
+      showRecentArticles: true,
+      recentArticlesCount: 5,
+      showSameCategoryArticles: true,
+      excludeAgentViewCount: false,
+      showArticleTags: true,
+      enableStatusIndicator: true,
+      showShareOption: true,
+      shareOnFacebook: true,
+      shareOnTwitter: true,
+      shareOnLinkedIn: true,
+      shareViaEmail: true,
+      showEstimatedReadTime: false,
+      showComments: false,
+      showPreviousNextNavigation: false
+    },
+    enableAIAssistance: false,
+    enableSatisfactionFeedback: true,
+    satisfactionFeedback: {
+      infoMessage: 'Was this article useful?',
+      voteType: 'like' as 'like' | 'upvote' | 'yesno',
+      voteLabels: {
+        positive: 'Like',
+        negative: 'Dislike'
+      },
+      feedbackMessages: [
+        'Correct inaccurate or outdated content',
+        'Improve illustrations or images',
+        'Fix typos or broken links',
+        'Need more information',
+        'Correct inaccurate or outdated code samples'
+      ],
+      successMessage: 'Thank you for your feedback!',
+      consentMessage: 'Can we contact you about this feedback?'
+    },
+    seoSettings: {
+      changeFrequency: 'weekly' as 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never',
+      sitemapUrl: '',
+      robotsTxt: '',
+      robotsTxtUrl: '',
+      metaTitle: '',
+      metaDescription: '',
+      sameAsMetaTitleDescription: true,
+      ogTitle: '',
+      ogDescription: '',
+      ogImage: null as File | null
+    }
+  });
+  const [savingSettings, setSavingSettings] = useState(false);
+  const [kbHomeExpanded, setKbHomeExpanded] = useState(true);
+  const [articleConfigExpanded, setArticleConfigExpanded] = useState(false);
+  const [seoExpanded, setSeoExpanded] = useState(false);
   
   // Form state
   const [formData, setFormData] = useState({
@@ -56,6 +130,7 @@ const KnowledgeBaseManagement: React.FC = () => {
   useEffect(() => {
     if (selectedProject) {
       fetchArticles();
+      fetchKBSettings();
     }
   }, [selectedProject]);
 
@@ -112,6 +187,84 @@ const KnowledgeBaseManagement: React.FC = () => {
       console.error('Error fetching articles:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchKBSettings = async () => {
+    try {
+      const token = localStorage.getItem('authToken');
+      const response = await fetch(`${API_CONFIG.API_URL}/projects/${selectedProject}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        credentials: 'include',
+      });
+      const data = await response.json();
+      if (data.success && data.data.configuration?.knowledgeBaseSettings) {
+        const kbConfig = data.data.configuration.knowledgeBaseSettings;
+        setKbSettings({
+          enabled: kbConfig.enabled ?? true,
+          kbHomeConfiguration: kbConfig.kbHomeConfiguration || kbSettings.kbHomeConfiguration,
+          articleConfiguration: kbConfig.articleConfiguration || kbSettings.articleConfiguration,
+          enableAIAssistance: kbConfig.enableAIAssistance ?? false,
+          enableSatisfactionFeedback: kbConfig.enableSatisfactionFeedback ?? true,
+          satisfactionFeedback: kbConfig.satisfactionFeedback || kbSettings.satisfactionFeedback,
+          seoSettings: kbConfig.seoSettings || kbSettings.seoSettings
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching KB settings:', error);
+    }
+  };
+
+  const saveKBSettings = async () => {
+    try {
+      setSavingSettings(true);
+      const token = localStorage.getItem('authToken');
+      
+      // Get current project data first
+      const getResponse = await fetch(`${API_CONFIG.API_URL}/projects/${selectedProject}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        credentials: 'include',
+      });
+      const currentData = await getResponse.json();
+      
+      if (!currentData.success) {
+        throw new Error('Failed to fetch current project data');
+      }
+
+      // Update with new KB settings
+      const updatedProject = {
+        ...currentData.data,
+        configuration: {
+          ...currentData.data.configuration,
+          knowledgeBaseSettings: kbSettings
+        }
+      };
+
+      const response = await fetch(`${API_CONFIG.API_URL}/projects/${selectedProject}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(updatedProject),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        alert('Knowledge Base settings saved successfully!');
+      } else {
+        throw new Error(data.message || 'Failed to save settings');
+      }
+    } catch (error) {
+      console.error('Error saving KB settings:', error);
+      alert('Failed to save Knowledge Base settings');
+    } finally {
+      setSavingSettings(false);
     }
   };
 
@@ -278,6 +431,52 @@ const KnowledgeBaseManagement: React.FC = () => {
         </select>
       </div>
 
+      {/* Tabs */}
+      {selectedProject && (
+        <>
+          <div style={{ 
+            borderBottom: '1px solid #e5e7eb', 
+            marginBottom: '24px',
+            display: 'flex',
+            gap: '32px'
+          }}>
+            <button
+              onClick={() => setActiveTab('articles')}
+              style={{
+                padding: '12px 0',
+                background: 'none',
+                border: 'none',
+                borderBottom: activeTab === 'articles' ? '2px solid #3b82f6' : '2px solid transparent',
+                color: activeTab === 'articles' ? '#3b82f6' : '#6b7280',
+                fontSize: '14px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+            >
+              Articles
+            </button>
+            <button
+              onClick={() => setActiveTab('settings')}
+              style={{
+                padding: '12px 0',
+                background: 'none',
+                border: 'none',
+                borderBottom: activeTab === 'settings' ? '2px solid #3b82f6' : '2px solid transparent',
+                color: activeTab === 'settings' ? '#3b82f6' : '#6b7280',
+                fontSize: '14px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+            >
+              Settings
+            </button>
+          </div>
+
+          {/* Articles Tab Content */}
+          {activeTab === 'articles' && (
+            <>
       {/* Articles List */}
       {loading ? (
         <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>Loading articles...</div>
@@ -398,6 +597,281 @@ const KnowledgeBaseManagement: React.FC = () => {
             </div>
           ))}
         </div>
+      )}
+      </>
+          )}
+
+          {/* Settings Tab Content */}
+          {activeTab === 'settings' && (
+            <div style={{ maxWidth: '900px' }}>
+              <div style={{ marginBottom: '32px' }}>
+                <h2 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '24px' }}>Knowledge Base Settings</h2>
+                
+                {/* Enable KB */}
+                <div style={{ 
+                  padding: '16px', 
+                  backgroundColor: '#f9fafb', 
+                  borderRadius: '8px',
+                  marginBottom: '24px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px'
+                }}>
+                  <input
+                    type="checkbox"
+                    checked={kbSettings.enabled}
+                    onChange={(e) => setKbSettings({ ...kbSettings, enabled: e.target.checked })}
+                    style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                  />
+                  <div>
+                    <label style={{ fontWeight: '600', fontSize: '14px', display: 'block', marginBottom: '4px' }}>
+                      Enable Knowledge Base
+                    </label>
+                    <p style={{ fontSize: '13px', color: '#6b7280', margin: 0 }}>
+                      Turn on the knowledge base module for this project
+                    </p>
+                  </div>
+                </div>
+
+                {/* KB Home Configuration */}
+                <div style={{ marginBottom: '24px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setKbHomeExpanded(!kbHomeExpanded)}
+                    style={{
+                      width: '100%',
+                      padding: '12px 16px',
+                      backgroundColor: '#f9fafb',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '6px',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      cursor: 'pointer',
+                      fontWeight: '600',
+                      fontSize: '14px'
+                    }}
+                  >
+                    KB Home Page Configuration
+                    <span style={{ transform: kbHomeExpanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>▼</span>
+                  </button>
+                  {kbHomeExpanded && (
+                    <div style={{ padding: '16px', border: '1px solid #e5e7eb', borderTop: 'none', borderRadius: '0 0 6px 6px' }}>
+                      <div style={{ marginBottom: '16px' }}>
+                        <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '6px' }}>
+                          Banner Heading
+                        </label>
+                        <input
+                          type="text"
+                          value={kbSettings.kbHomeConfiguration.bannerHeading}
+                          onChange={(e) => setKbSettings({
+                            ...kbSettings,
+                            kbHomeConfiguration: { ...kbSettings.kbHomeConfiguration, bannerHeading: e.target.value }
+                          })}
+                          style={{
+                            width: '100%',
+                            padding: '8px 12px',
+                            border: '1px solid #d1d5db',
+                            borderRadius: '6px',
+                            fontSize: '14px'
+                          }}
+                        />
+                      </div>
+
+                      <div style={{ marginBottom: '16px' }}>
+                        <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '6px' }}>
+                          Banner Description
+                        </label>
+                        <textarea
+                          value={kbSettings.kbHomeConfiguration.bannerDescription}
+                          onChange={(e) => setKbSettings({
+                            ...kbSettings,
+                            kbHomeConfiguration: { ...kbSettings.kbHomeConfiguration, bannerDescription: e.target.value }
+                          })}
+                          rows={3}
+                          style={{
+                            width: '100%',
+                            padding: '8px 12px',
+                            border: '1px solid #d1d5db',
+                            borderRadius: '6px',
+                            fontSize: '14px',
+                            resize: 'vertical'
+                          }}
+                        />
+                      </div>
+
+                      <div style={{ marginBottom: '16px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '6px' }}>
+                            Banner Text Color
+                          </label>
+                          <input
+                            type="color"
+                            value={kbSettings.kbHomeConfiguration.bannerTextColor}
+                            onChange={(e) => setKbSettings({
+                              ...kbSettings,
+                              kbHomeConfiguration: { ...kbSettings.kbHomeConfiguration, bannerTextColor: e.target.value }
+                            })}
+                            style={{ width: '100%', height: '40px', cursor: 'pointer' }}
+                          />
+                        </div>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '6px' }}>
+                            Banner Background Color
+                          </label>
+                          <input
+                            type="color"
+                            value={kbSettings.kbHomeConfiguration.bannerBackgroundColor}
+                            onChange={(e) => setKbSettings({
+                              ...kbSettings,
+                              kbHomeConfiguration: { ...kbSettings.kbHomeConfiguration, bannerBackgroundColor: e.target.value }
+                            })}
+                            style={{ width: '100%', height: '40px', cursor: 'pointer' }}
+                          />
+                        </div>
+                      </div>
+
+                      <div style={{ marginBottom: '16px' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                          <input
+                            type="checkbox"
+                            checked={kbSettings.kbHomeConfiguration.showPopularArticles}
+                            onChange={(e) => setKbSettings({
+                              ...kbSettings,
+                              kbHomeConfiguration: { ...kbSettings.kbHomeConfiguration, showPopularArticles: e.target.checked }
+                            })}
+                            style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                          />
+                          <span style={{ fontSize: '14px' }}>Show Popular Articles</span>
+                        </label>
+                      </div>
+
+                      {kbSettings.kbHomeConfiguration.showPopularArticles && (
+                        <div style={{ marginBottom: '16px' }}>
+                          <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '6px' }}>
+                            Popular Articles Count
+                          </label>
+                          <input
+                            type="number"
+                            min="1"
+                            max="20"
+                            value={kbSettings.kbHomeConfiguration.popularArticlesCount}
+                            onChange={(e) => setKbSettings({
+                              ...kbSettings,
+                              kbHomeConfiguration: { ...kbSettings.kbHomeConfiguration, popularArticlesCount: parseInt(e.target.value) || 10 }
+                            })}
+                            style={{
+                              width: '100%',
+                              padding: '8px 12px',
+                              border: '1px solid #d1d5db',
+                              borderRadius: '6px',
+                              fontSize: '14px'
+                            }}
+                          />
+                        </div>
+                      )}
+
+                      <div style={{ marginBottom: '16px' }}>
+                        <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '6px' }}>
+                          Portal Viewable By
+                        </label>
+                        <select
+                          value={kbSettings.kbHomeConfiguration.portalViewableBy}
+                          onChange={(e) => setKbSettings({
+                            ...kbSettings,
+                            kbHomeConfiguration: { ...kbSettings.kbHomeConfiguration, portalViewableBy: e.target.value as 'all' | 'loggedin' }
+                          })}
+                          style={{
+                            width: '100%',
+                            padding: '8px 12px',
+                            border: '1px solid #d1d5db',
+                            borderRadius: '6px',
+                            fontSize: '14px'
+                          }}
+                        >
+                          <option value="all">Everyone (Public)</option>
+                          <option value="loggedin">Logged-in Users Only</option>
+                        </select>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* AI Assistance */}
+                <div style={{ 
+                  padding: '16px', 
+                  backgroundColor: '#f9fafb', 
+                  borderRadius: '8px',
+                  marginBottom: '24px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px'
+                }}>
+                  <input
+                    type="checkbox"
+                    checked={kbSettings.enableAIAssistance}
+                    onChange={(e) => setKbSettings({ ...kbSettings, enableAIAssistance: e.target.checked })}
+                    style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                  />
+                  <div>
+                    <label style={{ fontWeight: '600', fontSize: '14px', display: 'block', marginBottom: '4px' }}>
+                      Enable AI Assistance
+                    </label>
+                    <p style={{ fontSize: '13px', color: '#6b7280', margin: 0 }}>
+                      Allow AI-powered article suggestions and search
+                    </p>
+                  </div>
+                </div>
+
+                {/* Satisfaction Feedback */}
+                <div style={{ 
+                  padding: '16px', 
+                  backgroundColor: '#f9fafb', 
+                  borderRadius: '8px',
+                  marginBottom: '24px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px'
+                }}>
+                  <input
+                    type="checkbox"
+                    checked={kbSettings.enableSatisfactionFeedback}
+                    onChange={(e) => setKbSettings({ ...kbSettings, enableSatisfactionFeedback: e.target.checked })}
+                    style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                  />
+                  <div>
+                    <label style={{ fontWeight: '600', fontSize: '14px', display: 'block', marginBottom: '4px' }}>
+                      Enable Satisfaction Feedback
+                    </label>
+                    <p style={{ fontSize: '13px', color: '#6b7280', margin: 0 }}>
+                      Allow users to rate articles as helpful or not helpful
+                    </p>
+                  </div>
+                </div>
+
+                {/* Save Button */}
+                <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '16px', borderTop: '1px solid #e5e7eb' }}>
+                  <button
+                    onClick={saveKBSettings}
+                    disabled={savingSettings}
+                    style={{
+                      padding: '10px 24px',
+                      backgroundColor: savingSettings ? '#9ca3af' : '#3b82f6',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      fontWeight: '600',
+                      cursor: savingSettings ? 'not-allowed' : 'pointer'
+                    }}
+                  >
+                    {savingSettings ? 'Saving...' : 'Save Settings'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       {/* Modal */}

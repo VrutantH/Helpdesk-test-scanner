@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import * as jwt from 'jsonwebtoken';
 import { User } from '../models/User';
+import { config } from '../config';
 
 export interface AuthRequest extends Request {
   user?: {
@@ -23,11 +24,10 @@ export const authMiddleware = async (req: AuthRequest, res: Response, next: Next
       return;
     }
 
-    // Get JWT_SECRET dynamically to ensure it's loaded from .env
-    const jwtSecret = process.env.JWT_SECRET || 'fallback-secret-key-for-development';
-    console.log('🔐 [AUTH] Using JWT_SECRET:', jwtSecret);
+    // Use centralized config for JWT secret
+    console.log('🔐 [AUTH] Verifying token with secure secret');
     console.log('🎫 [AUTH] Token to verify (first 20 chars):', token.substring(0, 20));
-    const decoded = jwt.verify(token, jwtSecret) as any;
+    const decoded = jwt.verify(token, config.jwt.secret) as any;
     
     console.log('✅ [AUTH] Token verified for user:', decoded.userId, decoded.email);
     
@@ -102,9 +102,8 @@ export const publicAuth = async (req: AuthRequest, res: Response, next: NextFunc
       return;
     }
 
-    // Get JWT_SECRET dynamically to ensure it's loaded from .env
-    const jwtSecret = process.env.JWT_SECRET || 'fallback-secret-key-for-development';
-    const decoded = jwt.verify(token, jwtSecret) as any;
+    // Use centralized config for JWT secret
+    const decoded = jwt.verify(token, config.jwt.secret) as any;
     console.log(`✅ [PUBLIC_AUTH] Token verified for user: ${decoded.userId}`);
     
     req.user = {

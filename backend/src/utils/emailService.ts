@@ -1,5 +1,52 @@
 import nodemailer from 'nodemailer';
 import EmailConfig from '../models/EmailConfig';
+import EmailLog from '../models/EmailLog';
+import { Project } from '../models/Project';
+import { decrypt, isEncrypted } from './encryption';
+
+// Helper function to log email attempts
+const logEmail = async (params: {
+  projectId?: string;
+  recipient: string;
+  subject: string;
+  body?: string;
+  type: 'otp' | 'ticket_created' | 'student_welcome' | 'password_reset' | 'ticket_update' | 'other';
+  status: 'sent' | 'failed' | 'blocked' | 'simulated';
+  error?: string;
+  metadata?: any;
+  smtpHost?: string;
+  fromEmail?: string;
+}) => {
+  try {
+    let projectName: string | undefined;
+    
+    if (params.projectId) {
+      const project = await Project.findById(params.projectId);
+      projectName = project?.name;
+    }
+
+    const emailLog = new EmailLog({
+      projectId: params.projectId,
+      projectName,
+      recipient: params.recipient,
+      subject: params.subject,
+      body: params.body,
+      type: params.type,
+      status: params.status,
+      error: params.error,
+      metadata: params.metadata,
+      smtpHost: params.smtpHost,
+      fromEmail: params.fromEmail,
+      sentAt: new Date()
+    });
+
+    await emailLog.save();
+    console.log(`📝 Email log saved: ${params.status} - ${params.type} to ${params.recipient}`);
+  } catch (error) {
+    console.error('❌ Failed to save email log:', error);
+    // Don't throw - logging failures shouldn't break email sending
+  }
+};
 
 // Get email transporter from database configuration
 const getEmailTransporter = async (projectId?: string) => {
@@ -11,13 +58,24 @@ const getEmailTransporter = async (projectId?: string) => {
       return null;
     }
 
+    // Decrypt SMTP password if it's encrypted
+    let smtpPassword = emailConfig.smtpPassword;
+    if (isEncrypted(smtpPassword)) {
+      try {
+        smtpPassword = decrypt(smtpPassword);
+      } catch (error) {
+        console.error('Failed to decrypt SMTP password:', error);
+        return null;
+      }
+    }
+
     return nodemailer.createTransport({
       host: emailConfig.smtpHost,
       port: emailConfig.smtpPort || 587,
       secure: emailConfig.smtpSecure || false,
       auth: {
         user: emailConfig.smtpUser,
-        pass: emailConfig.smtpPassword,
+        pass: smtpPassword,
       },
     });
   } catch (error) {
@@ -29,25 +87,12 @@ const getEmailTransporter = async (projectId?: string) => {
 export const sendOTPEmail = async (email: string, otp: string, projectId?: string): Promise<boolean> => {
   try {
     console.log(`📧 [EMAIL SERVICE] Sending OTP to ${email}`);
-    console.log(`🔑 OTP: ${otp}`);
     
+    const emailConfig = await EmailConfig.findOne(projectId ? { projectId } : {});
     const transporter = await getEmailTransporter(projectId);
     
-    if (!transporter) {
-      console.log('✅ Email sent successfully (simulated)');
-      return true;
-    }
-
-    const emailConfig = await EmailConfig.findOne(projectId ? { projectId } : {});
-    
-    // Get the student OTP trigger settings
-    const trigger = emailConfig?.triggers?.studentOTP;
-    
-    // Check if email trigger is enabled
-    if (!trigger?.enabled) {
-      console.log('⚠️  Student OTP email trigger is disabled');
-      return false;
-    }
+    // Get project name for replacement
+    const projectName = emailConfig?.fromName || 'SAC Helpdesk';
     
     // Default templates
     const defaultSubject = `Your OTP for {{projectName}}`;
@@ -67,18 +112,46 @@ export const sendOTPEmail = async (email: string, otp: string, projectId?: strin
       </div>
     `;
     
-    // Get project name for replacement
-    const projectName = emailConfig?.fromName || 'SAC Helpdesk';
+    // Get the student OTP trigger settings
+    const trigger = emailConfig?.triggers?.studentOTP;
     
     // Use template from config or default, then replace variables
-    let subject = (trigger.subject || defaultSubject)
+    let subject = (trigger?.subject || defaultSubject)
       .replace(/\{\{otp\}\}/g, otp)
       .replace(/\{\{projectName\}\}/g, projectName);
       
-    let body = (trigger.body || defaultBody)
+    let body = (trigger?.body || defaultBody)
       .replace(/\{\{studentName\}\}/g, email.split('@')[0])
       .replace(/\{\{otp\}\}/g, otp)
       .replace(/\{\{projectName\}\}/g, projectName);
+    
+    if (!transporter) {
+      console.log('✅ Email sent successfully (simulated)');
+      await logEmail({
+        projectId,
+        recipient: email,
+        subject,
+        body,
+        type: 'otp',
+        status: 'simulated'
+      });
+      return true;
+    }
+    
+    // Check if email trigger is enabled
+    if (!trigger?.enabled) {
+      console.log('⚠️  Student OTP email trigger is disabled');
+      await logEmail({
+        projectId,
+        recipient: email,
+        subject,
+        body,
+        type: 'otp',
+        status: 'blocked',
+        error: 'Trigger disabled'
+      });
+      return false;
+    }
     
     console.log(`📧 Sending OTP email with subject: ${subject}`);
     
@@ -90,10 +163,29 @@ export const sendOTPEmail = async (email: string, otp: string, projectId?: strin
     });
     
     console.log('✅ OTP email sent successfully via SMTP');
+    await logEmail({
+      projectId,
+      recipient: email,
+      subject,
+      body,
+      type: 'otp',
+      status: 'sent',
+      smtpHost: emailConfig?.smtpHost,
+      fromEmail: emailConfig?.fromEmail || emailConfig?.smtpUser
+    });
     return true;
   } catch (error) {
     console.error('❌ [EMAIL SERVICE] Failed to send OTP email:', error);
     console.error('Error details:', error);
+    
+    await logEmail({
+      projectId,
+      recipient: email,
+      subject: `Your OTP for SAC Helpdesk`,
+      type: 'otp',
+      status: 'failed',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
     return false;
   }
 };
@@ -101,8 +193,8 @@ export const sendOTPEmail = async (email: string, otp: string, projectId?: strin
 export const sendVerificationEmail = async (email: string, token: string): Promise<boolean> => {
   try {
     console.log(`📧 [EMAIL SERVICE] Sending verification email to ${email}`);
-    console.log(`🔗 Verification token: ${token}`);
-    console.log('✅ Email sent successfully (simulated)');
+    // Do not log verification tokens in plaintext
+    console.log('✅ Email send simulated (verification token generated)');
     
     return true;
   } catch (error) {
@@ -140,23 +232,13 @@ export const sendTicketCreatedEmail = async (
     console.log(`📄 Ticket Title: ${ticketTitle}`);
     console.log(`🏢 Project ID: ${projectId}`);
     
+    const emailConfig = await EmailConfig.findOne(projectId ? { projectId } : {});
     const transporter = await getEmailTransporter(projectId);
     
-    if (!transporter) {
-      console.log('✅ Email sent successfully (simulated)');
-      return true;
-    }
-
-    const emailConfig = await EmailConfig.findOne(projectId ? { projectId } : {});
-    
-    // Get the ticket created trigger settings
-    const trigger = emailConfig?.triggers?.ticketCreatedStudent || emailConfig?.triggers?.ticketCreatedOnline;
-    
-    // Check if email trigger is enabled
-    if (!trigger?.enabled) {
-      console.log('⚠️  Ticket creation email trigger is disabled');
-      return false;
-    }
+    // Prepare replacement values
+    const studentName = additionalData?.studentName || 'Student';
+    const status = additionalData?.status || 'Open';
+    const priority = additionalData?.priority || 'Medium';
     
     // Default templates
     const defaultSubject = `Ticket Created - {{ticketNumber}}`;
@@ -178,24 +260,62 @@ export const sendTicketCreatedEmail = async (
       </div>
     `;
     
-    // Prepare replacement values
-    const studentName = additionalData?.studentName || 'Student';
-    const status = additionalData?.status || 'Open';
-    const priority = additionalData?.priority || 'Medium';
+    // Get the ticket created trigger settings
+    const trigger = emailConfig?.triggers?.ticketCreatedStudent || emailConfig?.triggers?.ticketCreatedOnline;
     
     // Use template from config or default, then replace variables
-    let subject = (trigger.subject || defaultSubject)
+    let subject = (trigger?.subject || defaultSubject)
       .replace(/\{\{ticketNumber\}\}/g, ticketNumber)
       .replace(/\{\{ticketTitle\}\}/g, ticketTitle)
       .replace(/\{\{ticketSubject\}\}/g, ticketTitle);
       
-    let body = (trigger.body || defaultBody)
+    let body = (trigger?.body || defaultBody)
       .replace(/\{\{ticketNumber\}\}/g, ticketNumber)
       .replace(/\{\{ticketTitle\}\}/g, ticketTitle)
       .replace(/\{\{ticketSubject\}\}/g, ticketTitle)
       .replace(/\{\{studentName\}\}/g, studentName)
       .replace(/\{\{ticketStatus\}\}/g, status)
       .replace(/\{\{ticketPriority\}\}/g, priority);
+    
+    // Convert plain text newlines to HTML if body doesn't contain HTML tags
+    if (!body.includes('<') && !body.includes('>')) {
+      body = body
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line => line.length > 0)
+        .map(line => `<p>${line}</p>`)
+        .join('');
+    }
+    
+    if (!transporter) {
+      console.log('✅ Email sent successfully (simulated)');
+      await logEmail({
+        projectId,
+        recipient: email,
+        subject,
+        body,
+        type: 'ticket_created',
+        status: 'simulated',
+        metadata: { ticketNumber, ticketTitle, status, priority }
+      });
+      return true;
+    }
+    
+    // Check if email trigger is enabled
+    if (!trigger?.enabled) {
+      console.log('⚠️  Ticket creation email trigger is disabled');
+      await logEmail({
+        projectId,
+        recipient: email,
+        subject,
+        body,
+        type: 'ticket_created',
+        status: 'blocked',
+        error: 'Trigger disabled',
+        metadata: { ticketNumber, ticketTitle, status, priority }
+      });
+      return false;
+    }
     
     console.log(`📧 Sending email with subject: ${subject}`);
     
@@ -207,10 +327,31 @@ export const sendTicketCreatedEmail = async (
     });
     
     console.log('✅ Ticket creation email sent successfully via SMTP');
+    await logEmail({
+      projectId,
+      recipient: email,
+      subject,
+      body,
+      type: 'ticket_created',
+      status: 'sent',
+      smtpHost: emailConfig?.smtpHost,
+      fromEmail: emailConfig?.fromEmail || emailConfig?.smtpUser,
+      metadata: { ticketNumber, ticketTitle, status, priority }
+    });
     return true;
   } catch (error) {
     console.error('❌ [EMAIL SERVICE] Failed to send ticket creation email:', error);
     console.error('Error details:', error);
+    
+    await logEmail({
+      projectId,
+      recipient: email,
+      subject: `Ticket Created - ${ticketNumber}`,
+      type: 'ticket_created',
+      status: 'failed',
+      error: error instanceof Error ? error.message : 'Unknown error',
+      metadata: { ticketNumber, ticketTitle }
+    });
     return false;
   }
 };
@@ -228,23 +369,8 @@ export const sendStudentWelcomeEmail = async (
     console.log(`🏢 Project Name: ${projectName}`);
     console.log(`🔗 Login URL: ${loginUrl}`);
     
-    const transporter = await getEmailTransporter(projectId);
-    
-    if (!transporter) {
-      console.log('✅ Welcome email sent successfully (simulated)');
-      return true;
-    }
-
     const emailConfig = await EmailConfig.findOne(projectId ? { projectId } : {});
-    
-    // Get the account created trigger settings
-    const trigger = emailConfig?.triggers?.accountCreated;
-    
-    // Check if email trigger is enabled
-    if (!trigger?.enabled) {
-      console.log('⚠️  Account creation email trigger is disabled');
-      return false;
-    }
+    const transporter = await getEmailTransporter(projectId);
     
     // Default templates with placeholders
     const defaultSubject = `Welcome to {{projectName}} - Account Created`;
@@ -288,18 +414,61 @@ export const sendStudentWelcomeEmail = async (
       </div>
     `;
     
+    // Get the account created trigger settings
+    const trigger = emailConfig?.triggers?.accountCreated;
+    
     // Use template from config or default, then replace ALL variables
-    let subject = (trigger.subject || defaultSubject)
+    let subject = (trigger?.subject || defaultSubject)
       .replace(/\{\{projectName\}\}/g, projectName)
       .replace(/\{\{studentName\}\}/g, studentName)
       .replace(/\{\{email\}\}/g, email)
       .replace(/\{\{loginUrl\}\}/g, loginUrl);
       
-    let body = (trigger.body || defaultBody)
+    let body = (trigger?.body || defaultBody)
       .replace(/\{\{studentName\}\}/g, studentName)
       .replace(/\{\{email\}\}/g, email)
       .replace(/\{\{loginUrl\}\}/g, loginUrl)
       .replace(/\{\{projectName\}\}/g, projectName);
+    
+    // Convert plain text newlines to HTML if body doesn't contain HTML tags
+    if (!body.includes('<') && !body.includes('>')) {
+      body = body
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line => line.length > 0)
+        .map(line => `<p>${line}</p>`)
+        .join('');
+    }
+    
+    if (!transporter) {
+      console.log('✅ Welcome email sent successfully (simulated)');
+      await logEmail({
+        projectId,
+        recipient: email,
+        subject,
+        body,
+        type: 'student_welcome',
+        status: 'simulated',
+        metadata: { studentName, projectName, loginUrl }
+      });
+      return true;
+    }
+    
+    // Check if email trigger is enabled
+    if (!trigger?.enabled) {
+      console.log('⚠️  Account creation email trigger is disabled');
+      await logEmail({
+        projectId,
+        recipient: email,
+        subject,
+        body,
+        type: 'student_welcome',
+        status: 'blocked',
+        error: 'Trigger disabled',
+        metadata: { studentName, projectName, loginUrl }
+      });
+      return false;
+    }
     
     console.log(`📧 Sending welcome email with subject: ${subject}`);
     
@@ -311,10 +480,31 @@ export const sendStudentWelcomeEmail = async (
     });
     
     console.log('✅ Student welcome email sent successfully via SMTP');
+    await logEmail({
+      projectId,
+      recipient: email,
+      subject,
+      body,
+      type: 'student_welcome',
+      status: 'sent',
+      smtpHost: emailConfig?.smtpHost,
+      fromEmail: emailConfig?.fromEmail || emailConfig?.smtpUser,
+      metadata: { studentName, projectName, loginUrl }
+    });
     return true;
   } catch (error) {
     console.error('❌ [EMAIL SERVICE] Failed to send welcome email:', error);
     console.error('Error details:', error);
+    
+    await logEmail({
+      projectId,
+      recipient: email,
+      subject: `Welcome to ${projectName} - Account Created`,
+      type: 'student_welcome',
+      status: 'failed',
+      error: error instanceof Error ? error.message : 'Unknown error',
+      metadata: { studentName, projectName, loginUrl }
+    });
     return false;
   }
 };

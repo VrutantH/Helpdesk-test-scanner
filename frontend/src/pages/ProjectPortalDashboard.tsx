@@ -51,7 +51,7 @@ interface User {
 
 // User Management - renders without its own DashboardLayout (already wrapped by parent)
 const ProjectUserManagement = () => {
-  return <UserManagement />;
+  return <UserManagement wrapWithLayout={false} />;
 };
 
 // Simple Dashboard component for agents
@@ -1163,8 +1163,8 @@ const ProjectPortalDashboard = () => {
         <Route path="/offline" element={<AgentStudentWorkflow projectId={projectBranding?.projectId || ''} />} />
         <Route path="/student-workflow" element={<AgentStudentWorkflow projectId={projectBranding?.projectId || ''} />} />
         <Route path="/users" element={<ProjectUserManagement />} />
-        <Route path="/audit/activity-logs" element={<ActivityLogs />} />
-        <Route path="/audit/access-logs" element={<AccessLogs />} />
+        <Route path="/audit/activity-logs" element={<ActivityLogs wrapWithLayout={false} />} />
+        <Route path="/audit/access-logs" element={<AccessLogs wrapWithLayout={false} />} />
         
         {/* Email Configuration */}
         <Route path="/email-config" element={

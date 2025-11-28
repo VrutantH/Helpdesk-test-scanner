@@ -214,11 +214,11 @@ userSchema.methods.comparePassword = async function(candidatePassword: string): 
   return bcrypt.compare(candidatePassword, this.password);
 };
 
-// Generate reset password OTP
+// Generate reset password OTP (returns OTP but does NOT persist plaintext to the DB)
 userSchema.methods.generateResetPasswordOTP = function(): string {
   const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
-  this.resetPasswordOTP = otp;
-  this.resetPasswordOTPExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+  // For security, do not write plaintext OTP to the user document anymore.
+  // Use centralized `otpStore` to persist hashed OTPs.
   return otp;
 };
 

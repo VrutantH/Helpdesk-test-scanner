@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import axios from 'axios';
+import DOMPurify from 'dompurify';
 import { API_CONFIG } from '../config/constants';
 import {
   HomeIcon,
@@ -686,7 +687,7 @@ const ProjectAgentDashboard: React.FC = () => {
                         <div className="px-6 pb-6 border-t border-gray-200">
                           <div
                             className="prose max-w-none mt-4"
-                            dangerouslySetInnerHTML={{ __html: article.content }}
+                            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(article.content) }}
                           />
                           {article.tags && article.tags.length > 0 && (
                             <div className="flex flex-wrap gap-2 mt-4">

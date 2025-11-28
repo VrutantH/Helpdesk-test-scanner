@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import { Role } from '../models/Role';
+import { logActivity } from '../utils/logger';
 
 // @desc    Get all roles
 // @route   GET /api/roles
@@ -114,6 +115,33 @@ export const createRole = async (req: AuthRequest, res: Response) => {
     const role = await Role.create(roleData);
 
     const populatedRole = await Role.findById(role._id).populate('permissions');
+    
+    // Log activity
+    try {
+      const currentUser = req.user;
+      if (currentUser) {
+        const projectNames = roleData.projects && Array.isArray(roleData.projects) && roleData.projects.length > 0
+          ? `Projects: ${roleData.projects.length}`
+          : 'No specific projects';
+        
+        await logActivity({
+          userId: currentUser.userId,
+          userName: `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim(),
+          userEmail: currentUser.email,
+          action: 'create',
+          entity: 'role',
+          entityId: role._id.toString(),
+          entityName: role.name,
+          projectId: roleData.projects && roleData.projects.length > 0 ? roleData.projects[0].toString() : undefined,
+          projectName: projectNames,
+          description: `Role ${role.name} (${role.code}) created`,
+          req,
+          metadata: { code: role.code, type: role.type, isAgent: role.isAgent }
+        });
+      }
+    } catch (logError) {
+      console.error('Failed to log activity:', logError);
+    }
 
     res.status(201).json({
       success: true,
@@ -215,6 +243,37 @@ export const updateRole = async (req: AuthRequest, res: Response) => {
     }
 
     const populatedRole = await Role.findById(role._id).populate('permissions');
+    
+    // Log activity
+    try {
+      const currentUser = req.user;
+      if (currentUser) {
+        const changes = [];
+        if (name) changes.push({ field: 'name', oldValue: role.name, newValue: name });
+        if (permissions) changes.push({ field: 'permissions', oldValue: 'previous', newValue: 'updated' });
+        
+        const projectNames = role.projects && Array.isArray(role.projects) && role.projects.length > 0
+          ? `Projects: ${role.projects.length}`
+          : 'No specific projects';
+        
+        await logActivity({
+          userId: currentUser.userId,
+          userName: `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim(),
+          userEmail: currentUser.email,
+          action: 'update',
+          entity: 'role',
+          entityId: role._id.toString(),
+          entityName: role.name,
+          projectId: role.projects && role.projects.length > 0 ? role.projects[0].toString() : undefined,
+          projectName: projectNames,
+          changes: changes.length > 0 ? changes : undefined,
+          description: `Role ${role.name} updated${permissionsChanged ? ' (permissions changed)' : ''}`,
+          req
+        });
+      }
+    } catch (logError) {
+      console.error('Failed to log activity:', logError);
+    }
 
     res.json({
       success: true,
@@ -251,7 +310,35 @@ export const deleteRole = async (req: AuthRequest, res: Response) => {
       return;
     }
 
+    // Store role data before deletion
+    const deletedRoleData = {
+      id: role._id.toString(),
+      name: role.name,
+      code: role.code,
+      projects: role.projects
+    };
+    
     await role.deleteOne();
+    
+    // Log activity
+    try {
+      const currentUser = req.user;
+      if (currentUser) {
+        await logActivity({
+          userId: currentUser.userId,
+          userName: `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim(),
+          userEmail: currentUser.email,
+          action: 'delete',
+          entity: 'role',
+          entityId: deletedRoleData.id,
+          entityName: deletedRoleData.name,
+          description: `Role ${deletedRoleData.name} (${deletedRoleData.code}) deleted`,
+          req
+        });
+      }
+    } catch (logError) {
+      console.error('Failed to log activity:', logError);
+    }
 
     res.json({
       success: true,

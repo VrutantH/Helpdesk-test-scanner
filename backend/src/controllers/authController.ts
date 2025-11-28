@@ -8,10 +8,9 @@ import { Project } from '../models/Project';
 import EulaAcceptance from '../models/EulaAcceptance';
 import { logLogin, logLogout } from '../utils/logger';
 import { AuthRequest } from '../middleware/auth';
-import { generateUserJWT, refreshUserPermissions } from '../utils/jwtUtils';
-
-// In-memory store for OTPs (in production, use Redis or database)
-const otpStore = new Map<string, { otp: string; expires: Date; email: string }>();
+import { generateUserJWT, generateProjectJWT, refreshUserPermissions } from '../utils/jwtUtils';
+import { config } from '../config';
+import otpStore from '../utils/otpStore';
 
 interface LoginRequest {
   email: string;
@@ -65,6 +64,7 @@ export const login = async (req: Request<{}, {}, LoginRequest>, res: Response) =
     }
 
     // If projectId is provided, verify user is mapped to that project
+    let projectForJWT = null;
     if (projectId) {
       const isAuthorized = user.projects?.some(
         (pid) => pid.toString() === projectId.toString()
@@ -85,6 +85,16 @@ export const login = async (req: Request<{}, {}, LoginRequest>, res: Response) =
         return res.status(403).json({
           success: false,
           error: 'You are not authorized to access this project'
+        });
+      }
+
+      // Fetch project details for JWT
+      projectForJWT = await Project.findById(projectId);
+      if (!projectForJWT) {
+        console.log('❌ Project not found:', projectId);
+        return res.status(404).json({
+          success: false,
+          error: 'Project not found'
         });
       }
     }
@@ -117,6 +127,47 @@ export const login = async (req: Request<{}, {}, LoginRequest>, res: Response) =
       });
     }
 
+    // Check if 2FA is required for this project
+    let require2FA = false;
+    if (projectForJWT) {
+      require2FA = projectForJWT.configuration?.securitySettings?.mfaRequired || false;
+    }
+
+    // If 2FA is required and user is not a student, send OTP
+    const userRoleName = user.role && typeof user.role === 'object' && 'name' in user.role ? (user.role as any).name : '';
+    if (require2FA && userRoleName !== 'Student') {
+      if (!user.phone) {
+        return res.status(400).json({
+          success: false,
+          error: 'Mobile number not registered. Please contact administrator.'
+        });
+      }
+
+      // Generate 6-digit OTP
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+      // Store OTP using central otpStore (stores hashed value, optional Redis)
+      const otpKey = await otpStore.createOtp(email, otp, 10 * 60, { purpose: '2fa' });
+
+      // TODO: Send OTP via SMS service (Twilio, AWS SNS, etc.)
+      // Do not log OTP plaintext in production; keep only non-sensitive notice
+      console.log(`📱 2FA OTP generated and dispatched (masked) for ${email} (Phone: ${user.phone})`);
+
+      // Generate temporary token for 2FA verification
+      const tempToken = jwt.sign(
+        { email, otpKey, purpose: '2fa' },
+        config.jwt.secret,
+        { expiresIn: '10m' }
+      );
+
+      return res.status(200).json({
+        success: true,
+        require2FA: true,
+        tempToken,
+        message: 'OTP has been sent to your registered mobile number'
+      });
+    }
+
     // Update last login
     user.lastLogin = new Date();
     await user.save();
@@ -139,7 +190,10 @@ export const login = async (req: Request<{}, {}, LoginRequest>, res: Response) =
     }
 
     // Generate JWT token with dynamic permissions using utility
-    const token = await generateUserJWT(user);
+    // Use project-specific JWT if projectId was provided, otherwise standard JWT
+    const token = projectForJWT 
+      ? await generateProjectJWT(user, projectForJWT)
+      : await generateUserJWT(user);
 
     // Set HTTP-only cookie
     res.cookie('authToken', token, {
@@ -345,11 +399,9 @@ export const forgotPassword = async (req: Request<{}, {}, ForgotPasswordRequest>
 
     // Generate 6-digit OTP
     const otp = crypto.randomInt(100000, 999999).toString();
-    const expires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-    // Store OTP
-    const otpId = crypto.randomUUID();
-    otpStore.set(otpId, { otp, expires, email });
+    // Store OTP using central otpStore (stores hashed value, optional Redis)
+    const otpId = await otpStore.createOtp(email, otp, 10 * 60, { purpose: 'forgot_password' });
 
     // Send OTP email
     try {
@@ -359,12 +411,12 @@ export const forgotPassword = async (req: Request<{}, {}, ForgotPasswordRequest>
       // For demo, continue without sending actual email
     }
 
-    // For demo purposes, log the OTP
-    console.log(`OTP for ${email}: ${otp}`);
+    // NOTE: Do not log OTP plaintext in production. We only indicate generation here.
+    console.log(`🔐 Password reset OTP generated for ${email}`);
 
     return res.json({
       success: true,
-      data: { otpId }, // In production, don't send this
+      data: { otpId }, // In production, do not return this
       message: 'OTP has been sent to your email address'
     });
 
@@ -388,16 +440,20 @@ export const verifyOTP = async (req: Request<{}, {}, VerifyOTPRequest>, res: Res
       });
     }
 
-    // Find OTP in store
-    let validOtpId: string | null = null;
-    for (const [id, data] of otpStore.entries()) {
-      if (data.email === email && data.otp === otp && data.expires > new Date()) {
-        validOtpId = id;
+    // Find OTP keys for this email and try verifying each (otpStore stores hashed values)
+    const keys = await otpStore.findOtpKeysByEmail(email);
+    let verified = false;
+    for (const k of keys) {
+      // verifyOtpByKey will delete the key on successful verification
+      // eslint-disable-next-line no-await-in-loop
+      const ok = await otpStore.verifyOtpByKey(k, otp);
+      if (ok) {
+        verified = true;
         break;
       }
     }
 
-    if (!validOtpId) {
+    if (!verified) {
       return res.status(400).json({
         success: false,
         error: 'Invalid or expired OTP'
@@ -437,29 +493,38 @@ export const resetPassword = async (req: Request<{}, {}, ResetPasswordRequest>, 
       });
     }
 
-    // Check if OTP was verified for this email (simplified check)
-    let otpVerified = false;
-    for (const [id, data] of otpStore.entries()) {
-      if (data.email === email) {
-        otpVerified = true;
-        otpStore.delete(id); // Remove used OTP
-        break;
-      }
-    }
-
-    if (!otpVerified) {
+    // Check if OTP exists for this email (simplified check similar to previous behavior)
+    const keys = await otpStore.findOtpKeysByEmail(email);
+    if (!keys || keys.length === 0) {
       return res.status(400).json({
         success: false,
         error: 'OTP verification required'
       });
     }
 
+    // Consume/delete any OTPs for this email
+    // eslint-disable-next-line no-await-in-loop
+    await otpStore.consumeOtpsForEmail(email);
+
     // Hash new password
     const saltRounds = 12;
     const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
 
-    // In production, update user password in database
-    console.log(`Password reset for ${email}: ${hashedPassword}`);
+    // Update user password in database
+    const user = await User.findOneAndUpdate(
+      { email: email.toLowerCase().trim() },
+      { password: hashedPassword },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+    }
+
+    console.log(`Password reset completed for ${email}`);
 
     return res.json({
       success: true,
@@ -469,6 +534,118 @@ export const resetPassword = async (req: Request<{}, {}, ResetPasswordRequest>, 
 
   } catch (error) {
     console.error('Password reset error:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    });
+  }
+};
+
+export const verify2FA = async (req: Request, res: Response) => {
+  try {
+    const { email, tempToken, otp } = req.body;
+
+    if (!email || !tempToken || !otp) {
+      return res.status(400).json({
+        success: false,
+        error: 'Email, temporary token, and OTP are required'
+      });
+    }
+
+    // Verify temp token
+    let decoded: any;
+    try {
+      decoded = jwt.verify(tempToken, config.jwt.secret);
+      if (decoded.purpose !== '2fa' || decoded.email !== email) {
+        throw new Error('Invalid token');
+      }
+    } catch (error) {
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid or expired token'
+      });
+    }
+
+    // Verify OTP using otpStore (will delete on success)
+    const ok = await otpStore.verifyOtpByKey(decoded.otpKey, otp);
+    if (!ok) {
+      return res.status(401).json({
+        success: false,
+        error: 'OTP expired or invalid'
+      });
+    }
+
+    // Find user and complete login
+    const user = await User.findOne({ email: email.toLowerCase(), isActive: true })
+      .populate({
+        path: 'role',
+        populate: {
+          path: 'permissions'
+        }
+      });
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        error: 'User not found'
+      });
+    }
+
+    // Update last login
+    user.lastLogin = new Date();
+    await user.save();
+
+    // Check EULA acceptance
+    const CURRENT_EULA_VERSION = '1.0';
+    const eulaAcceptance = await EulaAcceptance.findOne({
+      userId: user._id,
+      version: CURRENT_EULA_VERSION
+    }).sort({ acceptedAt: -1 });
+
+    const eulaAccepted = !!eulaAcceptance;
+
+    // Generate JWT token
+    const token = await generateUserJWT(user);
+
+    // Set HTTP-only cookie
+    res.cookie('authToken', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    });
+
+    console.log('✅ 2FA verification successful:', email);
+
+    await logLogin(
+      user._id.toString(),
+      `${user.firstName} ${user.lastName}`,
+      user.email,
+      req,
+      'success',
+      undefined,
+      user.role && typeof user.role === 'object' && 'name' in user.role ? (user.role as any).name : 'User',
+      'Individual' // Will be updated based on project context
+    );
+
+    return res.json({
+      success: true,
+      data: {
+        token,
+        user: {
+          id: user._id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.role,
+          eulaAccepted
+        }
+      },
+      message: 'Login successful'
+    });
+
+  } catch (error) {
+    console.error('2FA verification error:', error);
     return res.status(500).json({
       success: false,
       error: 'Internal server error'

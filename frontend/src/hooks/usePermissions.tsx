@@ -12,26 +12,41 @@ export const usePermissions = () => {
       // First try to get from stored permissions
       const storedPermissions = localStorage.getItem('userPermissions');
       if (storedPermissions) {
-        return JSON.parse(storedPermissions);
+        const parsed = JSON.parse(storedPermissions);
+        console.log('📋 Using stored permissions:', parsed);
+        return parsed;
       }
 
       // Fallback to JWT token
       const token = localStorage.getItem('authToken');
-      if (!token) return [];
+      if (!token) {
+        console.warn('⚠️ No authToken found in localStorage');
+        return [];
+      }
 
       // Decode JWT token (simple base64 decode of payload)
       const parts = token.split('.');
-      if (parts.length !== 3) return [];
+      if (parts.length !== 3) {
+        console.warn('⚠️ Invalid JWT token format');
+        return [];
+      }
 
       const payload = JSON.parse(atob(parts[1]));
-      const perms = payload.role?.permissions || [];
+      console.log('🔍 JWT Payload:', payload);
+      console.log('🔍 Role from JWT:', payload.role);
+      console.log('🔍 Permissions from role.permissions:', payload.role?.permissions);
+      console.log('🔍 Permissions from root permissions:', payload.permissions);
+      
+      // Try role.permissions first, then fallback to root level permissions
+      const perms = payload.role?.permissions || payload.permissions || [];
       
       // Cache for next time
       localStorage.setItem('userPermissions', JSON.stringify(perms));
       
+      console.log('✅ Extracted permissions:', perms);
       return perms;
     } catch (error) {
-      console.error('Error parsing permissions from token:', error);
+      console.error('❌ Error parsing permissions from token:', error);
       return [];
     }
   }, []);

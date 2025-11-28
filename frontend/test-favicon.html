@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Favicon & Background Image Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 { color: #333; }
+        h2 { color: #667eea; }
+        input, button {
+            padding: 10px;
+            margin: 5px 0;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        button:hover { background: #5568d3; }
+        pre {
+            background: #f8f8f8;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .preview {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f0f0f0;
+            border-radius: 4px;
+        }
+        .preview img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Favicon & Background Image Test</h1>
+    
+    <div class="test-section">
+        <h2>Test Project Configuration API</h2>
+        <p>Enter the domain/custom URL path of your project:</p>
+        <input type="text" id="domainInput" placeholder="e.g., localhost or your-custom-url" value="localhost">
+        <button onclick="testAPI()">Test API Endpoint</button>
+        <div id="apiResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Current Favicon Status</h2>
+        <p>Favicon link tag in current page:</p>
+        <div id="faviconStatus"></div>
+    </div>
+
+    <script>
+        // Show current favicon status
+        function updateFaviconStatus() {
+            const link = document.querySelector("link[rel*='icon']");
+            const statusDiv = document.getElementById('faviconStatus');
+            
+            if (link) {
+                statusDiv.innerHTML = `
+                    <pre>Found: &lt;link rel="${link.rel}" href="${link.href}"&gt;</pre>
+                    ${link.href.startsWith('data:') ? '<p>✅ Using base64 data URL</p>' : '<p>Using external URL</p>'}
+                `;
+            } else {
+                statusDiv.innerHTML = '<p>❌ No favicon link tag found</p>';
+            }
+        }
+        
+        updateFaviconStatus();
+
+        // Test the API endpoint
+        async function testAPI() {
+            const domain = document.getElementById('domainInput').value;
+            const resultDiv = document.getElementById('apiResult');
+            
+            resultDiv.innerHTML = '<p>⏳ Loading...</p>';
+            
+            try {
+                const response = await fetch(`http://localhost:3003/api/projects/by-domain/${domain}`);
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <h3>✅ Response (Status: ${response.status})</h3>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+                
+                // If we got branding data, show previews
+                if (data.branding) {
+                    let previewHTML = '<div class="preview"><h3>🎨 Preview</h3>';
+                    
+                    if (data.branding.favicon) {
+                        previewHTML += `
+                            <h4>Favicon:</h4>
+                            <img src="${data.branding.favicon}" alt="Favicon" style="width: 48px; height: 48px; border: 1px solid #ddd; padding: 5px;">
+                        `;
+                    }
+                    
+                    if (data.configuration?.customizationSettings?.loginPageBackgroundImage) {
+                        previewHTML += `
+                            <h4>Login Background Image:</h4>
+                            <img src="${data.configuration.customizationSettings.loginPageBackgroundImage}" alt="Background" style="max-width: 300px; border: 1px solid #ddd;">
+                        `;
+                    }
+                    
+                    previewHTML += '</div>';
+                    resultDiv.innerHTML += previewHTML;
+                    
+                    // Try to set the favicon
+                    if (data.branding.favicon) {
+                        let link = document.querySelector("link[rel*='icon']");
+                        if (!link) {
+                            link = document.createElement('link');
+                            link.rel = 'icon';
+                            document.head.appendChild(link);
+                        }
+                        link.href = data.branding.favicon;
+                        
+                        setTimeout(() => {
+                            updateFaviconStatus();
+                            resultDiv.innerHTML += '<p>✅ Favicon applied to this test page! Check your browser tab.</p>';
+                        }, 500);
+                    }
+                }
+                
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <h3>❌ Error</h3>
+                    <pre>${error.message}</pre>
+                    <p>Make sure the backend server is running on port 3003</p>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

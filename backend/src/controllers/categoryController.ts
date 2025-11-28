@@ -2,12 +2,45 @@ import { Request, Response } from 'express';
 import { Category } from '../models/Category';
 import { Project } from '../models/Project';
 import { AuthRequest } from '../middleware/auth';
+import { logActivity } from '../utils/logger';
+
+// Get all categories across all projects (for debugging/admin)
+export const getAllCategories = async (req: AuthRequest, res: Response) => {
+  try {
+    const { includeInactive } = req.query;
+
+    const filter: any = {};
+    if (includeInactive !== 'true') {
+      filter.isActive = true;
+    }
+
+    const categories = await Category.find(filter)
+      .populate('projectId', 'name code projectId')
+      .sort({ projectId: 1, order: 1, name: 1 });
+
+    console.log(`Found ${categories.length} total categories across all projects`);
+
+    return res.json({
+      success: true,
+      data: categories,
+      count: categories.length,
+    });
+  } catch (error) {
+    console.error('Get all categories error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+    });
+  }
+};
 
 // Get all categories for a project
 export const getCategoriesByProject = async (req: AuthRequest, res: Response) => {
   try {
     const { projectId } = req.params;
     const { includeInactive } = req.query;
+
+    console.log(`📁 Fetching categories for project: ${projectId}, includeInactive: ${includeInactive}`);
 
     const filter: any = { projectId };
     if (includeInactive !== 'true') {
@@ -16,7 +49,19 @@ export const getCategoriesByProject = async (req: AuthRequest, res: Response) =>
 
     const categories = await Category.find(filter)
       .sort({ order: 1, name: 1 })
-      .select('name description color icon order isActive');
+      .select('name description color icon order isActive projectId');
+
+    console.log(`📁 Found ${categories.length} categories for project ${projectId}`);
+    
+    // Also check if there are ANY categories in the database
+    const totalCategories = await Category.countDocuments({});
+    console.log(`📁 Total categories in database: ${totalCategories}`);
+    
+    if (totalCategories > 0 && categories.length === 0) {
+      // Let's see what projectIds exist
+      const allProjectIds = await Category.distinct('projectId');
+      console.log(`📁 Categories exist for these project IDs:`, allProjectIds);
+    }
 
     return res.json({
       success: true,
@@ -35,13 +80,20 @@ export const getCategoriesByProject = async (req: AuthRequest, res: Response) =>
 export const createCategory = async (req: AuthRequest, res: Response) => {
   try {
     const { projectId } = req.params;
-    const { name, description, color, icon, order } = req.body;
+    const { name, code, description, color, icon, order, defaultPriority } = req.body;
     const userId = req.user?.userId;
 
     if (!name) {
       return res.status(400).json({
         success: false,
         message: 'Category name is required',
+      });
+    }
+
+    if (!code) {
+      return res.status(400).json({
+        success: false,
+        message: 'Category code is required',
       });
     }
 
@@ -54,22 +106,29 @@ export const createCategory = async (req: AuthRequest, res: Response) => {
       });
     }
 
-    // Check if category already exists
-    const existingCategory = await Category.findOne({ name, projectId });
+    // Check if category already exists by name or code
+    const existingCategory = await Category.findOne({ 
+      projectId,
+      $or: [{ name }, { code: code.toUpperCase() }]
+    });
     if (existingCategory) {
       return res.status(400).json({
         success: false,
-        message: 'Category with this name already exists in this project',
+        message: existingCategory.name === name 
+          ? 'Category with this name already exists in this project'
+          : 'Category with this code already exists in this project',
       });
     }
 
     const category = new Category({
       name,
+      code: code.toUpperCase(),
       description,
       projectId,
       color,
       icon,
       order,
+      defaultPriority,
       createdBy: userId,
     });
 
@@ -108,6 +167,28 @@ export const createCategory = async (req: AuthRequest, res: Response) => {
       });
       await project.save();
     }
+    
+    // Log activity
+    try {
+      const currentUser = req.user;
+      if (currentUser) {
+        await logActivity({
+          userId: currentUser.userId,
+          userName: `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim(),
+          userEmail: currentUser.email,
+          action: 'create',
+          entity: 'category',
+          entityId: category._id.toString(),
+          entityName: category.name,
+          projectId: projectId,
+          projectName: project.name,
+          description: `Category ${category.name} created in project ${project.name}`,
+          req
+        });
+      }
+    } catch (logError) {
+      console.error('Failed to log activity:', logError);
+    }
 
     return res.status(201).json({
       success: true,
@@ -127,7 +208,7 @@ export const createCategory = async (req: AuthRequest, res: Response) => {
 export const updateCategory = async (req: AuthRequest, res: Response) => {
   try {
     const { categoryId } = req.params;
-    const { name, description, color, icon, order, isActive } = req.body;
+    const { name, code, description, color, icon, order, isActive, defaultPriority } = req.body;
     const userId = req.user?.userId;
 
     const category = await Category.findById(categoryId);
@@ -140,13 +221,44 @@ export const updateCategory = async (req: AuthRequest, res: Response) => {
 
     const oldName = category.name;
 
+    // Check for duplicate name or code if changing
+    if (name && name !== category.name) {
+      const existingByName = await Category.findOne({ 
+        name, 
+        projectId: category.projectId,
+        _id: { $ne: categoryId }
+      });
+      if (existingByName) {
+        return res.status(400).json({
+          success: false,
+          message: 'Category with this name already exists in this project',
+        });
+      }
+    }
+
+    if (code && code.toUpperCase() !== category.code) {
+      const existingByCode = await Category.findOne({ 
+        code: code.toUpperCase(), 
+        projectId: category.projectId,
+        _id: { $ne: categoryId }
+      });
+      if (existingByCode) {
+        return res.status(400).json({
+          success: false,
+          message: 'Category with this code already exists in this project',
+        });
+      }
+    }
+
     // Update category fields
     if (name !== undefined) category.name = name;
+    if (code !== undefined) category.code = code.toUpperCase();
     if (description !== undefined) category.description = description;
     if (color !== undefined) category.color = color;
     if (icon !== undefined) category.icon = icon;
     if (order !== undefined) category.order = order;
     if (isActive !== undefined) category.isActive = isActive;
+    if (defaultPriority !== undefined) category.defaultPriority = defaultPriority;
     category.updatedBy = userId as any;
 
     await category.save();
@@ -166,6 +278,34 @@ export const updateCategory = async (req: AuthRequest, res: Response) => {
           }
         }
       }
+    }
+    
+    // Log activity
+    try {
+      const currentUser = req.user;
+      if (currentUser) {
+        const projectData = await Project.findById(category.projectId);
+        const changes = [];
+        if (name && name !== oldName) changes.push({ field: 'name', oldValue: oldName, newValue: name });
+        if (color !== undefined) changes.push({ field: 'color', oldValue: 'previous', newValue: color });
+        
+        await logActivity({
+          userId: currentUser.userId,
+          userName: `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim(),
+          userEmail: currentUser.email,
+          action: 'update',
+          entity: 'category',
+          entityId: category._id.toString(),
+          entityName: category.name,
+          projectId: category.projectId.toString(),
+          projectName: projectData?.name,
+          changes: changes.length > 0 ? changes : undefined,
+          description: `Category ${category.name} updated`,
+          req
+        });
+      }
+    } catch (logError) {
+      console.error('Failed to log activity:', logError);
     }
 
     return res.json({
@@ -212,6 +352,29 @@ export const deleteCategory = async (req: AuthRequest, res: Response) => {
         categoryField.options = categoryField.options.filter((opt: string) => opt !== categoryName);
         await project.save();
       }
+    }
+    
+    // Log activity
+    try {
+      const currentUser = req.user;
+      if (currentUser) {
+        const projectData = await Project.findById(projectId);
+        await logActivity({
+          userId: currentUser.userId,
+          userName: `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim(),
+          userEmail: currentUser.email,
+          action: 'delete',
+          entity: 'category',
+          entityId: category._id.toString(),
+          entityName: categoryName,
+          projectId: projectId.toString(),
+          projectName: projectData?.name,
+          description: `Category ${categoryName} deleted (soft delete)`,
+          req
+        });
+      }
+    } catch (logError) {
+      console.error('Failed to log activity:', logError);
     }
 
     return res.json({

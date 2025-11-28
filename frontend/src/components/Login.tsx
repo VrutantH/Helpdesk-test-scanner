@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useTranslation } from 'react-i18next';
+import DOMPurify from 'dompurify';
 import { API_CONFIG } from '../config/constants';
+import API_BASE_URL from '../config/api';
 import {
   EyeIcon, 
   EyeSlashIcon, 
@@ -31,7 +33,7 @@ interface ResetPasswordFormData {
   confirmPassword: string;
 }
 
-type LoginStep = 'login' | 'forgot-password' | 'otp-verification' | 'reset-password';
+type LoginStep = 'login' | 'forgot-password' | 'otp-verification' | 'reset-password' | '2fa-verification';
 
 const Login: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -43,6 +45,69 @@ const Login: React.FC = () => {
   const [otpEmail, setOtpEmail] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [twoFactorData, setTwoFactorData] = useState<{
+    email: string;
+    password: string;
+    tempToken: string;
+  } | null>(null);
+  const [twoFactorOtp, setTwoFactorOtp] = useState('');
+  const [announcementBanner, setAnnouncementBanner] = useState<{
+    message: string;
+    type: 'plain' | 'rich';
+  } | null>(null);
+  const [loginBackgroundImage, setLoginBackgroundImage] = useState<string>('');
+  const [projectFavicon, setProjectFavicon] = useState<string>('');
+
+  // Fetch project configuration (announcement banner, background image, favicon)
+  useEffect(() => {
+    const fetchProjectConfiguration = async () => {
+      try {
+        // Get the current domain/project URL
+        const hostname = window.location.hostname;
+        const response = await fetch(`${API_BASE_URL}/projects/by-domain/${hostname}`);
+        if (response.ok) {
+          const project = await response.json();
+          
+          // Set announcement banner
+          if (project?.configuration?.announcementBanner?.message) {
+            setAnnouncementBanner({
+              message: project.configuration.announcementBanner.message,
+              type: project.configuration.announcementBanner.type || 'plain'
+            });
+          }
+          
+          // Set login background image
+          if (project?.configuration?.customizationSettings?.loginPageBackgroundImage) {
+            setLoginBackgroundImage(project.configuration.customizationSettings.loginPageBackgroundImage);
+          }
+          
+          // Set favicon
+          if (project?.branding?.favicon) {
+            setProjectFavicon(project.branding.favicon);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch project configuration:', error);
+      }
+    };
+
+    fetchProjectConfiguration();
+  }, []);
+
+  // Update favicon dynamically
+  useEffect(() => {
+    if (projectFavicon) {
+      let link: HTMLLinkElement | null = document.querySelector("link[rel*='icon']");
+      
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'icon';
+        document.getElementsByTagName('head')[0].appendChild(link);
+      }
+      
+      link.href = projectFavicon;
+    }
+  }, [projectFavicon]);
 
   // Language options
   const languages = [
@@ -134,6 +199,20 @@ const Login: React.FC = () => {
     try {
       const result = await apiCall('/auth/login', data);
       console.log('🔐 Login response:', result);
+      
+      // Check if 2FA is required
+      if (result.require2FA) {
+        // Store temporary data for 2FA verification
+        setTwoFactorData({
+          email: data.email,
+          password: data.password,
+          tempToken: result.tempToken
+        });
+        setCurrentStep('2fa-verification');
+        setSuccessMessage('OTP has been sent to your registered mobile number');
+        return;
+      }
+      
       console.log('🔐 User data:', result.data?.user);
       console.log('🔐 Permissions from response:', result.data?.user?.permissions);
       
@@ -176,6 +255,60 @@ const Login: React.FC = () => {
       }
     } catch (error: any) {
       setErrorMessage(error.message || t('loginFailed'));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleTwoFactorVerification = async () => {
+    if (!twoFactorData || !twoFactorOtp) {
+      setErrorMessage('Please enter the OTP');
+      return;
+    }
+
+    setIsLoading(true);
+    setErrorMessage('');
+
+    try {
+      const result = await apiCall('/auth/verify-2fa', {
+        email: twoFactorData.email,
+        tempToken: twoFactorData.tempToken,
+        otp: twoFactorOtp
+      });
+
+      if (result.success) {
+        // Store auth data
+        const token = result.data.token;
+        localStorage.setItem('authToken', token);
+        localStorage.setItem('userId', result.data.user.id);
+        localStorage.setItem('userEmail', result.data.user.email);
+        localStorage.setItem('userRole', result.data.user.role);
+        
+        // Store user permissions
+        let permissions: string[] = [];
+        try {
+          const parts = token.split('.');
+          if (parts.length === 3) {
+            const payload = JSON.parse(atob(parts[1]));
+            permissions = payload.role?.permissions || [];
+          }
+        } catch (e) {
+          permissions = result.data.user.permissions || [];
+        }
+        
+        localStorage.setItem('userPermissions', JSON.stringify(permissions));
+        
+        // Redirect
+        if (result.data.user.eulaAccepted) {
+          const { getDefaultRoute } = await import('../utils/routeUtils');
+          const defaultRoute = getDefaultRoute(permissions);
+          window.location.href = defaultRoute;
+        } else {
+          window.location.href = '/eula';
+        }
+      }
+    } catch (error: any) {
+      setErrorMessage(error.message || 'Invalid OTP');
     } finally {
       setIsLoading(false);
     }
@@ -490,6 +623,119 @@ const Login: React.FC = () => {
           </div>
         );
 
+      case '2fa-verification':
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', position: 'relative' }}>
+            <button
+              onClick={resetToLogin}
+              style={{
+                position: 'absolute',
+                top: '-1rem',
+                left: '-1rem',
+                padding: '0.5rem',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: '50%',
+              }}
+              aria-label="Back to login"
+            >
+              <ArrowLeftIcon style={{ width: '20px', height: '20px', color: '#6B7280' }} />
+            </button>
+
+            <div style={{ textAlign: 'center' }}>
+              <div style={{
+                width: '64px',
+                height: '64px',
+                margin: '0 auto 1rem',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                borderRadius: '16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+                <LockClosedIcon style={{ width: '32px', height: '32px', color: 'white' }} />
+              </div>
+              <h1 style={{
+                fontSize: '1.875rem',
+                fontWeight: 700,
+                color: '#111827',
+                marginBottom: '0.5rem',
+                fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
+              }}>
+                Two-Factor Authentication
+              </h1>
+              <p style={{
+                fontSize: '0.875rem',
+                color: '#6B7280',
+                fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
+              }}>
+                Enter the OTP sent to your registered mobile number
+              </p>
+            </div>
+
+            <div>
+              <label htmlFor="2fa-otp" style={{
+                display: 'block',
+                fontSize: '0.875rem',
+                fontWeight: 500,
+                color: '#374151',
+                marginBottom: '0.5rem',
+                fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
+              }}>
+                OTP
+              </label>
+              <input
+                id="2fa-otp"
+                type="text"
+                value={twoFactorOtp}
+                onChange={(e) => setTwoFactorOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                placeholder="Enter 6-digit OTP"
+                maxLength={6}
+                style={{
+                  width: '100%',
+                  padding: '0.75rem 1rem',
+                  fontSize: '0.875rem',
+                  border: '1px solid #D1D5DB',
+                  borderRadius: '8px',
+                  outline: 'none',
+                  fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
+                  boxSizing: 'border-box',
+                  letterSpacing: '0.5em',
+                  textAlign: 'center'
+                }}
+                onFocus={(e) => e.currentTarget.style.borderColor = '#2563EB'}
+                onBlur={(e) => e.currentTarget.style.borderColor = '#D1D5DB'}
+              />
+            </div>
+
+            <button
+              onClick={handleTwoFactorVerification}
+              disabled={isLoading || twoFactorOtp.length !== 6}
+              style={{
+                width: '100%',
+                padding: '0.875rem 1.5rem',
+                background: twoFactorOtp.length === 6 ? '#2563EB' : '#9CA3AF',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                cursor: twoFactorOtp.length === 6 && !isLoading ? 'pointer' : 'not-allowed',
+                opacity: isLoading ? 0.6 : 1,
+                boxShadow: '0 2px 6px rgba(37, 99, 235, 0.24)',
+                transition: 'all 0.2s ease',
+                fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif',
+              }}
+            >
+              {isLoading ? 'Verifying...' : 'Verify OTP'}
+            </button>
+          </div>
+        );
+
       case 'forgot-password':
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', position: 'relative' }}>
@@ -793,29 +1039,52 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex" style={{ fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif' }}>
-      {/* Skip to main content */}
-      <a 
-        href="#main-content" 
-        className="skip-link"
-        aria-label={t('skipToMain')}
-        style={{
-          position: 'absolute',
-          left: '-9999px',
-          zIndex: 999,
-          padding: '1rem',
-          background: '#2563EB',
-          color: 'white',
-          textDecoration: 'none',
-        }}
-      >
-        {t('skipToMain')}
-      </a>
+    <div className="min-h-screen flex flex-col" style={{ fontFamily: '"Noto Sans", system-ui, -apple-system, sans-serif' }}>
+      {/* Announcement Banner */}
+      {announcementBanner && announcementBanner.message && (
+        <div style={{
+          backgroundColor: '#fef3c7',
+          borderBottom: '1px solid #fbbf24',
+          padding: '12px 16px',
+          color: '#92400e',
+          textAlign: 'center'
+        }}>
+          {announcementBanner.type === 'rich' ? (
+            <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(announcementBanner.message) }} style={{ fontSize: '14px', lineHeight: '1.5' }} />
+          ) : (
+            <p style={{ margin: 0, fontSize: '14px', lineHeight: '1.5' }}>
+              {announcementBanner.message}
+            </p>
+          )}
+        </div>
+      )}
 
-      {/* Left Side - Branding & Image */}
-      <div style={{
+      {/* Main Content */}
+      <div className="flex-1 flex">
+        {/* Skip to main content */}
+        <a 
+          href="#main-content" 
+          className="skip-link"
+          aria-label={t('skipToMain')}
+          style={{
+            position: 'absolute',
+            left: '-9999px',
+            zIndex: 999,
+            padding: '1rem',
+            background: '#2563EB',
+            color: 'white',
+            textDecoration: 'none',
+          }}
+        >
+          {t('skipToMain')}
+        </a>
+
+        {/* Left Side - Branding & Image */}
+        <div style={{
         flex: 1,
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: loginBackgroundImage 
+          ? `url(${loginBackgroundImage}) center/cover no-repeat` 
+          : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         position: 'relative',
         display: 'flex',
         flexDirection: 'column',
@@ -824,16 +1093,30 @@ const Login: React.FC = () => {
         padding: '4rem',
         color: 'white',
       }}>
-        {/* Decorative Pattern Overlay */}
-        <div style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.05\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
-          opacity: 0.4,
-        }}></div>
+        {/* Decorative Pattern Overlay - only show when no background image */}
+        {!loginBackgroundImage && (
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.05\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
+            opacity: 0.4,
+          }}></div>
+        )}
+
+        {/* Dark overlay for better text readability when background image is present */}
+        {loginBackgroundImage && (
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.4)',
+          }}></div>
+        )}
 
         {/* Content */}
         <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', maxWidth: '500px' }}>
@@ -1065,6 +1348,7 @@ const Login: React.FC = () => {
             </div>
           </div>
         </main>
+      </div>
       </div>
     </div>
   );

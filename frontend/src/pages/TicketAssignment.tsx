@@ -24,7 +24,11 @@ interface Ticket {
   metadata?: {
     studentName?: string;
     studentEmail?: string;
-    projectId?: string;
+    projectId?: {
+      _id: string;
+      name: string;
+      code: string;
+    } | string;
   };
   createdAt: string;
 }
@@ -39,30 +43,69 @@ interface Agent {
     code: string;
     isAgent?: boolean;
   };
-  projectId?: string;
+  projects?: any[];
+}
+
+interface Project {
+  _id: string;
+  name: string;
+  code: string;
 }
 
 const TicketAssignment: React.FC<TicketAssignmentProps> = ({ wrapWithLayout = true }) => {
   const { hasPermission } = usePermissions();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [agents, setAgents] = useState<Agent[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [selectedTickets, setSelectedTickets] = useState<string[]>([]);
   const [selectedAgent, setSelectedAgent] = useState<string>('');
+  const [selectedProject, setSelectedProject] = useState<string>('all');
   const [loading, setLoading] = useState(true);
   const [assigning, setAssigning] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
 
   useEffect(() => {
+    checkUserRole();
     fetchTickets();
     fetchAgents();
   }, []);
 
+  useEffect(() => {
+    if (isSuperAdmin) {
+      fetchProjects();
+    }
+  }, [isSuperAdmin]);
+
+  const checkUserRole = () => {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      const user = JSON.parse(userStr);
+      const roleCode = user.role?.code || user.roleCode;
+      setIsSuperAdmin(roleCode === 'SUPER_ADMIN');
+    }
+  };
+
+  const fetchProjects = async () => {
+    try {
+      const token = localStorage.getItem('authToken');
+      const response = await axios.get(`${API_CONFIG.API_URL}/projects`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.data.success) {
+        setProjects(response.data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching projects:', error);
+    }
+  };
+
   const fetchTickets = async () => {
     try {
       const token = localStorage.getItem('authToken');
-      // Use my-tickets endpoint which shows all tickets for users with TICKET_VIEW_ALL permission
-      const response = await axios.get(`${API_CONFIG.API_URL}/tickets/my-tickets`, {
+      // Use /api/tickets endpoint which shows ALL tickets for Super Admin, project-specific for others
+      const response = await axios.get(`${API_CONFIG.API_URL}/tickets`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -85,7 +128,8 @@ const TicketAssignment: React.FC<TicketAssignmentProps> = ({ wrapWithLayout = tr
       const projectContextStr = localStorage.getItem('projectContext');
       let projectId = null;
       
-      if (projectContextStr) {
+      // For non-Super Admins, use project context
+      if (!isSuperAdmin && projectContextStr) {
         try {
           const projectContext = JSON.parse(projectContextStr);
           projectId = projectContext.projectId;
@@ -105,13 +149,18 @@ const TicketAssignment: React.FC<TicketAssignmentProps> = ({ wrapWithLayout = tr
         // 1. Are active
         // 2. Have a role
         // 3. Their role is marked as isAgent = true (for auto-assignment eligibility)
-        // 4. Are assigned to the current project (if in project portal context)
+        // 4. For non-Super Admins: Are assigned to the current project
         const agentUsers = response.data.data.filter((user: any) => {
           const isActive = user.isActive;
           const hasRole = user.role;
           const isAgent = user.role && user.role.isAgent === true;
           
-          // If we have a project context, also check if user is assigned to this project
+          // If Super Admin, show all agents regardless of project
+          if (isSuperAdmin) {
+            return isActive && hasRole && isAgent;
+          }
+          
+          // For non-Super Admins, check if user is assigned to this project
           // Convert ObjectIds to strings for comparison
           const isInProject = !projectId || (user.projects && user.projects.some((p: any) => 
             (typeof p === 'string' ? p : p._id || p.toString()) === projectId
@@ -120,9 +169,10 @@ const TicketAssignment: React.FC<TicketAssignmentProps> = ({ wrapWithLayout = tr
           return isActive && hasRole && isAgent && isInProject;
         });
         
-        console.log('📋 Loaded agents with isAgent roles for project:', {
+        console.log('📋 Loaded agents with isAgent roles:', {
           totalAgents: agentUsers.length,
-          projectId: projectId || 'No project filter',
+          isSuperAdmin,
+          projectId: projectId || 'All projects',
           agents: agentUsers.map((a: any) => `${a.firstName} ${a.lastName} (${a.role.name})`)
         });
         setAgents(agentUsers);
@@ -189,7 +239,16 @@ const TicketAssignment: React.FC<TicketAssignmentProps> = ({ wrapWithLayout = tr
       ticket.subject?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       ticket.metadata?.studentEmail?.toLowerCase().includes(searchQuery.toLowerCase());
     
-    return matchesStatus && matchesSearch;
+    // For Super Admin, filter by selected project
+    let matchesProject = true;
+    if (isSuperAdmin && selectedProject !== 'all') {
+      const ticketProjectId = typeof ticket.metadata?.projectId === 'object' 
+        ? ticket.metadata?.projectId?._id 
+        : ticket.metadata?.projectId;
+      matchesProject = ticketProjectId === selectedProject;
+    }
+    
+    return matchesStatus && matchesSearch && matchesProject;
   });
 
   const getStatusColor = (status: string) => {
@@ -243,6 +302,33 @@ const TicketAssignment: React.FC<TicketAssignmentProps> = ({ wrapWithLayout = tr
           marginBottom: '24px',
         }}>
           <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+            {/* Project Filter (Super Admin only) */}
+            {isSuperAdmin && (
+              <div style={{ flex: 1, minWidth: '250px' }}>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>
+                  Filter by Project
+                </label>
+                <select
+                  value={selectedProject}
+                  onChange={(e) => setSelectedProject(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    border: '1px solid #D1D5DB',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                  }}
+                >
+                  <option value="all">All Projects</option>
+                  {projects.map(project => (
+                    <option key={project._id} value={project._id}>
+                      {project.name} ({project.code})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+            
             <div style={{ flex: 1, minWidth: '250px' }}>
               <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>
                 Select Agent
@@ -357,6 +443,11 @@ const TicketAssignment: React.FC<TicketAssignmentProps> = ({ wrapWithLayout = tr
                 <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase' }}>
                   Subject
                 </th>
+                {isSuperAdmin && (
+                  <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase' }}>
+                    Project
+                  </th>
+                )}
                 <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase' }}>
                   Status
                 </th>
@@ -374,7 +465,7 @@ const TicketAssignment: React.FC<TicketAssignmentProps> = ({ wrapWithLayout = tr
             <tbody>
               {filteredTickets.length === 0 ? (
                 <tr>
-                  <td colSpan={7} style={{ padding: '48px', textAlign: 'center', color: '#6B7280' }}>
+                  <td colSpan={isSuperAdmin ? 8 : 7} style={{ padding: '48px', textAlign: 'center', color: '#6B7280' }}>
                     No tickets found
                   </td>
                 </tr>
@@ -401,6 +492,24 @@ const TicketAssignment: React.FC<TicketAssignmentProps> = ({ wrapWithLayout = tr
                     <td style={{ padding: '12px 16px', fontSize: '14px', color: '#111827' }}>
                       {ticket.subject || 'No subject'}
                     </td>
+                    {isSuperAdmin && (
+                      <td style={{ padding: '12px 16px' }}>
+                        {ticket.metadata?.projectId && typeof ticket.metadata.projectId === 'object' ? (
+                          <span style={{
+                            padding: '4px 12px',
+                            borderRadius: '12px',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            background: '#EEF2FF',
+                            color: '#4F46E5',
+                          }}>
+                            {ticket.metadata.projectId.name}
+                          </span>
+                        ) : (
+                          <span style={{ color: '#9CA3AF', fontSize: '14px' }}>-</span>
+                        )}
+                      </td>
+                    )}
                     <td style={{ padding: '12px 16px' }}>
                       <span style={{
                         padding: '4px 12px',

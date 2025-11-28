@@ -2,7 +2,8 @@ import { Router } from 'express';
 import { 
   submitTicket, 
   upload, 
-  getMyTickets, 
+  getMyTickets,
+  getAllTickets,
   getTicketById, 
   replyToTicket, 
   closeTicket, 
@@ -83,15 +84,10 @@ router.get('/tags', authMiddleware, checkPermission(['TICKET_VIEW_ALL', 'View Ow
 // @access  Private (Agent)
 router.post('/bulk-update', authMiddleware, checkPermission('TICKET_BULK_UPDATE'), bulkUpdateByTags);
 
-// @desc    Get all tickets
+// @desc    Get all tickets (for View Tickets page)
 // @route   GET /api/tickets
-// @access  Private
-router.get('/', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Get tickets endpoint - to be implemented',
-  });
-});
+// @access  Private - TICKET_VIEW_ALL permission required
+router.get('/', authMiddleware, checkPermission('TICKET_VIEW_ALL'), getAllTickets);
 
 // @desc    Create new ticket
 // @route   POST /api/tickets

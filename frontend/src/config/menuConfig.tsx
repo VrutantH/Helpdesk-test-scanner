@@ -38,6 +38,7 @@ export interface MenuItem {
   subItems?: MenuItem[];
   isProjectRoute?: boolean; // If true, this route is for project portal only
   isSuperAdminOnly?: boolean; // Legacy support - will use permission instead
+  excludeForRoles?: string[]; // Array of role codes to exclude this menu item from
 }
 
 /**
@@ -114,7 +115,7 @@ export const menuConfig: MenuItem[] = [
         label: 'View Tickets',
         labelHi: 'टिकट देखें',
         labelMr: 'तिकीटे पहा',
-        permission: [PERMISSIONS.TICKET_VIEW_ALL, PERMISSIONS.TICKET_VIEW_OWN],
+        permission: PERMISSIONS.TICKET_VIEW_ALL,
       },
       {
         path: '/tickets/my-tickets',
@@ -122,7 +123,8 @@ export const menuConfig: MenuItem[] = [
         label: 'My Tickets',
         labelHi: 'मेरे टिकट',
         labelMr: 'माझी तिकीटे',
-        permission: [PERMISSIONS.TICKET_VIEW_OWN, PERMISSIONS.TICKET_VIEW_ALL],
+        permission: PERMISSIONS.TICKET_VIEW_OWN,
+        excludeForRoles: ['SUPER_ADMIN'], // Super Admin doesn't need this submenu
       },
       {
         path: '/tickets/assign',
@@ -131,14 +133,6 @@ export const menuConfig: MenuItem[] = [
         labelHi: 'टिकट असाइन करें',
         labelMr: 'तिकीटे नियुक्त करा',
         permission: PERMISSIONS.TICKET_ASSIGN,
-      },
-      {
-        path: '/tickets/create',
-        icon: <MdConfirmationNumber />,
-        label: 'Create Ticket',
-        labelHi: 'टिकट बनाएं',
-        labelMr: 'तिकीट तयार करा',
-        permission: PERMISSIONS.TICKET_CREATE,
       },
     ],
   },
@@ -168,15 +162,15 @@ export const menuConfig: MenuItem[] = [
     modulePrefix: PERMISSION_MODULES.OFFLINE,
   },
 
-  // Approval Process - Managers and Super Admin
-  {
-    path: '/approvals',
-    icon: <MdCheckCircle />,
-    label: 'Approval Process',
-    labelHi: 'अनुमोदन प्रक्रिया',
-    labelMr: 'मंजूरी प्रक्रिया',
-    modulePrefix: PERMISSION_MODULES.APPROVAL,
-  },
+  // Approval Process - HIDDEN: Module not ready
+  // {
+  //   path: '/approvals',
+  //   icon: <MdCheckCircle />,
+  //   label: 'Approval Process',
+  //   labelHi: 'अनुमोदन प्रक्रिया',
+  //   labelMr: 'मंजूरी प्रक्रिया',
+  //   modulePrefix: PERMISSION_MODULES.APPROVAL,
+  // },
 
   // SLA & Escalation - Super Admin only
   {
@@ -252,45 +246,40 @@ export const menuConfig: MenuItem[] = [
         permission: PERMISSIONS.AUDIT_VIEW_ACCESS,
       },
       {
-        path: '/audit/blocked-email-recipients',
-        icon: <MdBlock />,
-        label: 'Blocked Email Recipients',
-        labelHi: 'अवरुद्ध ईमेल प्राप्तकर्ता',
-        labelMr: 'ब्लॉक केलेले ईमेल प्राप्तकर्ते',
-        permission: PERMISSIONS.AUDIT_VIEW_BLOCKED_EMAILS,
-      },
-      {
-        path: '/audit/email-failure-logs',
+        path: '/audit/email-logs',
         icon: <MdMailOutline />,
-        label: 'Email Failure Logs',
-        labelHi: 'ईमेल विफलता लॉग',
-        labelMr: 'ईमेल फेल्युअर लॉग',
-        permission: PERMISSIONS.AUDIT_VIEW_EMAIL_FAILURES,
+        label: 'Email Logs',
+        labelHi: 'ईमेल लॉग',
+        labelMr: 'ईमेल लॉग',
+        permission: PERMISSIONS.EMAIL_CONFIG_VIEW,
       },
-      {
-        path: '/audit/integration-failure-logs',
-        icon: <MdSyncProblem />,
-        label: 'Integration Failure Logs',
-        labelHi: 'एकीकरण विफलता लॉग',
-        labelMr: 'इंटिग्रेशन फेल्युअर लॉग',
-        permission: PERMISSIONS.AUDIT_VIEW_INTEGRATION_FAILURES,
-      },
-      {
-        path: '/audit/webhook-failure-logs',
-        icon: <MdWebhook />,
-        label: 'Webhook Failure Logs',
-        labelHi: 'वेबहुक विफलता लॉग',
-        labelMr: 'वेबहुक फेल्युअर लॉग',
-        permission: PERMISSIONS.AUDIT_VIEW_WEBHOOK_FAILURES,
-      },
-      {
-        path: '/audit/chat-webhook-failure',
-        icon: <MdChat />,
-        label: 'Chat Webhook Failure',
-        labelHi: 'चैट वेबहुक विफलता',
-        labelMr: 'चॅट वेबहुक फेल्युअर',
-        permission: PERMISSIONS.AUDIT_VIEW_CHAT_WEBHOOK_FAILURES,
-      },
+      // HIDDEN: Integration failure logs sub-menu - not ready
+      // {
+      //   path: '/audit/integration-failure-logs',
+      //   icon: <MdSyncProblem />,
+      //   label: 'Integration Failure Logs',
+      //   labelHi: 'एकीकरण विफलता लॉग',
+      //   labelMr: 'इंटिग्रेशन फेल्युअर लॉग',
+      //   permission: PERMISSIONS.AUDIT_VIEW_INTEGRATION_FAILURES,
+      // },
+      // HIDDEN: Webhook failure logs sub-menu - not ready
+      // {
+      //   path: '/audit/webhook-failure-logs',
+      //   icon: <MdWebhook />,
+      //   label: 'Webhook Failure Logs',
+      //   labelHi: 'वेबहुक विफलता लॉग',
+      //   labelMr: 'वेबहुक फेल्युअर लॉग',
+      //   permission: PERMISSIONS.AUDIT_VIEW_WEBHOOK_FAILURES,
+      // },
+      // HIDDEN: Chat webhook failure sub-menu - not ready
+      // {
+      //   path: '/audit/chat-webhook-failure',
+      //   icon: <MdChat />,
+      //   label: 'Chat Webhook Failure',
+      //   labelHi: 'चैट वेबहुक विफलता',
+      //   labelMr: 'चॅट वेबहुक फेल्युअर',
+      //   permission: PERMISSIONS.AUDIT_VIEW_CHAT_WEBHOOK_FAILURES,
+      // },
     ],
   },
 ];
@@ -462,8 +451,18 @@ export const getFilteredMenuItems = (
 ): MenuItem[] => {
   console.log('🎯 getFilteredMenuItems called with permissions:', userPermissions);
   
+  // Get user role from localStorage to check role-based exclusions
+  const userRole = localStorage.getItem('userRole') || '';
+  console.log('👤 User role:', userRole);
+  
   return menuItems
     .map((item) => {
+      // Check if this item should be excluded for this role
+      if (item.excludeForRoles && item.excludeForRoles.includes(userRole)) {
+        console.log(`❌ "${item.label}" - Excluded for role: ${userRole}`);
+        return null;
+      }
+      
       // Check if user has permission for this item
       if (!hasMenuItemPermission(item, userPermissions)) {
         console.log(`❌ "${item.label}" - Permission check FAILED`);
@@ -474,6 +473,12 @@ export const getFilteredMenuItems = (
       if (item.subItems) {
         console.log(`📂 "${item.label}" has ${item.subItems.length} subItems, filtering...`);
         const filteredSubItems = item.subItems.filter((subItem) => {
+          // Check role-based exclusion for subitems
+          if (subItem.excludeForRoles && subItem.excludeForRoles.includes(userRole)) {
+            console.log(`   ❌ SubItem: "${subItem.label}" - Excluded for role: ${userRole}`);
+            return false;
+          }
+          
           const hasPerm = hasMenuItemPermission(subItem, userPermissions);
           console.log(`   ${hasPerm ? '✅' : '❌'} SubItem: "${subItem.label}"`);
           return hasPerm;

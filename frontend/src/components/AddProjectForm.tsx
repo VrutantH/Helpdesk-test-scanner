@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { MdSettings, MdLock, MdShield, MdMenuBook, MdPalette, MdConfirmationNumber } from 'react-icons/md';
+import { MdSettings, MdLock, MdShield, MdPalette, MdConfirmationNumber } from 'react-icons/md';
+import DOMPurify from 'dompurify';
 import { getText } from '../utils/language';
 import API_BASE_URL from '../config/api';
 
@@ -36,6 +37,7 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
   // Customization modals
   const [showCustomCSSModal, setShowCustomCSSModal] = useState(false);
   const [showCustomJSModal, setShowCustomJSModal] = useState(false);
+  const [showBannerPreview, setShowBannerPreview] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -713,7 +715,7 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
             type: formData.announcementBannerType
           },
           ticketAssignmentSettings: {
-            enabled: formData.enableAutoAssignment,
+            enabled: formData.assignmentType === 'round-robin', // Auto-enable for round-robin
             assignmentType: formData.assignmentType,
             assignToUsers: formData.assignToUsers,
             assignToRoles: formData.assignToRoles,
@@ -843,7 +845,6 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
     { id: 'login', label: 'Login', labelMr: 'लॉगिन', icon: <MdLock /> },
     { id: 'security', label: 'Security', labelMr: 'सुरक्षा', icon: <MdShield /> },
     { id: 'ticketportal', label: 'Ticket Portal', labelMr: 'टिकट पोर्टल', icon: <MdConfirmationNumber /> },
-    { id: 'knowledge', label: 'Knowledge Base', labelMr: 'ज्ञान आधार', icon: <MdMenuBook /> },
     { id: 'customization', label: 'Customization', labelMr: 'सानुकूलीकरण', icon: <MdPalette /> }
   ];
 
@@ -963,7 +964,7 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
           <form onSubmit={handleSubmit} style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
             <div style={{ flex: 1, overflowY: 'auto', padding: '32px 40px' }}>
               {activeTab === 'general' && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '700px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '900px', minHeight: '500px' }}>
                   {/* Required Fields Note */}
                   <div style={{ 
                     padding: '12px 16px', 
@@ -1656,7 +1657,7 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
                   Announcement Banner Message
                 </label>
                 <p style={{ fontSize: '13px', color: '#6b7280', marginBottom: '12px' }}>
-                  The announcement banner can be used to communicate an important message to the users. It appears on the top of the page.
+                  The announcement banner can be used to communicate an important message to the users. It appears on the top of the login page for all project-specific logins (Admin, Agent, Counselor, Center Manager) except Student Login.
                 </p>
 
                 <div style={{ display: 'flex', gap: '16px', marginBottom: '12px' }}>
@@ -1697,12 +1698,39 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
                     fontSize: '14px',
                     outline: 'none',
                     boxSizing: 'border-box',
-                    resize: 'vertical'
+                    resize: 'vertical',
+                    marginBottom: '8px'
                   }}
                 />
+
+                {formData.announcementBannerMessage && (
+                  <button
+                    type="button"
+                    onClick={() => setShowBannerPreview(true)}
+                    style={{
+                      padding: '8px 16px',
+                      backgroundColor: '#f3f4f6',
+                      color: '#374151',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" style={{ width: '16px', height: '16px' }}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    Preview on Login Screen
+                  </button>
+                )}
               </div>
 
-              {/* File Download Settings */}
+              {/* File Download Settings - Hidden (not in use)
               <div>
                 <label style={{
                   display: 'block',
@@ -1758,8 +1786,9 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
                   </label>
                 </div>
               </div>
+              */}
 
-              {/* Inline Image Attachment Settings */}
+              {/* Inline Image Attachment Settings - Hidden (not in use)
               <div>
                 <label style={{
                   display: 'block',
@@ -1785,8 +1814,9 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
                   </div>
                 </label>
               </div>
+              */}
 
-              {/* File Attachment Settings (Email) */}
+              {/* File Attachment Settings (Email) - Hidden (not in use)
               <div>
                 <label style={{
                   display: 'block',
@@ -1812,11 +1842,12 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
                   </div>
                 </label>
               </div>
+              */}
             </div>
           )}
 
           {activeTab === 'login' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', maxWidth: '800px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', maxWidth: '900px', minHeight: '500px' }}>
               {/* Form Login Section */}
               <div>
                 <h3 style={{
@@ -1928,7 +1959,7 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
           )}
 
           {activeTab === 'security' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', maxWidth: '800px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', maxWidth: '900px', minHeight: '500px' }}>
               {/* General Settings Section */}
               <div>
                 <h3 style={{
@@ -1942,6 +1973,7 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
                   General Settings
                 </h3>
                 
+                {/* Signup options removed - not in use
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   <div style={{
                     display: 'flex',
@@ -2027,6 +2059,7 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
                     </div>
                   </div>
                 </div>
+                */}
               </div>
 
               {/* Two-Factor Authentication Section */}
@@ -2078,7 +2111,7 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
                       margin: 0,
                       lineHeight: '1.5'
                     }}>
-                      This will require all users to set up two-factor authentication (2FA) for their accounts. Please note that these settings only apply to form logins, not to custom SSO or social logins.
+                      This will require all users to verify their login with both password and mobile number OTP. This applies only to project-specific logins (Admin, Agent, Counselor, Center Manager), not to student logins.
                     </p>
                   </div>
                 </div>
@@ -2305,7 +2338,7 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
           )}
 
           {activeTab === 'ticketportal' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '900px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '900px', minHeight: '500px' }}>
               {/* Ticket Portal Header */}
               <div style={{
                 padding: '20px',
@@ -3400,998 +3433,8 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
             </div>
           )}
 
-          {activeTab === 'knowledge' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '900px' }}>
-              {/* Enable KB Toggle */}
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '16px',
-                backgroundColor: '#f9fafb',
-                borderRadius: '6px',
-                border: '1px solid #e5e7eb'
-              }}>
-                <label style={{
-                  fontSize: '15px',
-                  fontWeight: '600',
-                  color: '#1f2937'
-                }}>
-                  Enable KB
-                </label>
-                <label style={{ position: 'relative', display: 'inline-block', width: '48px', height: '24px' }}>
-                  <input
-                    type="checkbox"
-                    checked={formData.enableKB}
-                    onChange={(e) => setFormData({ ...formData, enableKB: e.target.checked })}
-                    style={{ opacity: 0, width: 0, height: 0 }}
-                  />
-                  <span style={{
-                    position: 'absolute',
-                    cursor: 'pointer',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    backgroundColor: formData.enableKB ? 'var(--primary-main)' : 'var(--border-default)',
-                    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                    borderRadius: '24px'
-                  }}>
-                    <span style={{
-                      position: 'absolute',
-                      content: '""',
-                      height: '18px',
-                      width: '18px',
-                      left: formData.enableKB ? '26px' : '3px',
-                      bottom: '3px',
-                      backgroundColor: 'white',
-                      transition: '0.3s',
-                      borderRadius: '50%'
-                    }}></span>
-                  </span>
-                </label>
-              </div>
-
-              {formData.enableKB && (
-                <>
-                  {/* KB Home Configuration - Expandable */}
-                  <div style={{
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '8px',
-                    overflow: 'hidden'
-                  }}>
-                    <button
-                      type="button"
-                      onClick={() => setKbHomeExpanded(!kbHomeExpanded)}
-                      style={{
-                        width: '100%',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        padding: '16px',
-                        backgroundColor: '#ffffff',
-                        border: 'none',
-                        cursor: 'pointer',
-                        fontSize: '15px',
-                        fontWeight: '600',
-                        color: '#1f2937'
-                      }}
-                    >
-                      KB Home Configuration
-                      <span style={{ fontSize: '18px', transform: kbHomeExpanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: '0.3s' }}>▼</span>
-                    </button>
-                    
-                    {kbHomeExpanded && (
-                      <div style={{ padding: '20px', backgroundColor: '#f9fafb', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                        {/* Banner Heading */}
-                        <div>
-                          <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#1f2937', marginBottom: '6px' }}>
-                            Banner Heading <span style={{ color: '#ef4444' }}>*</span>
-                          </label>
-                          <input
-                            type="text"
-                            value={formData.kbHomeConfiguration.bannerHeading}
-                            onChange={(e) => setFormData({
-                              ...formData,
-                              kbHomeConfiguration: { ...formData.kbHomeConfiguration, bannerHeading: e.target.value }
-                            })}
-                            style={{
-                              width: '100%',
-                              padding: '10px 12px',
-                              border: '1px solid #d1d5db',
-                              borderRadius: '6px',
-                              fontSize: '14px',
-                              boxSizing: 'border-box'
-                            }}
-                          />
-                        </div>
-
-                        {/* Banner Description */}
-                        <div>
-                          <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#1f2937', marginBottom: '6px' }}>
-                            Banner Description
-                          </label>
-                          <textarea
-                            value={formData.kbHomeConfiguration.bannerDescription}
-                            onChange={(e) => setFormData({
-                              ...formData,
-                              kbHomeConfiguration: { ...formData.kbHomeConfiguration, bannerDescription: e.target.value }
-                            })}
-                            placeholder="Description"
-                            rows={4}
-                            style={{
-                              width: '100%',
-                              padding: '10px 12px',
-                              border: '1px solid #d1d5db',
-                              borderRadius: '6px',
-                              fontSize: '14px',
-                              boxSizing: 'border-box',
-                              resize: 'vertical'
-                            }}
-                          />
-                        </div>
-
-                        {/* Banner Text Color */}
-                        <div>
-                          <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#1f2937', marginBottom: '6px' }}>
-                            Banner text color
-                          </label>
-                          <input
-                            type="color"
-                            value={formData.kbHomeConfiguration.bannerTextColor}
-                            onChange={(e) => setFormData({
-                              ...formData,
-                              kbHomeConfiguration: { ...formData.kbHomeConfiguration, bannerTextColor: e.target.value }
-                            })}
-                            style={{ width: '60px', height: '40px', border: '1px solid #d1d5db', borderRadius: '6px', cursor: 'pointer' }}
-                          />
-                        </div>
-
-                        {/* Banner Background */}
-                        <div>
-                          <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#1f2937', marginBottom: '10px' }}>
-                            Banner Background
-                          </label>
-                          <div style={{ display: 'flex', gap: '16px', marginBottom: '12px' }}>
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                              <input
-                                type="radio"
-                                checked={formData.kbHomeConfiguration.bannerBackgroundType === 'color'}
-                                onChange={() => setFormData({
-                                  ...formData,
-                                  kbHomeConfiguration: { ...formData.kbHomeConfiguration, bannerBackgroundType: 'color' }
-                                })}
-                                style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                              />
-                              <span style={{ fontSize: '14px', fontWeight: '500', color: '#1f2937' }}>Background Color</span>
-                            </label>
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                              <input
-                                type="radio"
-                                checked={formData.kbHomeConfiguration.bannerBackgroundType === 'image'}
-                                onChange={() => setFormData({
-                                  ...formData,
-                                  kbHomeConfiguration: { ...formData.kbHomeConfiguration, bannerBackgroundType: 'image' }
-                                })}
-                                style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                              />
-                              <span style={{ fontSize: '14px', fontWeight: '500', color: '#1f2937' }}>Background Image</span>
-                            </label>
-                          </div>
-                          {formData.kbHomeConfiguration.bannerBackgroundType === 'color' ? (
-                            <input
-                              type="color"
-                              value={formData.kbHomeConfiguration.bannerBackgroundColor}
-                              onChange={(e) => setFormData({
-                                ...formData,
-                                kbHomeConfiguration: { ...formData.kbHomeConfiguration, bannerBackgroundColor: e.target.value }
-                              })}
-                              style={{ width: '60px', height: '40px', border: '1px solid #d1d5db', borderRadius: '6px', cursor: 'pointer' }}
-                            />
-                          ) : (
-                            <div>
-                              <p style={{ fontSize: '13px', color: '#6b7280', marginBottom: '8px' }}>
-                                Maximum file size: 2MB<br />Best dimensions: 1200×300 pixels
-                              </p>
-                              <button 
-                                type="button" 
-                                className="btn btn-cta"
-                                style={{ 
-                                  textTransform: 'none',
-                                  marginRight: 'var(--spacing-2)'
-                                }}
-                              >
-                                Upload image
-                              </button>
-                              {formData.kbHomeConfiguration.bannerBackgroundImage && (
-                                <button type="button" style={{
-                                  padding: '8px 16px',
-                                  backgroundColor: 'white',
-                                  color: '#374151',
-                                  border: '1px solid #d1d5db',
-                                  borderRadius: '6px',
-                                  cursor: 'pointer',
-                                  fontSize: '14px'
-                                }}>Preview</button>
-                              )}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Show Popular Articles */}
-                        <div>
-                          <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
-                            <input
-                              type="checkbox"
-                              checked={formData.kbHomeConfiguration.showPopularArticles}
-                              onChange={(e) => setFormData({
-                                ...formData,
-                                kbHomeConfiguration: { ...formData.kbHomeConfiguration, showPopularArticles: e.target.checked }
-                              })}
-                              style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                            />
-                            <span style={{ fontSize: '14px', fontWeight: '500', color: '#1f2937' }}>Show popular articles</span>
-                          </label>
-                          {formData.kbHomeConfiguration.showPopularArticles && (
-                            <div style={{ marginTop: '12px', marginLeft: '30px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                              <label style={{ fontSize: '14px', color: '#374151' }}>Number of articles to show</label>
-                              <input
-                                type="number"
-                                value={formData.kbHomeConfiguration.popularArticlesCount}
-                                onChange={(e) => setFormData({
-                                  ...formData,
-                                  kbHomeConfiguration: { ...formData.kbHomeConfiguration, popularArticlesCount: parseInt(e.target.value) || 10 }
-                                })}
-                                min="1"
-                                max="20"
-                                style={{
-                                  width: '80px',
-                                  padding: '6px 12px',
-                                  border: '1px solid #d1d5db',
-                                  borderRadius: '6px',
-                                  fontSize: '14px'
-                                }}
-                              />
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Portal Viewable By */}
-                        <div>
-                          <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#1f2937', marginBottom: '10px' }}>
-                            This portal can be viewed by:
-                          </label>
-                          <div style={{ display: 'flex', gap: '16px' }}>
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                              <input
-                                type="radio"
-                                checked={formData.kbHomeConfiguration.portalViewableBy === 'all'}
-                                onChange={() => setFormData({
-                                  ...formData,
-                                  kbHomeConfiguration: { ...formData.kbHomeConfiguration, portalViewableBy: 'all' }
-                                })}
-                                style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                              />
-                              <span style={{ fontSize: '14px', color: '#1f2937' }}>All Users</span>
-                            </label>
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                              <input
-                                type="radio"
-                                checked={formData.kbHomeConfiguration.portalViewableBy === 'loggedin'}
-                                onChange={() => setFormData({
-                                  ...formData,
-                                  kbHomeConfiguration: { ...formData.kbHomeConfiguration, portalViewableBy: 'loggedin' }
-                                })}
-                                style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                              />
-                              <span style={{ fontSize: '14px', color: '#1f2937' }}>Logged-in Users</span>
-                            </label>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Article Configuration - Expandable */}
-                  <div style={{
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '8px',
-                    overflow: 'hidden'
-                  }}>
-                    <button
-                      type="button"
-                      onClick={() => setArticleConfigExpanded(!articleConfigExpanded)}
-                      style={{
-                        width: '100%',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        padding: '16px',
-                        backgroundColor: '#ffffff',
-                        border: 'none',
-                        cursor: 'pointer',
-                        fontSize: '15px',
-                        fontWeight: '600',
-                        color: '#1f2937'
-                      }}
-                    >
-                      Article Configuration
-                      <span style={{ fontSize: '18px', transform: articleConfigExpanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: '0.3s' }}>▼</span>
-                    </button>
-                    
-                    {articleConfigExpanded && (
-                      <div style={{ padding: '20px', backgroundColor: '#f9fafb', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                        {[
-                          { key: 'showAuthorName', label: "Show author's name" },
-                          { key: 'showPublishedDate', label: 'Show published date' },
-                          { key: 'showLastUpdatedDate', label: 'Show last updated date' },
-                          { key: 'enableTableOfContents', label: 'Enable table of contents' },
-                          { key: 'excludeAgentViewCount', label: 'Exclude Agent View Count on Article' },
-                          { key: 'showArticleTags', label: 'Show article tags' },
-                          { key: 'enableStatusIndicator', label: 'Enable Status Indicator' },
-                          { key: 'showEstimatedReadTime', label: 'Show estimated read time' },
-                          { key: 'showComments', label: 'Show comments' },
-                          { key: 'showPreviousNextNavigation', label: 'Show previous / next navigation' }
-                        ].map(item => (
-                          <label key={item.key} style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
-                            <input
-                              type="checkbox"
-                              checked={formData.articleConfiguration[item.key as keyof typeof formData.articleConfiguration] as boolean}
-                              onChange={(e) => setFormData({
-                                ...formData,
-                                articleConfiguration: { ...formData.articleConfiguration, [item.key]: e.target.checked }
-                              })}
-                              style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                            />
-                            <span style={{ fontSize: '14px', color: '#374151' }}>{item.label}</span>
-                          </label>
-                        ))}
-
-                        {/* Show Related Articles with count */}
-                        <div>
-                          <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
-                            <input
-                              type="checkbox"
-                              checked={formData.articleConfiguration.showRelatedArticles}
-                              onChange={(e) => setFormData({
-                                ...formData,
-                                articleConfiguration: { ...formData.articleConfiguration, showRelatedArticles: e.target.checked }
-                              })}
-                              style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                            />
-                            <span style={{ fontSize: '14px', color: '#374151' }}>Show related articles</span>
-                          </label>
-                          {formData.articleConfiguration.showRelatedArticles && (
-                            <div style={{ marginTop: '8px', marginLeft: '30px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                              <label style={{ fontSize: '14px', color: '#374151' }}>Number of articles to show</label>
-                              <input
-                                type="number"
-                                value={formData.articleConfiguration.relatedArticlesCount}
-                                onChange={(e) => setFormData({
-                                  ...formData,
-                                  articleConfiguration: { ...formData.articleConfiguration, relatedArticlesCount: parseInt(e.target.value) || 5 }
-                                })}
-                                min="1"
-                                max="20"
-                                style={{
-                                  width: '80px',
-                                  padding: '6px 12px',
-                                  border: '1px solid #d1d5db',
-                                  borderRadius: '6px',
-                                  fontSize: '14px'
-                                }}
-                              />
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Show Recent Articles with count */}
-                        <div>
-                          <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
-                            <input
-                              type="checkbox"
-                              checked={formData.articleConfiguration.showRecentArticles}
-                              onChange={(e) => setFormData({
-                                ...formData,
-                                articleConfiguration: { ...formData.articleConfiguration, showRecentArticles: e.target.checked }
-                              })}
-                              style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                            />
-                            <span style={{ fontSize: '14px', color: '#374151' }}>Show recent articles</span>
-                          </label>
-                          {formData.articleConfiguration.showRecentArticles && (
-                            <div style={{ marginTop: '8px', marginLeft: '30px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                              <label style={{ fontSize: '14px', color: '#374151' }}>Number of articles to show</label>
-                              <input
-                                type="number"
-                                value={formData.articleConfiguration.recentArticlesCount}
-                                onChange={(e) => setFormData({
-                                  ...formData,
-                                  articleConfiguration: { ...formData.articleConfiguration, recentArticlesCount: parseInt(e.target.value) || 5 }
-                                })}
-                                min="1"
-                                max="20"
-                                style={{
-                                  width: '80px',
-                                  padding: '6px 12px',
-                                  border: '1px solid #d1d5db',
-                                  borderRadius: '6px',
-                                  fontSize: '14px'
-                                }}
-                              />
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Show Same Category Articles */}
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
-                          <input
-                            type="checkbox"
-                            checked={formData.articleConfiguration.showSameCategoryArticles}
-                            onChange={(e) => setFormData({
-                              ...formData,
-                              articleConfiguration: { ...formData.articleConfiguration, showSameCategoryArticles: e.target.checked }
-                            })}
-                            style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                          />
-                          <span style={{ fontSize: '14px', color: '#374151' }}>Show articles in the same category or section</span>
-                        </label>
-
-                        {/* Show Share Option with platforms */}
-                        <div>
-                          <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
-                            <input
-                              type="checkbox"
-                              checked={formData.articleConfiguration.showShareOption}
-                              onChange={(e) => setFormData({
-                                ...formData,
-                                articleConfiguration: { ...formData.articleConfiguration, showShareOption: e.target.checked }
-                              })}
-                              style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                            />
-                            <span style={{ fontSize: '14px', color: '#374151' }}>Show share option</span>
-                          </label>
-                          {formData.articleConfiguration.showShareOption && (
-                            <div style={{ marginTop: '8px', marginLeft: '30px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                              {[
-                                { key: 'shareOnFacebook', label: 'Facebook' },
-                                { key: 'shareOnTwitter', label: 'Twitter' },
-                                { key: 'shareOnLinkedIn', label: 'LinkedIn' },
-                                { key: 'shareViaEmail', label: 'Email' }
-                              ].map(item => (
-                                <label key={item.key} style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
-                                  <input
-                                    type="checkbox"
-                                    checked={formData.articleConfiguration[item.key as keyof typeof formData.articleConfiguration] as boolean}
-                                    onChange={(e) => setFormData({
-                                      ...formData,
-                                      articleConfiguration: { ...formData.articleConfiguration, [item.key]: e.target.checked }
-                                    })}
-                                    style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                                  />
-                                  <span style={{ fontSize: '14px', color: '#374151' }}>{item.label}</span>
-                                </label>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* AI Assistance & Satisfaction Feedback Toggles */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '16px',
-                      backgroundColor: '#ffffff',
-                      borderRadius: '6px',
-                      border: '1px solid #e5e7eb'
-                    }}>
-                      <div>
-                        <label style={{ fontSize: '14px', fontWeight: '500', color: '#1f2937', display: 'block', marginBottom: '4px' }}>
-                          Enable AI assistance in KB search
-                        </label>
-                      </div>
-                      <label style={{ position: 'relative', display: 'inline-block', width: '48px', height: '24px' }}>
-                        <input
-                          type="checkbox"
-                          checked={formData.enableAIAssistance}
-                          onChange={(e) => setFormData({ ...formData, enableAIAssistance: e.target.checked })}
-                          style={{ opacity: 0, width: 0, height: 0 }}
-                        />
-                        <span style={{
-                          position: 'absolute',
-                          cursor: 'pointer',
-                          top: 0,
-                          left: 0,
-                          right: 0,
-                          bottom: 0,
-                          backgroundColor: formData.enableAIAssistance ? 'var(--primary-main)' : 'var(--border-default)',
-                          transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                          borderRadius: '24px'
-                        }}>
-                          <span style={{
-                            position: 'absolute',
-                            height: '18px',
-                            width: '18px',
-                            left: formData.enableAIAssistance ? '26px' : '3px',
-                            bottom: '3px',
-                            backgroundColor: 'white',
-                            transition: '0.3s',
-                            borderRadius: '50%'
-                          }}></span>
-                        </span>
-                      </label>
-                    </div>
-
-                    <div style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      padding: '16px',
-                      backgroundColor: '#ffffff',
-                      borderRadius: '6px',
-                      border: '1px solid #e5e7eb',
-                      gap: '16px'
-                    }}>
-                      <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between'
-                      }}>
-                        <label style={{ fontSize: '14px', fontWeight: '500', color: '#1f2937' }}>
-                          Enable Satisfaction Feedback
-                        </label>
-                        <label style={{ position: 'relative', display: 'inline-block', width: '48px', height: '24px' }}>
-                          <input
-                            type="checkbox"
-                            checked={formData.enableSatisfactionFeedback}
-                            onChange={(e) => setFormData({ ...formData, enableSatisfactionFeedback: e.target.checked })}
-                            style={{ opacity: 0, width: 0, height: 0 }}
-                          />
-                          <span style={{
-                            position: 'absolute',
-                            cursor: 'pointer',
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            bottom: 0,
-                            backgroundColor: formData.enableSatisfactionFeedback ? 'var(--primary-main)' : 'var(--border-default)',
-                            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                            borderRadius: '24px'
-                          }}>
-                            <span style={{
-                              position: 'absolute',
-                              height: '18px',
-                              width: '18px',
-                              left: formData.enableSatisfactionFeedback ? '26px' : '3px',
-                              bottom: '3px',
-                              backgroundColor: 'white',
-                              transition: '0.3s',
-                              borderRadius: '50%'
-                            }}></span>
-                          </span>
-                        </label>
-                      </div>
-
-                      {formData.enableSatisfactionFeedback && (
-                        <div style={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: '20px',
-                          paddingTop: '16px',
-                          borderTop: '1px solid #e5e7eb'
-                        }}>
-                          {/* Info Message */}
-                          <div>
-                            <label style={{
-                              display: 'block',
-                              fontSize: '14px',
-                              fontWeight: '600',
-                              color: '#1f2937',
-                              marginBottom: '6px'
-                            }}>
-                              Info Message <span style={{ color: '#ef4444' }}>*</span>
-                            </label>
-                            <textarea
-                              value={formData.satisfactionFeedback.infoMessage}
-                              onChange={(e) => setFormData({
-                                ...formData,
-                                satisfactionFeedback: { ...formData.satisfactionFeedback, infoMessage: e.target.value }
-                              })}
-                              rows={2}
-                              style={{
-                                width: '100%',
-                                padding: '10px 12px',
-                                border: '1px solid #d1d5db',
-                                borderRadius: '6px',
-                                fontSize: '14px',
-                                boxSizing: 'border-box',
-                                resize: 'vertical'
-                              }}
-                            />
-                          </div>
-
-                          {/* Vote Type */}
-                          <div>
-                            <label style={{
-                              display: 'block',
-                              fontSize: '14px',
-                              fontWeight: '600',
-                              color: '#1f2937',
-                              marginBottom: '12px'
-                            }}>
-                              Vote Type <span style={{ color: '#ef4444' }}>*</span>
-                            </label>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                                <input
-                                  type="radio"
-                                  checked={formData.satisfactionFeedback.voteType === 'like'}
-                                  onChange={() => setFormData({
-                                    ...formData,
-                                    satisfactionFeedback: { ...formData.satisfactionFeedback, voteType: 'like' }
-                                  })}
-                                  style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                                />
-                                <span style={{ fontSize: '14px', color: '#374151' }}>👍 Like 👎 Dislike</span>
-                              </label>
-                              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                                <input
-                                  type="radio"
-                                  checked={formData.satisfactionFeedback.voteType === 'upvote'}
-                                  onChange={() => setFormData({
-                                    ...formData,
-                                    satisfactionFeedback: { ...formData.satisfactionFeedback, voteType: 'upvote' }
-                                  })}
-                                  style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                                />
-                                <span style={{ fontSize: '14px', color: '#374151' }}>⬆ Upvote ⬇ Downvote</span>
-                              </label>
-                              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                                <input
-                                  type="radio"
-                                  checked={formData.satisfactionFeedback.voteType === 'yesno'}
-                                  onChange={() => setFormData({
-                                    ...formData,
-                                    satisfactionFeedback: { ...formData.satisfactionFeedback, voteType: 'yesno' }
-                                  })}
-                                  style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                                />
-                                <span style={{ fontSize: '14px', color: '#374151' }}>✓ Yes ✗ No</span>
-                              </label>
-                            </div>
-                          </div>
-
-                          {/* Vote Label */}
-                          <div>
-                            <label style={{
-                              display: 'block',
-                              fontSize: '14px',
-                              fontWeight: '600',
-                              color: '#1f2937',
-                              marginBottom: '8px'
-                            }}>
-                              Vote Label <span style={{ color: '#ef4444' }}>*</span>
-                            </label>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                              <input
-                                type="text"
-                                value={formData.satisfactionFeedback.voteLabels.positive}
-                                onChange={(e) => setFormData({
-                                  ...formData,
-                                  satisfactionFeedback: {
-                                    ...formData.satisfactionFeedback,
-                                    voteLabels: { ...formData.satisfactionFeedback.voteLabels, positive: e.target.value }
-                                  }
-                                })}
-                                placeholder="👍 Like"
-                                style={{
-                                  padding: '10px 12px',
-                                  border: '1px solid #d1d5db',
-                                  borderRadius: '6px',
-                                  fontSize: '14px'
-                                }}
-                              />
-                              <input
-                                type="text"
-                                value={formData.satisfactionFeedback.voteLabels.negative}
-                                onChange={(e) => setFormData({
-                                  ...formData,
-                                  satisfactionFeedback: {
-                                    ...formData.satisfactionFeedback,
-                                    voteLabels: { ...formData.satisfactionFeedback.voteLabels, negative: e.target.value }
-                                  }
-                                })}
-                                placeholder="👎 Dislike"
-                                style={{
-                                  padding: '10px 12px',
-                                  border: '1px solid #d1d5db',
-                                  borderRadius: '6px',
-                                  fontSize: '14px'
-                                }}
-                              />
-                            </div>
-                          </div>
-
-                          {/* Feedback Message */}
-                          <div>
-                            <label style={{
-                              display: 'block',
-                              fontSize: '14px',
-                              fontWeight: '600',
-                              color: '#1f2937',
-                              marginBottom: '8px'
-                            }}>
-                              Feedback Message
-                            </label>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                              {formData.satisfactionFeedback.feedbackMessages.map((msg: string, index: number) => (
-                                <div key={index} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                  <input
-                                    type="text"
-                                    value={msg}
-                                    onChange={(e) => {
-                                      const newMessages = [...formData.satisfactionFeedback.feedbackMessages];
-                                      newMessages[index] = e.target.value;
-                                      setFormData({
-                                        ...formData,
-                                        satisfactionFeedback: { ...formData.satisfactionFeedback, feedbackMessages: newMessages }
-                                      });
-                                    }}
-                                    style={{
-                                      flex: 1,
-                                      padding: '10px 12px',
-                                      border: '1px solid #d1d5db',
-                                      borderRadius: '6px',
-                                      fontSize: '14px'
-                                    }}
-                                  />
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      const newMessages = formData.satisfactionFeedback.feedbackMessages.filter((_: any, i: number) => i !== index);
-                                      setFormData({
-                                        ...formData,
-                                        satisfactionFeedback: { ...formData.satisfactionFeedback, feedbackMessages: newMessages }
-                                      });
-                                    }}
-                                    style={{
-                                      padding: '8px 12px',
-                                      backgroundColor: 'white',
-                                      border: '1px solid #fca5a5',
-                                      borderRadius: '6px',
-                                      color: '#ef4444',
-                                      cursor: 'pointer',
-                                      fontSize: '16px'
-                                    }}
-                                  >
-                                    🗑
-                                  </button>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-
-                          {/* Success Message */}
-                          <div>
-                            <label style={{
-                              display: 'block',
-                              fontSize: '14px',
-                              fontWeight: '600',
-                              color: '#1f2937',
-                              marginBottom: '6px'
-                            }}>
-                              Success Message <span style={{ color: '#ef4444' }}>*</span>
-                            </label>
-                            <textarea
-                              value={formData.satisfactionFeedback.successMessage}
-                              onChange={(e) => setFormData({
-                                ...formData,
-                                satisfactionFeedback: { ...formData.satisfactionFeedback, successMessage: e.target.value }
-                              })}
-                              rows={2}
-                              style={{
-                                width: '100%',
-                                padding: '10px 12px',
-                                border: '1px solid #d1d5db',
-                                borderRadius: '6px',
-                                fontSize: '14px',
-                                boxSizing: 'border-box',
-                                resize: 'vertical'
-                              }}
-                            />
-                          </div>
-
-                          {/* Consent Message */}
-                          <div>
-                            <label style={{
-                              display: 'block',
-                              fontSize: '14px',
-                              fontWeight: '600',
-                              color: '#1f2937',
-                              marginBottom: '6px'
-                            }}>
-                              Consent Message
-                            </label>
-                            <textarea
-                              value={formData.satisfactionFeedback.consentMessage}
-                              onChange={(e) => setFormData({
-                                ...formData,
-                                satisfactionFeedback: { ...formData.satisfactionFeedback, consentMessage: e.target.value }
-                              })}
-                              rows={2}
-                              style={{
-                                width: '100%',
-                                padding: '10px 12px',
-                                border: '1px solid #d1d5db',
-                                borderRadius: '6px',
-                                fontSize: '14px',
-                                boxSizing: 'border-box',
-                                resize: 'vertical'
-                              }}
-                            />
-                            <p style={{
-                              fontSize: '12px',
-                              color: '#6b7280',
-                              marginTop: '6px',
-                              lineHeight: '1.5'
-                            }}>
-                              This message will be shown in the feedback. You can also add a link to the text. Example: &lt;a href = "https://yourcompany.com/privacy"&gt;Privacy Policy&lt;/a&gt;. When an anonymous user submits feedback, the consent message will be displayed.
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* SEO - Expandable */}
-                  <div style={{
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '8px',
-                    overflow: 'hidden'
-                  }}>
-                    <button
-                      type="button"
-                      onClick={() => setSeoExpanded(!seoExpanded)}
-                      style={{
-                        width: '100%',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        padding: '16px',
-                        backgroundColor: '#ffffff',
-                        border: 'none',
-                        cursor: 'pointer',
-                        fontSize: '15px',
-                        fontWeight: '600',
-                        color: '#1f2937'
-                      }}
-                    >
-                      SEO
-                      <span style={{ fontSize: '18px', transform: seoExpanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: '0.3s' }}>▼</span>
-                    </button>
-                    
-                    {seoExpanded && (
-                      <div style={{ padding: '20px', backgroundColor: '#f9fafb', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                        <div style={{
-                          backgroundColor: '#dbeafe',
-                          border: '1px solid #93c5fd',
-                          borderRadius: '6px',
-                          padding: '12px',
-                          fontSize: '13px',
-                          color: '#1e40af'
-                        }}>
-                          ℹ️ Sitemap and robots.txt generation are only available for custom domain mapped portals.
-                        </div>
-
-                        {/* Sitemap */}
-                        <div>
-                          <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#1f2937', marginBottom: '12px' }}>Sitemap</h4>
-                          <div style={{ marginBottom: '12px' }}>
-                            <label style={{ display: 'block', fontSize: '14px', color: '#374151', marginBottom: '6px' }}>
-                              Change Frequency
-                            </label>
-                            <select
-                              value={formData.seoSettings.changeFrequency}
-                              onChange={(e) => setFormData({
-                                ...formData,
-                                seoSettings: { ...formData.seoSettings, changeFrequency: e.target.value as any }
-                              })}
-                              className="text-field"
-                              style={{
-                                width: '200px'
-                              }}
-                            >
-                              <option value="always">Always</option>
-                              <option value="hourly">Hourly</option>
-                              <option value="daily">Daily</option>
-                              <option value="weekly">Weekly</option>
-                              <option value="monthly">Monthly</option>
-                              <option value="yearly">Yearly</option>
-                              <option value="never">Never</option>
-                            </select>
-                          </div>
-                          <div>
-                            <label style={{ display: 'block', fontSize: '14px', color: '#374151', marginBottom: '6px' }}>
-                              Sitemap Url
-                            </label>
-                            <input
-                              type="text"
-                              value={formData.seoSettings.sitemapUrl}
-                              readOnly
-                              placeholder="https://htf.bolddesk.com/sitemap.xml"
-                              style={{
-                                width: '100%',
-                                padding: '10px 12px',
-                                border: '1px solid #d1d5db',
-                                borderRadius: '6px',
-                                fontSize: '14px',
-                                backgroundColor: '#f3f4f6',
-                                boxSizing: 'border-box'
-                              }}
-                            />
-                          </div>
-                        </div>
-
-                        {/* Robots.txt */}
-                        <div>
-                          <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#1f2937', marginBottom: '8px' }}>Robots.txt</h4>
-                          <p style={{ fontSize: '13px', color: '#6b7280', marginBottom: '12px' }}>
-                            A robots.txt file tells search engine crawlers which pages or files they can or can't request from your site.
-                          </p>
-                          <textarea
-                            value={formData.seoSettings.robotsTxt}
-                            onChange={(e) => setFormData({
-                              ...formData,
-                              seoSettings: { ...formData.seoSettings, robotsTxt: e.target.value }
-                            })}
-                            placeholder="Robots.txt"
-                            rows={3}
-                            style={{
-                              width: '100%',
-                              padding: '10px 12px',
-                              border: '1px solid #d1d5db',
-                              borderRadius: '6px',
-                              fontSize: '14px',
-                              boxSizing: 'border-box',
-                              resize: 'vertical',
-                              marginBottom: '12px'
-                            }}
-                          />
-                          <div>
-                            <label style={{ display: 'block', fontSize: '14px', color: '#374151', marginBottom: '6px' }}>
-                              Robots.txt URL
-                            </label>
-                            <input
-                              type="text"
-                              value={formData.seoSettings.robotsTxtUrl}
-                              readOnly
-                              placeholder="https://htf.bolddesk.com/robots.txt"
-                              style={{
-                                width: '100%',
-                                padding: '10px 12px',
-                                border: '1px solid #d1d5db',
-                                borderRadius: '6px',
-                                fontSize: '14px',
-                                backgroundColor: '#f3f4f6',
-                                boxSizing: 'border-box'
-                              }}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </>
-              )}
-            </div>
-          )}
-
           {activeTab === 'customization' && (
-            <div style={{ padding: '24px' }}>
+            <div style={{ padding: '24px', maxWidth: '900px', minHeight: '500px' }}>
               {/* Login Page */}
               <div style={{ marginBottom: '32px' }}>
                 <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#111827', marginBottom: '16px' }}>
@@ -5371,6 +4414,216 @@ const AddProjectForm = ({ project, onClose, onSave }: AddProjectFormProps) => {
               >
                 Add
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Banner Preview Modal */}
+      {showBannerPreview && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 10000,
+          padding: '20px'
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '12px',
+            maxWidth: '900px',
+            width: '100%',
+            maxHeight: '90vh',
+            overflow: 'auto',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+          }}>
+            {/* Modal Header */}
+            <div style={{
+              padding: '20px 24px',
+              borderBottom: '1px solid #e5e7eb',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}>
+              <h2 style={{ margin: 0, fontSize: '18px', fontWeight: '600', color: '#111827' }}>
+                Login Screen Preview
+              </h2>
+              <button
+                onClick={() => setShowBannerPreview(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: '4px',
+                  color: '#6b7280',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" style={{ width: '24px', height: '24px' }}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Preview Content */}
+            <div style={{ padding: '24px' }}>
+              <p style={{ fontSize: '13px', color: '#6b7280', marginBottom: '16px' }}>
+                This is how the announcement banner will appear on the login screen for Admin, Agent, Counselor, and Center Manager logins.
+              </p>
+
+              {/* Mock Login Screen */}
+              <div style={{
+                border: '2px solid #e5e7eb',
+                borderRadius: '8px',
+                overflow: 'hidden',
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+              }}>
+                {/* Announcement Banner */}
+                {formData.announcementBannerMessage && (
+                  <div style={{
+                    backgroundColor: '#fef3c7',
+                    borderBottom: '1px solid #fbbf24',
+                    padding: '12px 16px',
+                    color: '#92400e'
+                  }}>
+                    {formData.announcementBannerType === 'rich' ? (
+                      <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(formData.announcementBannerMessage) }} style={{ fontSize: '14px', lineHeight: '1.5' }} />
+                    ) : (
+                      <p style={{ margin: 0, fontSize: '14px', lineHeight: '1.5' }}>
+                        {formData.announcementBannerMessage}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Mock Login Form */}
+                <div style={{
+                  display: 'flex',
+                  minHeight: '500px'
+                }}>
+                  {/* Left Side - Branding */}
+                  <div style={{
+                    flex: 1,
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'white',
+                    padding: '40px'
+                  }}>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{
+                        width: '80px',
+                        height: '80px',
+                        margin: '0 auto 16px',
+                        background: 'rgba(255, 255, 255, 0.2)',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" style={{ width: '40px', height: '40px' }}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                        </svg>
+                      </div>
+                      <h1 style={{ fontSize: '28px', fontWeight: '700', marginBottom: '12px' }}>
+                        {formData.portalName || 'SAC Helpdesk'}
+                      </h1>
+                      <p style={{ fontSize: '16px', opacity: 0.9 }}>
+                        Secure Portal Access
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Right Side - Login Form */}
+                  <div style={{
+                    flex: 1,
+                    backgroundColor: 'white',
+                    padding: '40px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    <div style={{ width: '100%', maxWidth: '380px' }}>
+                      <h2 style={{ fontSize: '24px', fontWeight: '600', color: '#111827', marginBottom: '8px' }}>
+                        Welcome Back
+                      </h2>
+                      <p style={{ color: '#6b7280', marginBottom: '24px', fontSize: '14px' }}>
+                        Sign in to your account
+                      </p>
+
+                      {/* Email Input */}
+                      <div style={{ marginBottom: '16px' }}>
+                        <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
+                          Email
+                        </label>
+                        <input
+                          type="email"
+                          placeholder="you@example.com"
+                          disabled
+                          style={{
+                            width: '100%',
+                            padding: '10px 12px',
+                            border: '1px solid #d1d5db',
+                            borderRadius: '6px',
+                            fontSize: '14px',
+                            backgroundColor: '#f9fafb',
+                            boxSizing: 'border-box'
+                          }}
+                        />
+                      </div>
+
+                      {/* Password Input */}
+                      <div style={{ marginBottom: '16px' }}>
+                        <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
+                          Password
+                        </label>
+                        <input
+                          type="password"
+                          placeholder="••••••••"
+                          disabled
+                          style={{
+                            width: '100%',
+                            padding: '10px 12px',
+                            border: '1px solid #d1d5db',
+                            borderRadius: '6px',
+                            fontSize: '14px',
+                            backgroundColor: '#f9fafb',
+                            boxSizing: 'border-box'
+                          }}
+                        />
+                      </div>
+
+                      {/* Sign In Button */}
+                      <button
+                        disabled
+                        style={{
+                          width: '100%',
+                          padding: '12px',
+                          backgroundColor: '#667eea',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '6px',
+                          fontSize: '14px',
+                          fontWeight: '600',
+                          cursor: 'not-allowed',
+                          opacity: 0.7
+                        }}
+                      >
+                        Sign In
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
