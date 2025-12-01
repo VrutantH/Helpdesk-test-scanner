@@ -11,7 +11,7 @@ module.exports = {
         NODE_ENV: 'production',
         PORT: 3003,
         FRONTEND_URL: 'https://helpdesk.hubblehox.ai',
-        MONGODB_URI: 'mongodb://localhost:27017/sac_helpdesk',
+        MONGODB_URI: 'mongodb://helpdesk-dev:hELpDEsK-DeV2025@34.14.157.13:27017/sac_helpdesk?authSource=admin',
         JWT_SECRET: 'your-super-secret-jwt-key-change-this-in-production',
         SESSION_SECRET: 'your-session-secret-key-change-this',
         MAX_FILE_SIZE: '10485760',

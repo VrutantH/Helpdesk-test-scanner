@@ -48,7 +48,7 @@ export const config = {
   
   // Database
   database: {
-    uri: process.env.MONGODB_URI || 'mongodb://localhost:27017/sac-helpdesk',
+    uri: process.env.MONGODB_URI || 'mongodb://localhost:27017/sac_helpdesk',
   },
   
   // CORS
