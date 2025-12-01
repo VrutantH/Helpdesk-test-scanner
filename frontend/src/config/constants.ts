@@ -3,9 +3,12 @@
  * Centralized configuration for API URLs and endpoints
  */
 
-// Get base URL from environment variable or use default
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3003';
-const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:3003';
+// Get base URL from environment variable or use production URL
+const isDevelopment = import.meta.env.DEV;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 
+  (isDevelopment ? 'http://localhost:3003' : 'https://helpdesk.hubblehox.ai');
+const WS_URL = import.meta.env.VITE_WS_URL || 
+  (isDevelopment ? 'ws://localhost:3003' : 'wss://helpdesk.hubblehox.ai');
 
 /**
  * API Configuration
