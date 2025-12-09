@@ -369,7 +369,11 @@ export const submitTicket = async (req: Request, res: Response) => {
           // Send welcome email if this is a new student
           if (isNewStudent) {
             const customUrlPath = project.branding?.customUrlPath || 'portal';
-            const loginUrl = `${process.env.FRONTEND_URL || 'http://localhost:3001'}/${customUrlPath}/student/login`;
+            const isProduction = process.env.NODE_ENV === 'production';
+            const frontendUrl = isProduction
+              ? process.env.PRODUCTION_FRONTEND_URL || 'https://helpdesk.hubblehox.ai'
+              : process.env.FRONTEND_URL || 'http://localhost:3001';
+            const loginUrl = `${frontendUrl}/${customUrlPath}/student/login`;
             
             await sendStudentWelcomeEmail(
               studentEmail,

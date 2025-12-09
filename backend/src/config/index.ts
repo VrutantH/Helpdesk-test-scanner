@@ -46,14 +46,29 @@ export const config = {
     refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '30d',
   },
   
-  // Database
+  // Database - Conditional based on environment
   database: {
-    uri: process.env.MONGODB_URI || 'mongodb://localhost:27017/sac_helpdesk',
+    localUri: process.env.MONGODB_LOCAL_URI || 'mongodb://localhost:27017/sac_helpdesk',
+    productionUri: process.env.MONGODB_PRODUCTION_URI || 'mongodb://helpdesk-dev:hELpDEsK-DeV2025@34.14.157.13:27017/sac_helpdesk?authSource=admin',
   },
   
-  // CORS
+  // CORS & URLs - All from .env
   cors: {
-    origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+    allowedOrigins: isProduction
+      ? (process.env.PRODUCTION_ALLOWED_ORIGINS || 'https://helpdesk.hubblehox.ai').split(',')
+      : (process.env.ALLOWED_ORIGINS || 'http://localhost:3001,http://localhost:3000').split(','),
+  },
+  
+  urls: {
+    frontend: isProduction
+      ? process.env.PRODUCTION_FRONTEND_URL || 'https://helpdesk.hubblehox.ai'
+      : process.env.FRONTEND_URL || 'http://localhost:3001',
+    backend: isProduction
+      ? process.env.PRODUCTION_BACKEND_URL || 'https://api.helpdesk.hubblehox.ai'
+      : process.env.BACKEND_URL || 'http://localhost:3003',
+    api: isProduction
+      ? process.env.PRODUCTION_API_URL || 'https://api.helpdesk.hubblehox.ai/api'
+      : process.env.API_URL || 'http://localhost:3003/api',
   },
   
   // File Upload

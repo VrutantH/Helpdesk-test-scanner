@@ -54,15 +54,37 @@ console.log('🔑 JWT_SECRET value:', process.env.JWT_SECRET || 'fallback-secret
 const app = express();
 const httpServer = createServer(app);
 
-// Allowed origins for Socket.IO
-const socketAllowedOrigins = [
-  'http://localhost:3001',
-  'http://localhost:3000',
-  'https://helpdesk.hubblehox.ai',
-  'https://api.helpdesk.hubblehox.ai',
-  process.env.FRONTEND_URL
-].filter((origin): origin is string => typeof origin === 'string');
+const PORT = process.env.PORT || 3003;
+const NODE_ENV = process.env.NODE_ENV || 'development';
 
+// Get allowed origins from .env - parse comma-separated list
+const getAllowedOrigins = (): string[] => {
+  const allowedOriginsEnv = NODE_ENV === 'production' 
+    ? process.env.PRODUCTION_ALLOWED_ORIGINS 
+    : process.env.ALLOWED_ORIGINS;
+  
+  if (!allowedOriginsEnv) {
+    console.warn('⚠️  No ALLOWED_ORIGINS or PRODUCTION_ALLOWED_ORIGINS in .env');
+    return NODE_ENV === 'production' 
+      ? ['https://helpdesk.hubblehox.ai']
+      : ['http://localhost:3001', 'http://localhost:3000', 'http://localhost:3003'];
+  }
+  
+  return allowedOriginsEnv
+    .split(',')
+    .map(origin => origin.trim())
+    .filter(Boolean);
+};
+
+const allowedOrigins = getAllowedOrigins();
+
+// Allowed origins for Socket.IO
+const socketAllowedOrigins = allowedOrigins;
+
+// Connect to MongoDB
+connectDB();
+
+// Initialize Socket.IO with allowed origins from .env
 const io = new Server(httpServer, {
   cors: {
     origin: socketAllowedOrigins,
@@ -71,25 +93,13 @@ const io = new Server(httpServer, {
   },
 });
 
-const PORT = process.env.PORT || 3003;
-
-// Connect to MongoDB
-connectDB();
-
 // Security middleware
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
 
 // CORS - Must be before other middleware
-// Support multiple origins (localhost + production domains)
-const allowedOrigins = [
-  'http://localhost:3001',
-  'http://localhost:3000',
-  'https://helpdesk.hubblehox.ai',
-  'https://api.helpdesk.hubblehox.ai',
-  process.env.FRONTEND_URL
-].filter(Boolean); // Remove undefined values
+// Support multiple origins from .env configuration
 
 app.use(cors({
   origin: (origin, callback) => {

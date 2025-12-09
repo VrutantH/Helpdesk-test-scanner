@@ -3,12 +3,63 @@
  * Centralized configuration for API URLs and endpoints
  */
 
-// Get base URL from environment variable or use production URL
-const isDevelopment = import.meta.env.DEV;
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 
-  (isDevelopment ? 'http://localhost:3003' : 'https://helpdesk.hubblehox.ai');
-const WS_URL = import.meta.env.VITE_WS_URL || 
-  (isDevelopment ? 'ws://localhost:3003' : 'wss://helpdesk.hubblehox.ai');
+/**
+ * Auto-detect environment based on current hostname
+ * If on localhost -> use local API
+ * If on production domain -> use production API
+ */
+const getApiUrl = (): string => {
+  // Check if we have explicit env var
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL;
+  }
+
+  // Auto-detect based on current hostname
+  const hostname = window.location.hostname;
+  
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    // Local development
+    return 'http://localhost:3003';
+  } else if (hostname.includes('helpdesk.hubblehox.ai')) {
+    // Production domain
+    return 'https://helpdesk.hubblehox.ai';
+  } else {
+    // Default fallback to production
+    return 'https://helpdesk.hubblehox.ai';
+  }
+};
+
+/**
+ * Auto-detect WebSocket URL based on current hostname
+ */
+const getWsUrl = (): string => {
+  // Check if we have explicit env var
+  if (import.meta.env.VITE_WS_URL) {
+    return import.meta.env.VITE_WS_URL;
+  }
+
+  // Auto-detect based on current hostname
+  const hostname = window.location.hostname;
+  
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    // Local development
+    return 'ws://localhost:3003';
+  } else if (hostname.includes('helpdesk.hubblehox.ai')) {
+    // Production domain
+    return 'wss://helpdesk.hubblehox.ai';
+  } else {
+    // Default fallback to production
+    return 'wss://helpdesk.hubblehox.ai';
+  }
+};
+
+const API_BASE_URL = getApiUrl();
+const WS_URL = getWsUrl();
+
+// Log which URL is being used
+console.log(`🌐 Detected hostname: ${window.location.hostname}`);
+console.log(`🔗 Using API URL: ${API_BASE_URL}`);
+console.log(`📡 Using WebSocket URL: ${WS_URL}`);
 
 /**
  * API Configuration
