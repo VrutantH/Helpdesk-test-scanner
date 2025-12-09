@@ -15,6 +15,9 @@ pipelines:
                 git pull &&
                 npm ci &&
                 chmod +x node_modules/.bin/* &&
+                echo "Setting production environment variables..." &&
+                cp .env.production.build .env &&
+                cat .env &&
                 npm run build &&
                 sudo rm -rf /var/www/helpdesk/frontend/* &&
                 sudo cp -r dist/* /var/www/helpdesk/frontend/ &&
