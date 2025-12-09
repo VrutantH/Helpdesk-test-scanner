@@ -5,67 +5,57 @@
 
 /**
  * Auto-detect environment based on current hostname
- * Reads from .env: VITE_API_BASE_URL_LOCAL or VITE_API_BASE_URL_PRODUCTION
+ * Reads from .env: VITE_API_BASE_URL
  * If on localhost -> use local API
  * If on production domain -> use production API
  */
 const getApiUrl = (): string => {
   const hostname = window.location.hostname;
   
-  // Check for explicit env vars first
+  // Check for explicit env var first
+  const envUrl = import.meta.env.VITE_API_BASE_URL;
+  if (envUrl) {
+    console.log('📍 Using API URL from environment:', envUrl);
+    return envUrl;
+  }
+  
+  // Fallback to auto-detection based on hostname
   if (hostname === 'localhost' || hostname === '127.0.0.1') {
-    // Local development - use LOCAL env var
-    const localUrl = import.meta.env.VITE_API_BASE_URL_LOCAL;
-    if (localUrl) {
-      console.log('📍 Detected LOCAL environment from hostname: localhost');
-      return localUrl;
-    }
-    return 'http://localhost:3003'; // Fallback
+    console.log('📍 Detected LOCAL environment from hostname: localhost');
+    return 'http://localhost:3003';
   } else if (hostname.includes('helpdesk.hubblehox.ai')) {
-    // Production domain - use PRODUCTION env var
-    const prodUrl = import.meta.env.VITE_API_BASE_URL_PRODUCTION;
-    if (prodUrl) {
-      console.log('📍 Detected PRODUCTION environment from hostname: helpdesk.hubblehox.ai');
-      return prodUrl;
-    }
-    return 'https://helpdesk.hubblehox.ai'; // Fallback
+    console.log('📍 Detected PRODUCTION environment from hostname: helpdesk.hubblehox.ai');
+    return 'https://helpdesk.hubblehox.ai';
   } else {
-    // Unknown hostname - default to production
     console.log('📍 Unknown hostname, defaulting to PRODUCTION');
-    const prodUrl = import.meta.env.VITE_API_BASE_URL_PRODUCTION;
-    return prodUrl || 'https://helpdesk.hubblehox.ai';
+    return 'https://helpdesk.hubblehox.ai';
   }
 };
 
 /**
  * Auto-detect WebSocket URL based on current hostname
- * Reads from .env: VITE_WS_URL_LOCAL or VITE_WS_URL_PRODUCTION
+ * Reads from .env: VITE_WS_URL
  */
 const getWsUrl = (): string => {
   const hostname = window.location.hostname;
   
-  // Check for explicit env vars first
+  // Check for explicit env var first
+  const envWsUrl = import.meta.env.VITE_WS_URL;
+  if (envWsUrl) {
+    console.log('📍 Using WebSocket URL from environment:', envWsUrl);
+    return envWsUrl;
+  }
+  
+  // Fallback to auto-detection based on hostname
   if (hostname === 'localhost' || hostname === '127.0.0.1') {
-    // Local development - use LOCAL env var
-    const localUrl = import.meta.env.VITE_WS_URL_LOCAL;
-    if (localUrl) {
-      console.log('📍 Detected LOCAL WebSocket from hostname: localhost');
-      return localUrl;
-    }
-    return 'ws://localhost:3003'; // Fallback
+    console.log('📍 Detected LOCAL WebSocket from hostname: localhost');
+    return 'ws://localhost:3003';
   } else if (hostname.includes('helpdesk.hubblehox.ai')) {
-    // Production domain - use PRODUCTION env var
-    const prodUrl = import.meta.env.VITE_WS_URL_PRODUCTION;
-    if (prodUrl) {
-      console.log('📍 Detected PRODUCTION WebSocket from hostname: helpdesk.hubblehox.ai');
-      return prodUrl;
-    }
-    return 'wss://helpdesk.hubblehox.ai'; // Fallback
+    console.log('📍 Detected PRODUCTION WebSocket from hostname: helpdesk.hubblehox.ai');
+    return 'wss://helpdesk.hubblehox.ai';
   } else {
-    // Unknown hostname - default to production
     console.log('📍 Unknown hostname, defaulting to PRODUCTION WebSocket');
-    const prodUrl = import.meta.env.VITE_WS_URL_PRODUCTION;
-    return prodUrl || 'wss://helpdesk.hubblehox.ai';
+    return 'wss://helpdesk.hubblehox.ai';
   }
 };
 
