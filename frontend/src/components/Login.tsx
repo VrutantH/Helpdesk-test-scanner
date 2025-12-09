@@ -58,11 +58,22 @@ const Login: React.FC = () => {
   const [projectFavicon, setProjectFavicon] = useState<string>('');
 
   // Fetch project configuration (announcement banner, background image, favicon)
+  // Only for project-specific login pages, not for super admin login
   useEffect(() => {
     const fetchProjectConfiguration = async () => {
       try {
-        // Get the current domain/project URL
+        // Get the current hostname
         const hostname = window.location.hostname;
+        
+        // Skip project configuration fetch for:
+        // 1. Super admin login (main domain without project path)
+        // 2. localhost (development environment)
+        // Only fetch for production domains that should have project-specific branding
+        if (hostname === 'localhost' || hostname === 'helpdesk.hubblehox.ai') {
+          console.log('Skipping project configuration fetch for super admin/main domain');
+          return;
+        }
+        
         const response = await fetch(`${API_CONFIG.BASE_URL}/api/projects/by-domain/${hostname}`);
         if (response.ok) {
           const project = await response.json();
