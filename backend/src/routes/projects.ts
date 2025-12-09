@@ -9,6 +9,7 @@ import {
   updateProjectModules,
   getProjectStats,
   getProjectBranding,
+  getProjectByDomain,
   getProjectTicketSettings,
   updateProjectTicketSettings,
   getOfflineSettings,
@@ -27,6 +28,9 @@ router.get('/stats', authMiddleware, checkPermission('PROJECT_VIEW_ALL'), getPro
 
 // Get project branding by custom URL path (must be before /:id to avoid conflicts)
 router.get('/branding/:urlPath', getProjectBranding);
+
+// Get project configuration by domain (for login page - favicon, background, announcement)
+router.get('/by-domain/:domain', getProjectByDomain);
 
 // Get project ticket submission settings (public endpoint for student portal)
 router.get('/:projectId/ticket-settings', getProjectTicketSettings);

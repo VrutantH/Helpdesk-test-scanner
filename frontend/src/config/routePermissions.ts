@@ -116,14 +116,9 @@ export const superAdminRoutes: RoutePermission[] = [
     description: 'Access logs - requires AUDIT_VIEW_ACCESS'
   },
   {
-    path: '/audit/blocked-email-recipients',
-    permission: 'AUDIT_VIEW_BLOCKED_EMAILS',
-    description: 'Blocked email recipients - requires AUDIT_VIEW_BLOCKED_EMAILS'
-  },
-  {
-    path: '/audit/email-failure-logs',
-    permission: 'AUDIT_VIEW_EMAIL_FAILURES',
-    description: 'Email failure logs - requires AUDIT_VIEW_EMAIL_FAILURES'
+    path: '/audit/email-logs',
+    permission: 'EMAIL_CONFIG_VIEW',
+    description: 'Email logs - requires EMAIL_CONFIG_VIEW'
   },
 ];
 

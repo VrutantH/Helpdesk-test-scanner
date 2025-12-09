@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../components/DashboardLayout';
 import axios from 'axios';
-import { usePermissionContext } from '../context/PermissionContext';
 import { TicketExportModal } from '../components/tickets/TicketExportModal';
 import { TicketMergeModal } from '../components/tickets/TicketMergeModal';
 import { ArrowDownTrayIcon, ArrowsPointingInIcon } from '@heroicons/react/24/outline';
@@ -15,12 +14,18 @@ interface Ticket {
   title: string;
   status: string;
   priority: string;
-  category?: string;
+  category?: {
+    name: string;
+  };
   assignedTo?: {
     firstName: string;
     lastName: string;
   };
   metadata?: {
+    projectId?: {
+      name: string;
+      code: string;
+    };
     studentName?: string;
     studentEmail?: string;
   };
@@ -29,7 +34,19 @@ interface Ticket {
 
 const ViewTickets: React.FC = () => {
   const navigate = useNavigate();
-  const { hasPermission } = usePermissionContext();
+  
+  // Helper function to check permissions from localStorage
+  const checkPermission = (permission: string): boolean => {
+    const userPermissionsStr = localStorage.getItem('userPermissions');
+    if (!userPermissionsStr) return false;
+    try {
+      const userPermissions = JSON.parse(userPermissionsStr);
+      return Array.isArray(userPermissions) && userPermissions.includes(permission);
+    } catch {
+      return false;
+    }
+  };
+  
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState('all');
@@ -38,8 +55,10 @@ const ViewTickets: React.FC = () => {
   const [showMergeModal, setShowMergeModal] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
 
-  const canExport = hasPermission('TICKET_EXPORT');
-  const canMerge = hasPermission('TICKET_MERGE');
+  const canExport = checkPermission('TICKET_EXPORT');
+  const canMerge = checkPermission('TICKET_MERGE');
+  const hasViewAll = checkPermission('TICKET_VIEW_ALL');
+  const userRole = localStorage.getItem('userRole') || '';
 
   useEffect(() => {
     fetchTickets();
@@ -48,6 +67,15 @@ const ViewTickets: React.FC = () => {
   const fetchTickets = async () => {
     try {
       const token = localStorage.getItem('authToken');
+      
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+
+      // Use /api/tickets endpoint which shows:
+      // - ALL tickets for Super Admin
+      // - Project-specific tickets for other roles with TICKET_VIEW_ALL
       const response = await axios.get(`${API_CONFIG.API_URL}/tickets`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -55,8 +83,12 @@ const ViewTickets: React.FC = () => {
       if (response.data.success) {
         setTickets(response.data.data);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching tickets:', error);
+      if (error.response?.status === 401) {
+        localStorage.removeItem('authToken');
+        navigate('/login');
+      }
     } finally {
       setLoading(false);
     }
@@ -67,7 +99,8 @@ const ViewTickets: React.FC = () => {
     const matchesSearch = 
       ticket.ticketNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
       ticket.subject?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      ticket.metadata?.studentEmail?.toLowerCase().includes(searchQuery.toLowerCase());
+      ticket.metadata?.studentEmail?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      ticket.metadata?.projectId?.name?.toLowerCase().includes(searchQuery.toLowerCase());
     
     return matchesStatus && matchesSearch;
   });
@@ -98,10 +131,12 @@ const ViewTickets: React.FC = () => {
       <div style={{ padding: '24px', maxWidth: '1400px', margin: '0 auto' }}>
         <div style={{ marginBottom: '32px' }}>
           <h1 style={{ fontSize: '28px', fontWeight: 700, color: '#111827', marginBottom: '8px' }}>
-            All Tickets
+            {hasViewAll ? 'All Tickets' : 'My Tickets'}
           </h1>
           <p style={{ color: '#6B7280', fontSize: '14px' }}>
-            View and manage all support tickets
+            {hasViewAll 
+              ? 'View and manage all support tickets across all projects' 
+              : 'View and manage tickets assigned to you'}
           </p>
         </div>
 
@@ -259,7 +294,22 @@ const ViewTickets: React.FC = () => {
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', gap: '24px', fontSize: '14px', color: '#6B7280' }}>
+                <div style={{ display: 'flex', gap: '24px', fontSize: '14px', color: '#6B7280', flexWrap: 'wrap' }}>
+                  {ticket.metadata?.projectId && (
+                    <div>
+                      <span style={{ fontWeight: 600 }}>Project:</span>{' '}
+                      <span style={{
+                        padding: '2px 8px',
+                        background: '#EEF2FF',
+                        color: '#4F46E5',
+                        borderRadius: '4px',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                      }}>
+                        {ticket.metadata.projectId.name}
+                      </span>
+                    </div>
+                  )}
                   {ticket.assignedTo && (
                     <div>
                       <span style={{ fontWeight: 600 }}>Assigned:</span>{' '}
@@ -275,7 +325,13 @@ const ViewTickets: React.FC = () => {
                   {ticket.priority && (
                     <div>
                       <span style={{ fontWeight: 600 }}>Priority:</span>{' '}
-                      {ticket.priority}
+                      <span style={{ textTransform: 'capitalize' }}>{ticket.priority}</span>
+                    </div>
+                  )}
+                  {ticket.category && (
+                    <div>
+                      <span style={{ fontWeight: 600 }}>Category:</span>{' '}
+                      {ticket.category.name}
                     </div>
                   )}
                 </div>

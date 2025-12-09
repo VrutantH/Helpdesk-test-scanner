@@ -4,6 +4,8 @@ import { MdMenu, MdLogout, MdDashboard, MdConfirmationNumber, MdBook, MdPerson, 
 import axios from 'axios';
 import API_BASE_URL from '../config/api';
 import { API_CONFIG } from '../config/constants';
+import { PERMISSIONS } from '../constants/permissions';
+import { usePermissions } from '../hooks/usePermissions';
 
 interface StudentLayoutProps {
   children: ReactNode;
@@ -33,6 +35,14 @@ const StudentLayout = ({ children }: StudentLayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [branding, setBranding] = useState<ProjectBranding | null>(null);
+  const { hasPermission, getAllPermissions } = usePermissions();
+
+  // Debug: Log permissions on mount
+  useEffect(() => {
+    const perms = getAllPermissions();
+    console.log('📋 Student permissions loaded:', perms);
+    console.log('📋 Permission count:', perms.length);
+  }, [getAllPermissions]);
 
   // Extract customUrlPath from current location
   const customUrlPath = useMemo(() => {
@@ -108,23 +118,38 @@ const StudentLayout = ({ children }: StudentLayoutProps) => {
       path: `/${customUrlPath}/student/dashboard`,
       icon: <MdDashboard />,
       label: 'Dashboard',
+      permission: null, // Always visible
     },
     {
       path: `/${customUrlPath}/student/my-tickets`,
       icon: <MdConfirmationNumber />,
       label: 'My Tickets',
+      permission: PERMISSIONS.TICKET_VIEW_OWN,
     },
     {
       path: `/${customUrlPath}/submit-ticket`,
       icon: <MdAdd />,
       label: 'Submit Ticket',
+      permission: PERMISSIONS.TICKET_CREATE,
     },
     {
       path: `/${customUrlPath}/kb`,
       icon: <MdBook />,
       label: 'Knowledge Base',
+      permission: PERMISSIONS.KB_VIEW,
+    },
+    {
+      path: `/${customUrlPath}/find-center`,
+      icon: <MdLocationOn />,
+      label: 'Find Center',
+      permission: PERMISSIONS.OFFLINE_MODULE_ACCESS,
     },
   ];
+
+  // Filter menu items based on permissions
+  const visibleMenuItems = menuItems.filter(item => 
+    !item.permission || hasPermission(item.permission)
+  );
 
   const isActive = (path: string) => {
     return location.pathname.includes(path);
@@ -196,7 +221,7 @@ const StudentLayout = ({ children }: StudentLayoutProps) => {
 
         {/* Navigation */}
         <nav style={{ flex: 1, padding: '16px', overflowY: 'auto' }}>
-          {menuItems.map((item) => (
+          {visibleMenuItems.map((item) => (
             <Link
               key={item.path}
               to={item.path}

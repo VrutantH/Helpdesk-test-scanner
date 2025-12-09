@@ -4,11 +4,14 @@ import { Role } from '../models/Role';
 import { Project } from '../models/Project';
 import { generateProjectJWT, generateUserJWT } from '../utils/jwtUtils';
 import { sendOTPEmail } from '../utils/emailService';
+import otpStore from '../utils/otpStore';
+import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+import { config } from '../config';
 
-// Get JWT_SECRET dynamically (not at module load time)
-const getJwtSecret = () => process.env.JWT_SECRET || 'fallback-secret-key-for-development';
+// Use centralized config for JWT secret
+const getJwtSecret = () => config.jwt.secret;
 const JWT_EXPIRY = '7d';
 
 /**
@@ -52,14 +55,15 @@ export const sendOTP = async (req: Request, res: Response) => {
       });
     }
 
-    // Generate OTP
-    const otp = user.generateResetPasswordOTP();
-    await user.save();
+    // Generate OTP locally (do not persist plaintext OTP to DB)
+    const otp = crypto.randomInt(100000, 999999).toString();
 
-    console.log(`📧 OTP generated for ${email}: ${otp}`);
-
-    // Get project ID from user's projects
+    // Store OTP using centralized otpStore (hashed, optional Redis)
     const projectId = user.projects && user.projects.length > 0 ? user.projects[0].toString() : undefined;
+    await otpStore.createOtp(email.toLowerCase(), otp, 10 * 60, { projectId, purpose: 'student_password_setup' });
+
+    // Do not log OTP plaintext in production; indicate generation only
+    console.log(`📧 OTP generated for ${email} (dispatched)`);
 
     // Send email with OTP
     try {
@@ -67,11 +71,10 @@ export const sendOTP = async (req: Request, res: Response) => {
       if (emailSent) {
         console.log(`✅ OTP email sent to ${email}`);
       } else {
-        console.log(`⚠️  OTP email not sent (email config might be disabled), but OTP is: ${otp}`);
+        console.log(`⚠️  OTP email not sent (email config might be disabled)`);
       }
     } catch (emailError) {
       console.error('Failed to send OTP email:', emailError);
-      console.log(`⚠️  Email failed, but OTP is available in console: ${otp}`);
     }
 
     return res.status(200).json({
@@ -103,11 +106,10 @@ export const verifyOTP = async (req: Request, res: Response) => {
       });
     }
 
-    // Find user with matching OTP
+    // Find user by email
     const user = await User.findOne({
       email: email.toLowerCase(),
-      resetPasswordOTP: otp,
-      resetPasswordOTPExpires: { $gt: new Date() },
+      isActive: true,
     }).populate('role');
 
     if (!user) {
@@ -117,9 +119,26 @@ export const verifyOTP = async (req: Request, res: Response) => {
       });
     }
 
-    // Clear OTP after successful verification
-    user.resetPasswordOTP = undefined;
-    user.resetPasswordOTPExpires = undefined;
+    // Verify OTP via centralized otpStore
+    const keys = await otpStore.findOtpKeysByEmail(email.toLowerCase());
+    let verified = false;
+    for (const k of keys) {
+      // eslint-disable-next-line no-await-in-loop
+      const ok = await otpStore.verifyOtpByKey(k, otp);
+      if (ok) {
+        verified = true;
+        break;
+      }
+    }
+
+    if (!verified) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid or expired OTP',
+      });
+    }
+
+    // Clear any setup flags on user (if present)
     user.resetPasswordAttempts = 0;
     await user.save();
 
@@ -127,8 +146,8 @@ export const verifyOTP = async (req: Request, res: Response) => {
 
     // Generate temporary token for password setup (15 minutes expiry)
     const tempToken = jwt.sign(
-      { 
-        userId: user._id, 
+      {
+        userId: user._id,
         email: user.email,
         type: 'password-setup'
       },
@@ -288,7 +307,12 @@ export const login = async (req: Request, res: Response) => {
     const user = await User.findOne({ 
       email: email.toLowerCase(),
       isActive: true,
-    }).populate('role');
+    }).populate({
+      path: 'role',
+      populate: {
+        path: 'permissions'
+      }
+    });
 
     if (!user) {
       return res.status(401).json({
@@ -331,23 +355,8 @@ export const login = async (req: Request, res: Response) => {
 
     console.log(`🔑 Student login successful: ${email}`);
 
-    // Use the role already declared above
-    const token = jwt.sign(
-      {
-        userId: user._id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        tokenVersion: user.tokenVersion || 0,
-        role: {
-          _id: role._id,
-          code: role.code,
-          name: role.name,
-        },
-      },
-      getJwtSecret(),
-      { expiresIn: JWT_EXPIRY }
-    );
+    // Generate JWT token with proper permission structure using utility
+    const token = await generateUserJWT(user);
 
     return res.status(200).json({
       success: true,

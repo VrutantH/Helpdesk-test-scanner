@@ -10,7 +10,8 @@ export const getAllActivityLogs = async (req: AuthRequest, res: Response): Promi
       limit = 50, 
       userId, 
       action, 
-      entity, 
+      entity,
+      projectId,
       startDate, 
       endDate,
       search 
@@ -27,6 +28,9 @@ export const getAllActivityLogs = async (req: AuthRequest, res: Response): Promi
     }
     if (entity) {
       filter.entity = entity;
+    }
+    if (projectId) {
+      filter.project = projectId;
     }
     if (startDate || endDate) {
       filter.timestamp = {};

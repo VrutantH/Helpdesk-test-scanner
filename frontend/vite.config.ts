@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react'
 import path from 'path'
 
 // https://vitejs.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [react()],
   server: {
     port: 3001,
@@ -15,17 +15,18 @@ export default defineConfig({
       'helpdesk.hubblehox.ai',
       '.hubblehox.ai', // Allow all subdomains
     ],
-    hmr: {
-      port: 3001,
-      // Use relative protocol in development, prevents hardcoded URLs in production build
-      protocol: 'ws',
-      host: 'localhost',
-    },
-    proxy: {
-      '/api': {
-        target: 'http://localhost:3003',
-        changeOrigin: true,
+    // Only use proxy in local development
+    ...(mode === 'development' && process.env.NODE_ENV !== 'production' ? {
+      proxy: {
+        '/api': {
+          target: 'http://localhost:3003',
+          changeOrigin: true,
+        },
       },
+    } : {}),
+    hmr: {
+      // Use current host for HMR to support both localhost and production domain
+      clientPort: 3001,
     },
   },
   resolve: {
@@ -36,7 +37,6 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: true,
-    // Ensure HMR is disabled in production build
     minify: 'esbuild',
   },
-})
+}))

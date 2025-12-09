@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { MdSearch, MdVisibility, MdThumbUp, MdThumbDown } from 'react-icons/md';
+import DOMPurify from 'dompurify';
 import { API_CONFIG } from '../config/constants';
 
 interface KBArticle {
@@ -380,7 +381,7 @@ const KnowledgeBaseViewer: React.FC = () => {
                 color: 'var(--text-primary)',
                 marginBottom: '32px'
               }}
-              dangerouslySetInnerHTML={{ __html: selectedArticle.content }}
+              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(selectedArticle.content) }}
             />
 
             {/* Feedback Section */}

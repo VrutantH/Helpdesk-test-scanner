@@ -28,6 +28,7 @@ import statusRoutes from './routes/statuses';
 // import { ticketFieldRoutes, autoAssignmentRoutes } from './routes/ticket-module'; // TODO: Implement
 import slaRuleRoutes from './routes/sla-module/slaRuleRoutes';
 import escalationPolicyRoutes from './routes/sla-module/escalationPolicyRoutes';
+import priorityRoutes from './routes/priorityRoutes';
 import activityLogRoutes from './routes/activityLogs';
 import accessLogRoutes from './routes/accessLogs';
 import knowledgeBaseRoutes from './routes/knowledgeBase';
@@ -36,6 +37,8 @@ import approvalMasterRoutes from './routes/approvalMasters';
 import offlineModuleRoutes from './routes/offlineModule';
 import dashboardRoutes from './routes/dashboard';
 import emailConfigRoutes from './routes/emailConfig';
+import emailLogRoutes from './routes/emailLogs';
+import apiLogRoutes from './routes/apiLogs';
 // import integrationRoutes from './routes/integrations'; // TODO: Implement
 import { setupSocketHandlers } from './socket/socketHandlers';
 import { initializeDatabase } from './utils/dbInit';
@@ -51,15 +54,38 @@ console.log('🔑 JWT_SECRET value:', process.env.JWT_SECRET || 'fallback-secret
 const app = express();
 const httpServer = createServer(app);
 
-// Allowed origins for Socket.IO
-const socketAllowedOrigins = [
-  'http://localhost:3001',
-  'http://localhost:3000',
-  'https://helpdesk.hubblehox.ai',
-  'https://api.helpdesk.hubblehox.ai',
-  process.env.FRONTEND_URL
-].filter((origin): origin is string => typeof origin === 'string');
+const PORT = process.env.PORT || 3003;
+const NODE_ENV = process.env.NODE_ENV || 'development';
 
+// Get allowed origins from .env based on NODE_ENV
+// Code automatically selects LOCAL or PRODUCTION values
+const getAllowedOrigins = (): string[] => {
+  const allowedOriginsEnv = NODE_ENV === 'production'
+    ? process.env.ALLOWED_ORIGINS_PRODUCTION
+    : process.env.ALLOWED_ORIGINS_LOCAL;
+  
+  if (!allowedOriginsEnv) {
+    console.warn(`⚠️  ALLOWED_ORIGINS_${NODE_ENV.toUpperCase()} not set in .env`);
+    return NODE_ENV === 'production' 
+      ? ['https://helpdesk.hubblehox.ai']
+      : ['http://localhost:3001', 'http://localhost:3000', 'http://localhost:3003'];
+  }
+  
+  return allowedOriginsEnv
+    .split(',')
+    .map(origin => origin.trim())
+    .filter(Boolean);
+};
+
+const allowedOrigins = getAllowedOrigins();
+
+// Allowed origins for Socket.IO
+const socketAllowedOrigins = allowedOrigins;
+
+// Connect to MongoDB
+connectDB();
+
+// Initialize Socket.IO with allowed origins from .env
 const io = new Server(httpServer, {
   cors: {
     origin: socketAllowedOrigins,
@@ -68,25 +94,13 @@ const io = new Server(httpServer, {
   },
 });
 
-const PORT = process.env.PORT || 3003;
-
-// Connect to MongoDB
-connectDB();
-
 // Security middleware
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
 
 // CORS - Must be before other middleware
-// Support multiple origins (localhost + production domains)
-const allowedOrigins = [
-  'http://localhost:3001',
-  'http://localhost:3000',
-  'https://helpdesk.hubblehox.ai',
-  'https://api.helpdesk.hubblehox.ai',
-  process.env.FRONTEND_URL
-].filter(Boolean); // Remove undefined values
+// Support multiple origins from .env configuration
 
 app.use(cors({
   origin: (origin, callback) => {
@@ -153,6 +167,7 @@ app.use('/api/statuses', statusRoutes);
 // SLA Module Routes
 app.use('/api/sla-rules', slaRuleRoutes);
 app.use('/api/escalation-policies', escalationPolicyRoutes);
+app.use('/api/priorities', priorityRoutes);
 
 // Audit Logs Routes
 app.use('/api/activity-logs', activityLogRoutes);
@@ -173,6 +188,12 @@ app.use('/api/offline-module', offlineModuleRoutes);
 
 // Email Configuration Routes
 app.use('/api/email-config', emailConfigRoutes);
+
+// Email Logs Routes
+app.use('/api/email-logs', emailLogRoutes);
+
+// API Logs Routes (Webhook/Integration failures)
+app.use('/api/api-logs', apiLogRoutes);
 
 // Integration Routes (TODO: Implement)
 // app.use('/api/integrations', integrationRoutes);

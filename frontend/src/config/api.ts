@@ -1,9 +1,7 @@
 // API Configuration
-// In production, use relative path (same domain) or environment variable
-const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || (
-  process.env.NODE_ENV === 'production'
-    ? '/api'  // Production: Same domain, proxy handles routing
-    : 'http://localhost:3003/api'  // Development: Direct backend URL
-);
+// This file is deprecated - use API_CONFIG from constants.ts instead
+// API_CONFIG automatically reads from .env and detects environment
 
-export default API_BASE_URL;
+import { API_CONFIG } from './constants';
+
+export default API_CONFIG.BASE_URL;

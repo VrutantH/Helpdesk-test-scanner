@@ -8,6 +8,7 @@ import {
   forgotPassword,
   verifyOTP,
   resetPassword,
+  verify2FA,
   getMe,
 } from '../controllers/authController';
 import { refreshPermissions } from '../controllers/permissionController';
@@ -55,6 +56,16 @@ router.post('/verify-otp', [
   body('otp').notEmpty().withMessage('OTP is required'),
   validateRequest,
 ], verifyOTP);
+
+// @desc    Verify 2FA OTP
+// @route   POST /api/auth/verify-2fa
+// @access  Public
+router.post('/verify-2fa', [
+  body('email').isEmail().normalizeEmail().withMessage('Please provide a valid email'),
+  body('tempToken').notEmpty().withMessage('Temporary token is required'),
+  body('otp').notEmpty().withMessage('OTP is required'),
+  validateRequest,
+], verify2FA);
 
 // @desc    Reset password
 // @route   POST /api/auth/reset-password

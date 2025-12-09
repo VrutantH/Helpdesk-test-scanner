@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import DOMPurify from 'dompurify';
 import { API_CONFIG } from '../config/constants';
 import {
   BookOpenIcon,
@@ -213,7 +214,7 @@ const KBArticleView: React.FC = () => {
           <div className="p-8">
             <div
               className="prose prose-lg max-w-none"
-              dangerouslySetInnerHTML={{ __html: article.content }}
+              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(article.content) }}
               style={{
                 fontSize: '16px',
                 lineHeight: '1.75',

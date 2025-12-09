@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import SLARule from '../../models/sla-module/SLARule';
+import { logActivity } from '../../utils/logger';
 
 // Get all SLA rules
 export const getAllSLARules = async (req: Request, res: Response): Promise<void> => {
@@ -83,6 +84,32 @@ export const createSLARule = async (req: Request, res: Response): Promise<void> 
     const populatedRule = await SLARule.findById(slaRule._id)
       .populate('projectIds', 'name code')
       .populate('createdBy', 'firstName lastName email');
+    
+    // Log activity
+    try {
+      const currentUser = (req as any).user;
+      if (currentUser) {
+        const projectNames = (populatedRule as any)?.projectIds?.map((p: any) => p.name).join(', ') || 'No projects';
+        const projectId = (populatedRule as any)?.projectIds?.[0]?._id || (populatedRule as any)?.projectIds?.[0];
+        
+        await logActivity({
+          userId: currentUser.userId,
+          userName: `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim(),
+          userEmail: currentUser.email,
+          action: 'create',
+          entity: 'sla-rule',
+          entityId: slaRule._id.toString(),
+          entityName: `SLA Rule - ${slaRule.priority}`,
+          projectId: projectId?.toString(),
+          projectName: projectNames,
+          description: `SLA rule created for priority ${slaRule.priority}`,
+          req,
+          metadata: { priority: slaRule.priority, responseTime: slaRule.responseTime }
+        });
+      }
+    } catch (logError) {
+      console.error('Failed to log activity:', logError);
+    }
 
     res.status(201).json({
       success: true,

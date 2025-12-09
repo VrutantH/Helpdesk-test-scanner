@@ -113,13 +113,24 @@ export const downloadAttachment = async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'Attachment not found' });
     }
 
-    const filePath = path.join(__dirname, '../..', (attachment as any).fileUrl);
+    // SECURITY: Sanitize file URL to prevent path traversal attacks
+    const sanitizedFileUrl = (attachment as any).fileUrl.replace(/\.\.\//g, '').replace(/\.\.\\/g, '');
+    const filePath = path.join(__dirname, '../..', sanitizedFileUrl);
     
-    if (!fs.existsSync(filePath)) {
+    // SECURITY: Ensure file path is within uploads directory
+    const uploadsDir = path.resolve(__dirname, '../../uploads');
+    const resolvedPath = path.resolve(filePath);
+    
+    if (!resolvedPath.startsWith(uploadsDir)) {
+      console.error(`🚨 Path traversal attempt detected: ${(attachment as any).fileUrl}`);
+      return res.status(403).json({ message: 'Access denied' });
+    }
+    
+    if (!fs.existsSync(resolvedPath)) {
       return res.status(404).json({ message: 'File not found on server' });
     }
 
-    res.download(filePath, (attachment as any).filename);
+    res.download(resolvedPath, (attachment as any).filename);
     return;
   } catch (error: any) {
     console.error('Download attachment error:', error);

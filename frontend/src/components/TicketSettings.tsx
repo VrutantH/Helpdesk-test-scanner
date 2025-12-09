@@ -14,13 +14,16 @@ interface TicketStatus {
   displayOrder: number;
 }
 
-interface TicketType {
+interface TicketCategory {
   _id?: string;
   name: string;
   code: string;
-  description: string;
+  description?: string;
   icon?: string;
+  color?: string;
   defaultPriority?: string;
+  order?: number;
+  isActive?: boolean;
 }
 
 interface TicketNumberingConfig {
@@ -57,31 +60,29 @@ const TicketSettings: React.FC = () => {
   const [editingStatus, setEditingStatus] = useState<TicketStatus | null>(null);
   const [showStatusModal, setShowStatusModal] = useState(false);
 
-  // Types State
-  // Types State
-  const [types, setTypes] = useState<TicketType[]>([
-    { _id: 'type_1', name: 'Incident', code: 'INCIDENT', description: 'Unexpected service interruption', defaultPriority: 'HIGH' },
-    { _id: 'type_2', name: 'Request', code: 'REQUEST', description: 'Service or information request', defaultPriority: 'MEDIUM' },
-    { _id: 'type_3', name: 'Problem', code: 'PROBLEM', description: 'Root cause investigation', defaultPriority: 'HIGH' },
-    { _id: 'type_4', name: 'Change', code: 'CHANGE', description: 'Change request', defaultPriority: 'MEDIUM' },
-    { _id: 'type_5', name: 'Question', code: 'QUESTION', description: 'General question', defaultPriority: 'LOW' },
-  ]);
-  const [editingType, setEditingType] = useState<TicketType | null>(null);
-  const [showTypeModal, setShowTypeModal] = useState(false);
+  // Categories State - fetched from Category master
+  const [categories, setCategories] = useState<TicketCategory[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<TicketCategory | null>(null);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
 
-  // Priority options for ticket types
-  const priorities = [
-    { name: 'Low', code: 'LOW' },
-    { name: 'Medium', code: 'MEDIUM' },
-    { name: 'High', code: 'HIGH' },
-    { name: 'Critical', code: 'CRITICAL' },
-  ];
+  // Priority options for ticket types - fetched from Priority master
+  interface Priority {
+    _id: string;
+    name: string;
+    code: string;
+    color?: string;
+  }
+  const [priorities, setPriorities] = useState<Priority[]>([]);
+  const [loadingPriorities, setLoadingPriorities] = useState(false);
 
   // Load project-specific ticket configuration
   useEffect(() => {
     loadProjectConfig();
     if (projectId) {
       loadStatuses();
+      loadPriorities();
+      loadCategories();
     }
   }, [projectId]);
 
@@ -116,6 +117,68 @@ const TicketSettings: React.FC = () => {
     }
   };
 
+  const loadPriorities = async () => {
+    if (!projectId) return;
+    setLoadingPriorities(true);
+    try {
+      const token = localStorage.getItem('authToken');
+      const response = await fetch(`${API_CONFIG.API_URL}/priorities?projectId=${projectId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ Priority API Response:', data);
+        if (data.success && data.data) {
+          console.log('✅ Setting priorities:', data.data.length, 'items');
+          setPriorities(data.data);
+        } else {
+          console.error('❌ Priority API returned success=false or no data:', data);
+        }
+      } else {
+        console.error('❌ Priority API response not OK:', response.status, response.statusText);
+      }
+    } catch (error) {
+      console.error('❌ Error loading priorities:', error);
+    } finally {
+      setLoadingPriorities(false);
+    }
+  };
+
+  const loadCategories = async () => {
+    if (!projectId) return;
+    setLoadingCategories(true);
+    try {
+      const token = localStorage.getItem('authToken');
+      const response = await fetch(`${API_CONFIG.API_URL}/categories/project/${projectId}?includeInactive=true`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ Category API Response:', data);
+        if (data.success && data.data) {
+          console.log('✅ Setting categories:', data.data.length, 'items');
+          setCategories(data.data);
+        } else {
+          console.error('❌ Category API returned success=false or no data:', data);
+        }
+      } else {
+        console.error('❌ Category API response not OK:', response.status, response.statusText);
+      }
+    } catch (error) {
+      console.error('❌ Error loading categories:', error);
+    } finally {
+      setLoadingCategories(false);
+    }
+  };
+
   const loadProjectConfig = async () => {
     if (!projectId) return;
     
@@ -135,7 +198,7 @@ const TicketSettings: React.FC = () => {
         
         if (data.ticketConfig) {
           if (data.ticketConfig.numbering) setNumbering(data.ticketConfig.numbering);
-          if (data.ticketConfig.types) setTypes(data.ticketConfig.types);
+          // Categories are now loaded from Category API, not project config
         }
       }
     } catch (error) {
@@ -164,7 +227,7 @@ const TicketSettings: React.FC = () => {
         body: JSON.stringify({
           numbering,
           statuses,
-          types,
+          // Categories are now saved via Category API, not project config
         }),
       });
 
@@ -183,7 +246,7 @@ const TicketSettings: React.FC = () => {
   const tabs = [
     { id: 'numbering', label: 'Ticket Numbering', labelMr: 'तिकीट क्रमांकन' },
     { id: 'statuses', label: 'Ticket Statuses', labelMr: 'तिकीट स्टेटस' },
-    { id: 'types', label: 'Ticket Types', labelMr: 'तिकीट प्रकार' },
+    { id: 'categories', label: 'Ticket Categories', labelMr: 'तिकीट श्रेणी' },
   ];
 
   const generatePreview = () => {
@@ -306,29 +369,118 @@ const TicketSettings: React.FC = () => {
     }
   };
 
-  const handleAddType = () => {
-    setEditingType({ _id: `temp_${Date.now()}`, name: '', code: '', description: '' });
-    setShowTypeModal(true);
+  // Category CRUD operations
+  const handleAddCategory = () => {
+    setEditingCategory({ 
+      _id: '', 
+      name: '', 
+      code: '', 
+      description: '', 
+      color: '#3b82f6',
+      icon: '',
+      defaultPriority: '',
+      order: categories.length,
+      isActive: true
+    });
+    setShowCategoryModal(true);
   };
 
-  const handleSaveType = () => {
-    if (!editingType) return;
-    
-    const existingIndex = types.findIndex(t => t._id === editingType._id);
-    
-    if (existingIndex !== -1) {
-      // Update existing
-      setTypes(types.map(t => t._id === editingType._id ? editingType : t));
-    } else {
-      // Add new
-      const newType = {
-        ...editingType,
-        _id: editingType._id || `temp_${Date.now()}`
-      };
-      setTypes([...types, newType]);
+  const handleEditCategory = (category: TicketCategory) => {
+    setEditingCategory({ ...category });
+    setShowCategoryModal(true);
+  };
+
+  // Helper function to generate code from name
+  const generateCodeFromName = (name: string): string => {
+    return name
+      .toUpperCase()
+      .trim()
+      .replace(/[^A-Z0-9\s]/g, '') // Remove special characters
+      .replace(/\s+/g, '_'); // Replace spaces with underscores
+  };
+
+  const handleSaveCategory = async () => {
+    if (!editingCategory || !projectId) return;
+
+    // Validate required fields
+    if (!editingCategory.name) {
+      alert('Name is required');
+      return;
     }
-    setShowTypeModal(false);
-    setEditingType(null);
+
+    // Auto-generate code from name if not provided or if it's a new category
+    const isNew = !editingCategory._id || editingCategory._id === '';
+    const code = isNew ? generateCodeFromName(editingCategory.name) : editingCategory.code;
+
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('authToken');
+      
+      const url = isNew 
+        ? `${API_CONFIG.API_URL}/categories/project/${projectId}`
+        : `${API_CONFIG.API_URL}/categories/${editingCategory._id}`;
+      
+      const response = await fetch(url, {
+        method: isNew ? 'POST' : 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          name: editingCategory.name,
+          code: code,
+          description: editingCategory.description,
+          color: editingCategory.color,
+          icon: editingCategory.icon,
+          defaultPriority: editingCategory.defaultPriority,
+          order: editingCategory.order,
+          isActive: editingCategory.isActive,
+        }),
+      });
+
+      if (response.ok) {
+        await loadCategories(); // Reload from API
+        setShowCategoryModal(false);
+        setEditingCategory(null);
+      } else {
+        const errorData = await response.json();
+        alert(errorData.message || 'Failed to save category');
+      }
+    } catch (error) {
+      console.error('Error saving category:', error);
+      alert('Failed to save category');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteCategory = async (categoryId: string) => {
+    if (!confirm('Are you sure you want to delete this category?')) return;
+    
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('authToken');
+      const response = await fetch(`${API_CONFIG.API_URL}/categories/${categoryId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        await loadCategories();
+      } else {
+        const errorData = await response.json();
+        alert(errorData.message || 'Failed to delete category');
+      }
+    } catch (error) {
+      console.error('Error deleting category:', error);
+      alert('Failed to delete category');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -803,15 +955,15 @@ const TicketSettings: React.FC = () => {
             </div>
           )}
 
-          {/* Ticket Types Tab */}
-          {activeTab === 'types' && (
+          {/* Ticket Categories Tab */}
+          {activeTab === 'categories' && (
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                 <h2 style={{ fontSize: '20px', fontWeight: '600' }}>
-                  Ticket Types
+                  Ticket Categories
                 </h2>
                 <button
-                  onClick={handleAddType}
+                  onClick={handleAddCategory}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -826,76 +978,96 @@ const TicketSettings: React.FC = () => {
                     cursor: 'pointer',
                   }}
                 >
-                  <MdAdd /> Add Type
+                  <MdAdd /> Add Category
                 </button>
               </div>
 
-              <div style={{ display: 'grid', gap: '12px' }}>
-                {types.map((type) => (
-                  <div
-                    key={type._id || type.code}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '16px',
-                      padding: '20px',
-                      border: '1px solid var(--border-subtle)',
-                      borderRadius: '8px',
-                      background: 'white',
-                    }}
-                  >
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: '600', fontSize: '16px', marginBottom: '4px' }}>{type.name}</div>
-                      <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '4px' }}>{type.description}</div>
-                      <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-                        Code: {type.code}
-                        {type.defaultPriority && ` • Default Priority: ${type.defaultPriority}`}
+              {loadingCategories ? (
+                <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>
+                  Loading categories...
+                </div>
+              ) : categories.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>
+                  No categories configured yet. Click "Add Category" to create one.
+                </div>
+              ) : (
+                <div style={{ display: 'grid', gap: '12px' }}>
+                  {categories.map((category) => (
+                    <div
+                      key={category._id || category.code}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '16px',
+                        padding: '20px',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '8px',
+                        background: 'white',
+                        opacity: category.isActive === false ? 0.6 : 1,
+                      }}
+                    >
+                      {category.color && (
+                        <div style={{
+                          width: '16px',
+                          height: '16px',
+                          borderRadius: '50%',
+                          background: category.color,
+                          flexShrink: 0,
+                        }} />
+                      )}
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontWeight: '600', fontSize: '16px', marginBottom: '4px' }}>
+                          {category.name}
+                          {category.isActive === false && (
+                            <span style={{ marginLeft: '8px', fontSize: '12px', color: '#6b7280' }}>(Inactive)</span>
+                          )}
+                        </div>
+                        <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                          {category.description || 'No description'}
+                        </div>
+                        <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                          Code: {category.code}
+                          {category.defaultPriority && ` • Default Priority: ${category.defaultPriority}`}
+                        </div>
                       </div>
+                      <button
+                        onClick={() => handleEditCategory(category)}
+                        style={{
+                          padding: '8px 12px',
+                          background: 'transparent',
+                          border: '1px solid #d1d5db',
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                        }}
+                      >
+                        <MdEdit /> Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteCategory(category._id!)}
+                        style={{
+                          padding: '8px 12px',
+                          background: 'transparent',
+                          border: '1px solid #ef4444',
+                          borderRadius: '6px',
+                          color: '#ef4444',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                        }}
+                      >
+                        <MdDelete /> Delete
+                      </button>
                     </div>
-                    <button
-                      onClick={() => {
-                        setEditingType(type);
-                        setShowTypeModal(true);
-                      }}
-                      style={{
-                        padding: '8px 12px',
-                        background: 'transparent',
-                        border: '1px solid var(--border-subtle)',
-                        borderRadius: '6px',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                      }}
-                    >
-                      <MdEdit /> Edit
-                    </button>
-                    <button
-                      onClick={() => {
-                        if (confirm('Delete this type?')) {
-                          setTypes(types.filter(t => t._id !== type._id));
-                        }
-                      }}
-                      style={{
-                        padding: '8px 12px',
-                        background: 'transparent',
-                        border: '1px solid #ef4444',
-                        borderRadius: '6px',
-                        color: '#ef4444',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                      }}
-                    >
-                      <MdDelete /> Delete
-                    </button>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
 
-              {/* Type Modal */}
-              {showTypeModal && editingType && (
+              {/* Category Modal */}
+              {showCategoryModal && editingCategory && (
                 <div style={{
                   position: 'fixed',
                   top: 0,
@@ -914,38 +1086,60 @@ const TicketSettings: React.FC = () => {
                     padding: '24px',
                     width: '500px',
                     maxWidth: '90%',
+                    maxHeight: '90vh',
+                    overflowY: 'auto',
                   }}>
                     <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '20px' }}>
-                      {editingType._id ? 'Edit Type' : 'Add Type'}
+                      {editingCategory._id ? 'Edit Category' : 'Add Category'}
                     </h3>
 
                     <div style={{ display: 'grid', gap: '16px' }}>
                       <div>
-                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Name</label>
+                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Name *</label>
                         <input
                           type="text"
-                          value={editingType.name}
-                          onChange={(e) => setEditingType({ ...editingType, name: e.target.value })}
+                          value={editingCategory.name}
+                          onChange={(e) => setEditingCategory({ ...editingCategory, name: e.target.value })}
                           style={{
                             width: '100%',
                             padding: '10px 12px',
-                            border: '1px solid var(--border-subtle)',
+                            border: '1px solid #d1d5db',
                             borderRadius: '8px',
+                            outline: 'none',
                           }}
                         />
                       </div>
 
                       <div>
-                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Code</label>
+                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Color</label>
+                        <input
+                          type="color"
+                          value={editingCategory.color || '#3b82f6'}
+                          onChange={(e) => setEditingCategory({ ...editingCategory, color: e.target.value })}
+                          style={{
+                            width: '100%',
+                            height: '40px',
+                            padding: '4px',
+                            border: '1px solid #d1d5db',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                          }}
+                        />
+                      </div>
+
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Icon (optional)</label>
                         <input
                           type="text"
-                          value={editingType.code}
-                          onChange={(e) => setEditingType({ ...editingType, code: e.target.value.toUpperCase() })}
+                          value={editingCategory.icon || ''}
+                          onChange={(e) => setEditingCategory({ ...editingCategory, icon: e.target.value })}
+                          placeholder="e.g., MdBugReport, MdHelp, MdQuestionAnswer"
                           style={{
                             width: '100%',
                             padding: '10px 12px',
-                            border: '1px solid var(--border-subtle)',
+                            border: '1px solid #d1d5db',
                             borderRadius: '8px',
+                            outline: 'none',
                           }}
                         />
                       </div>
@@ -953,15 +1147,16 @@ const TicketSettings: React.FC = () => {
                       <div>
                         <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Description</label>
                         <textarea
-                          value={editingType.description}
-                          onChange={(e) => setEditingType({ ...editingType, description: e.target.value })}
+                          value={editingCategory.description || ''}
+                          onChange={(e) => setEditingCategory({ ...editingCategory, description: e.target.value })}
                           rows={3}
                           style={{
                             width: '100%',
                             padding: '10px 12px',
-                            border: '1px solid var(--border-subtle)',
+                            border: '1px solid #d1d5db',
                             borderRadius: '8px',
                             fontFamily: 'inherit',
+                            outline: 'none',
                           }}
                         />
                       </div>
@@ -969,33 +1164,53 @@ const TicketSettings: React.FC = () => {
                       <div>
                         <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Default Priority</label>
                         <select
-                          value={editingType.defaultPriority || ''}
-                          onChange={(e) => setEditingType({ ...editingType, defaultPriority: e.target.value })}
+                          value={editingCategory.defaultPriority || ''}
+                          onChange={(e) => setEditingCategory({ ...editingCategory, defaultPriority: e.target.value })}
+                          disabled={loadingPriorities}
                           style={{
                             width: '100%',
                             padding: '10px 12px',
-                            border: '1px solid var(--border-subtle)',
+                            border: '1px solid #d1d5db',
                             borderRadius: '8px',
+                            outline: 'none',
+                            backgroundColor: 'white',
                           }}
                         >
                           <option value="">No default</option>
-                          {priorities.map(p => (
-                            <option key={p.code} value={p.code}>{p.name}</option>
-                          ))}
+                          {loadingPriorities ? (
+                            <option disabled>Loading priorities...</option>
+                          ) : priorities.length > 0 ? (
+                            priorities.map(p => (
+                              <option key={p._id} value={p.code}>{p.name}</option>
+                            ))
+                          ) : (
+                            <option disabled>No priorities found for this project</option>
+                          )}
                         </select>
+                      </div>
+
+                      <div>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '500' }}>
+                          <input
+                            type="checkbox"
+                            checked={editingCategory.isActive !== false}
+                            onChange={(e) => setEditingCategory({ ...editingCategory, isActive: e.target.checked })}
+                          />
+                          Active
+                        </label>
                       </div>
                     </div>
 
                     <div style={{ display: 'flex', gap: '12px', marginTop: '24px', justifyContent: 'flex-end' }}>
                       <button
                         onClick={() => {
-                          setShowTypeModal(false);
-                          setEditingType(null);
+                          setShowCategoryModal(false);
+                          setEditingCategory(null);
                         }}
                         style={{
                           padding: '10px 20px',
                           background: 'transparent',
-                          border: '1px solid var(--border-subtle)',
+                          border: '1px solid #d1d5db',
                           borderRadius: '8px',
                           cursor: 'pointer',
                         }}
@@ -1003,17 +1218,19 @@ const TicketSettings: React.FC = () => {
                         Cancel
                       </button>
                       <button
-                        onClick={handleSaveType}
+                        onClick={handleSaveCategory}
+                        disabled={loading}
                         style={{
                           padding: '10px 20px',
                           background: 'var(--primary-main)',
                           border: 'none',
                           borderRadius: '8px',
                           color: 'white',
-                          cursor: 'pointer',
+                          cursor: loading ? 'not-allowed' : 'pointer',
+                          opacity: loading ? 0.7 : 1,
                         }}
                       >
-                        Save
+                        {loading ? 'Saving...' : 'Save'}
                       </button>
                     </div>
                   </div>
@@ -1130,7 +1347,7 @@ const TicketSettings: React.FC = () => {
                   </div>
                 )}
 
-                {activeTab === 'types' && (
+                {activeTab === 'categories' && (
                   <div>
                     <h4 style={{ 
                       fontSize: '14px', 
@@ -1138,7 +1355,7 @@ const TicketSettings: React.FC = () => {
                       color: 'var(--text-secondary)',
                       marginBottom: '12px'
                     }}>
-                      Configured Types
+                      Configured Categories
                     </h4>
                     <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
                       <table style={{ width: '100%', fontSize: '13px', borderCollapse: 'collapse' }}>
@@ -1150,39 +1367,53 @@ const TicketSettings: React.FC = () => {
                           </tr>
                         </thead>
                         <tbody>
-                          {types.map((type, index) => (
-                            <tr key={type._id} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                          {categories.map((category, index) => (
+                            <tr key={category._id} style={{ borderBottom: '1px solid #f3f4f6' }}>
                               <td style={{ padding: '8px' }}>{index + 1}</td>
                               <td style={{ padding: '8px' }}>
-                                <div>
-                                  <div style={{ fontWeight: '500' }}>{type.name}</div>
-                                  <div style={{ fontSize: '11px', color: '#6b7280' }}>{type.description}</div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  {category.color && (
+                                    <span style={{
+                                      width: '10px',
+                                      height: '10px',
+                                      borderRadius: '50%',
+                                      background: category.color,
+                                      display: 'inline-block'
+                                    }}></span>
+                                  )}
+                                  <div>
+                                    <div style={{ fontWeight: '500' }}>{category.name}</div>
+                                    <div style={{ fontSize: '11px', color: '#6b7280' }}>{category.description || ''}</div>
+                                  </div>
                                 </div>
                               </td>
                               <td style={{ padding: '8px' }}>
-                                <span style={{
-                                  display: 'inline-block',
-                                  padding: '2px 8px',
-                                  borderRadius: '4px',
-                                  fontSize: '11px',
-                                  fontWeight: '500',
-                                  background: type.defaultPriority === 'CRITICAL' ? '#fee2e2' :
-                                             type.defaultPriority === 'HIGH' ? '#fed7aa' :
-                                             type.defaultPriority === 'MEDIUM' ? '#fef3c7' : '#dbeafe',
-                                  color: type.defaultPriority === 'CRITICAL' ? '#991b1b' :
-                                         type.defaultPriority === 'HIGH' ? '#9a3412' :
-                                         type.defaultPriority === 'MEDIUM' ? '#92400e' : '#1e40af'
-                                }}>
-                                  {type.defaultPriority}
-                                </span>
+                                {(() => {
+                                  const priority = priorities.find(p => p.code === category.defaultPriority);
+                                  const bgColor = priority?.color ? `${priority.color}20` : '#dbeafe';
+                                  const textColor = priority?.color || '#1e40af';
+                                  return (
+                                    <span style={{
+                                      display: 'inline-block',
+                                      padding: '2px 8px',
+                                      borderRadius: '4px',
+                                      fontSize: '11px',
+                                      fontWeight: '500',
+                                      background: bgColor,
+                                      color: textColor
+                                    }}>
+                                      {priority?.name || category.defaultPriority || 'Not set'}
+                                    </span>
+                                  );
+                                })()}
                               </td>
                             </tr>
                           ))}
                         </tbody>
                       </table>
-                      {types.length === 0 && (
+                      {categories.length === 0 && (
                         <div style={{ textAlign: 'center', padding: '32px', color: 'var(--text-tertiary)' }}>
-                          No types configured yet
+                          No categories configured yet
                         </div>
                       )}
                     </div>

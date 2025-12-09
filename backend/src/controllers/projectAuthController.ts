@@ -5,10 +5,10 @@ import { User } from '../models/User';
 import { Project } from '../models/Project';
 import { logLogin } from '../utils/logger';
 import { sendOTPEmail } from '../utils/emailService';
+import otpStore from '../utils/otpStore';
 import { generateProjectJWT } from '../utils/jwtUtils';
 
-// In-memory store for project OTPs (in production, use Redis or database)
-const projectOtpStore = new Map<string, { otp: string; expires: Date; email: string; customUrlPath: string }>();
+// projectOtpStore replaced by centralized otpStore (hashed + optional Redis)
 
 // Get project branding by custom URL path or domain
 export const getProjectBrandingByUrl = async (req: Request, res: Response) => {
@@ -475,18 +475,11 @@ export const projectForgotPassword = async (req: Request, res: Response) => {
       });
     }
 
-    // Generate 6-digit OTP
-    const otp = user.generateResetPasswordOTP();
-    await user.save();
+    // Generate 6-digit OTP locally (do NOT persist plaintext OTP to DB)
+    const otp = crypto.randomInt(100000, 999999).toString();
 
-    // Store OTP in memory for verification
-    const otpId = crypto.randomUUID();
-    projectOtpStore.set(otpId, { 
-      otp, 
-      expires: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes
-      email: email.toLowerCase(),
-      customUrlPath: customUrlPath.toLowerCase()
-    });
+    // Store OTP using central otpStore (stores hashed value, optional Redis)
+    const otpId = await otpStore.createOtp(email.toLowerCase(), otp, 10 * 60, { customUrlPath: customUrlPath.toLowerCase(), purpose: 'project_forgot_password' });
 
     // Send OTP email
     try {
@@ -496,7 +489,7 @@ export const projectForgotPassword = async (req: Request, res: Response) => {
       // Continue without failing the request
     }
 
-    console.log(`✅ Password reset OTP sent to ${email} for project ${project.name}: ${otp}`);
+    console.log(`✅ Password reset OTP generated and sent for ${email} in project ${project.name}`);
 
     return res.json({
       success: true,
@@ -542,34 +535,19 @@ export const projectVerifyOTP = async (req: Request, res: Response) => {
       });
     }
 
-    // Find user and verify OTP
-    const user = await User.findOne({
-      email: email.toLowerCase(),
-      resetPasswordOTP: otp,
-      resetPasswordOTPExpires: { $gt: new Date() },
-      isActive: true
-    });
-
-    if (!user) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid or expired OTP'
-      });
-    }
-
-    // Verify OTP is in our store for this project
-    let validOtpId: string | null = null;
-    for (const [id, data] of projectOtpStore.entries()) {
-      if (data.email === email.toLowerCase() && 
-          data.otp === otp && 
-          data.customUrlPath === customUrlPath.toLowerCase() &&
-          data.expires > new Date()) {
-        validOtpId = id;
+    // Verify OTP via centralized otpStore
+    const keys = await otpStore.findOtpKeysByEmail(email.toLowerCase());
+    let verified = false;
+    for (const k of keys) {
+      // eslint-disable-next-line no-await-in-loop
+      const ok = await otpStore.verifyOtpByKey(k, otp);
+      if (ok) {
+        verified = true;
         break;
       }
     }
 
-    if (!validOtpId) {
+    if (!verified) {
       return res.status(400).json({
         success: false,
         error: 'Invalid or expired OTP'
@@ -629,19 +607,9 @@ export const projectResetPassword = async (req: Request, res: Response) => {
       });
     }
 
-    // Check if OTP was verified for this email and project
-    let otpVerified = false;
-    let otpIdToRemove: string | null = null;
-    for (const [id, data] of projectOtpStore.entries()) {
-      if (data.email === email.toLowerCase() && 
-          data.customUrlPath === customUrlPath.toLowerCase()) {
-        otpVerified = true;
-        otpIdToRemove = id;
-        break;
-      }
-    }
-
-    if (!otpVerified) {
+    // Check if OTP was verified for this email and project (must exist in store)
+    const keys = await otpStore.findOtpKeysByEmail(email.toLowerCase());
+    if (!keys || keys.length === 0) {
       return res.status(400).json({
         success: false,
         error: 'OTP verification required before password reset'
@@ -670,10 +638,9 @@ export const projectResetPassword = async (req: Request, res: Response) => {
 
     await user.save();
 
-    // Remove used OTP from store
-    if (otpIdToRemove) {
-      projectOtpStore.delete(otpIdToRemove);
-    }
+    // Consume/delete all OTPs for this email (project-specific meta was stored)
+    // eslint-disable-next-line no-await-in-loop
+    await otpStore.consumeOtpsForEmail(email.toLowerCase());
 
     console.log('✅ Password reset successful for:', email, 'in project:', project.name);
 

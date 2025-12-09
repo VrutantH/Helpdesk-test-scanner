@@ -16,11 +16,12 @@ pipelines:
                 npm ci &&
                 chmod +x node_modules/.bin/* &&
                 npm run build &&
-                sudo mkdir -p /var/www/helpdesk/frontend &&
                 sudo rm -rf /var/www/helpdesk/frontend/* &&
                 sudo cp -r dist/* /var/www/helpdesk/frontend/ &&
                 sudo chown -R www-data:www-data /var/www/helpdesk/frontend &&
-                echo "Frontend deployed successfully to /var/www/helpdesk/frontend"
+                sudo chmod -R 755 /var/www/helpdesk/frontend &&
+                sudo systemctl reload nginx &&
+                echo "Frontend deployed successfully!"
               '
 
     deploy-backend:
@@ -34,8 +35,14 @@ pipelines:
                 git checkout dev &&
                 git reset --hard origin/dev &&
                 git pull &&
-                npm install &&
+                npm ci &&
                 chmod +x node_modules/.bin/* &&
                 npm run build &&
-                pm2 restart Backend
+                sudo cp ../ecosystem.config.js /var/www/helpdesk/backend/ &&
+                sudo cp -r dist/* /var/www/helpdesk/backend/ &&
+                sudo chown -R ubuntu:ubuntu /var/www/helpdesk/backend &&
+                cd /var/www/helpdesk/backend &&
+                pm2 reload ecosystem.config.js || pm2 start ecosystem.config.js &&
+                pm2 save &&
+                echo "Backend deployed successfully!"
               '

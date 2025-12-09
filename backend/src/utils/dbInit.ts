@@ -34,7 +34,7 @@ export const initializeDatabase = async () => {
 
       console.log('✅ Default admin user created');
       console.log('📧 Email: admin@sac.com');
-      console.log('🔑 Password: Admin@123');
+      console.log('🔑 Default admin password created (not logged for security).');
     } else {
       console.log('✅ Admin user already exists');
     }

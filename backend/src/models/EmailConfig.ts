@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document } from 'mongoose';
+import { encrypt, decrypt, isEncrypted } from '../utils/encryption';
 
 export interface IEmailTrigger {
   name: string;
@@ -364,5 +365,53 @@ const emailConfigSchema = new Schema(
   },
   { timestamps: true }
 );
+
+// Pre-save hook to encrypt SMTP password
+emailConfigSchema.pre('save', function(next) {
+  // Check if smtpPassword is modified and not empty
+  if (this.isModified('smtpPassword') && this.smtpPassword) {
+    // Only encrypt if not already encrypted
+    if (!isEncrypted(this.smtpPassword)) {
+      try {
+        this.smtpPassword = encrypt(this.smtpPassword);
+        console.log('🔐 SMTP password encrypted before save');
+      } catch (error) {
+        console.error('Failed to encrypt SMTP password:', error);
+        return next(error as Error);
+      }
+    }
+  }
+  next();
+});
+
+// Virtual getter to decrypt password when accessed
+// Note: This adds a method, not replacing the field
+emailConfigSchema.methods.getDecryptedPassword = function(): string {
+  if (!this.smtpPassword) return '';
+  
+  try {
+    return decrypt(this.smtpPassword);
+  } catch (error) {
+    console.error('Failed to decrypt SMTP password:', error);
+    return '';
+  }
+};
+
+// Static method to get config with decrypted password
+emailConfigSchema.statics.findWithDecryptedPassword = async function(query: any) {
+  const config = await this.findOne(query);
+  if (config && config.smtpPassword) {
+    try {
+      // Create a copy with decrypted password for use
+      const decryptedConfig = config.toObject();
+      decryptedConfig.smtpPassword = decrypt(config.smtpPassword);
+      return decryptedConfig;
+    } catch (error) {
+      console.error('Failed to decrypt password in findWithDecryptedPassword:', error);
+      return config;
+    }
+  }
+  return config;
+};
 
 export default mongoose.model<IEmailConfig>('EmailConfig', emailConfigSchema);

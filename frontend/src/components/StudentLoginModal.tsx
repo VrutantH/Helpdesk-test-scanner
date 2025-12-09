@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { API_CONFIG } from '../config/constants';
+import { LanguageToggle } from './LanguageToggle';
 
 interface StudentLoginModalProps {
   isOpen: boolean;
@@ -11,7 +13,7 @@ interface StudentLoginModalProps {
   customUrlPath: string;
 }
 
-type Step = 'email' | 'otp' | 'password' | 'set-password';
+type Step = 'email' | 'otp' | 'password' | 'set-password' | 'password-success';
 
 export const StudentLoginModal: React.FC<StudentLoginModalProps> = ({
   isOpen,
@@ -20,6 +22,7 @@ export const StudentLoginModal: React.FC<StudentLoginModalProps> = ({
   customUrlPath,
 }) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [step, setStep] = useState<Step>('email');
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
@@ -137,21 +140,13 @@ export const StudentLoginModal: React.FC<StudentLoginModalProps> = ({
       const { token } = response.data.data;
       console.log('✅ Password set successfully, token received');
       
-      // Clear old token first
+      // Clear old token and permissions cache
       localStorage.removeItem('authToken');
+      localStorage.removeItem('userPermissions');
       
-      // Store new token
-      localStorage.setItem('authToken', token);
-      console.log('💾 Token stored in localStorage');
-      
-      // Close modal first
-      handleClose();
-      
-      // Navigate to student dashboard with a small delay to ensure token is stored
-      setTimeout(() => {
-        console.log('🚀 Navigating to dashboard');
-        navigate(`/${customUrlPath}/student/dashboard`);
-      }, 100);
+      // Show success message step
+      setStep('password-success');
+      setLoading(false);
     } catch (err: any) {
       console.error('❌ Set password failed:', err.response?.data || err.message);
       setError(err.response?.data?.message || 'Failed to set password. Please try again.');
@@ -175,8 +170,9 @@ export const StudentLoginModal: React.FC<StudentLoginModalProps> = ({
       const { token } = response.data.data;
       console.log('✅ Login successful, token received');
       
-      // Clear old token first
+      // Clear old token and permissions cache
       localStorage.removeItem('authToken');
+      localStorage.removeItem('userPermissions');
       
       // Store new token
       localStorage.setItem('authToken', token);
@@ -224,12 +220,16 @@ export const StudentLoginModal: React.FC<StudentLoginModalProps> = ({
           className="px-6 py-4 flex items-center justify-between"
           style={{ background: `linear-gradient(135deg, ${primaryColor} 0%, ${primaryColor}dd 100%)` }}
         >
-          <h2 className="text-xl font-bold text-white">
-            {step === 'email' && 'Student Login'}
-            {step === 'otp' && 'Verify OTP'}
-            {step === 'password' && 'Welcome Back!'}
-            {step === 'set-password' && 'Set Your Password'}
-          </h2>
+          <div className="flex-1">
+            <h2 className="text-xl font-bold text-white">
+              {step === 'email' && t('studentLogin')}
+              {step === 'otp' && t('verifyYourEmail')}
+              {step === 'password' && t('welcomeTitle')}
+              {step === 'set-password' && t('createYourPassword')}
+              {step === 'password-success' && t('passwordSetSuccessfully')}
+            </h2>
+          </div>
+          <LanguageToggle />
           <button
             onClick={handleClose}
             className="text-white/80 hover:text-white transition-colors"
@@ -249,6 +249,7 @@ export const StudentLoginModal: React.FC<StudentLoginModalProps> = ({
           {/* Step 1: Email Input */}
           {step === 'email' && (
             <form onSubmit={handleEmailSubmit}>
+              <p className="text-gray-600 text-sm mb-4">{t('enterEmailToLogin')}</p>
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Email Address
@@ -411,8 +412,45 @@ export const StudentLoginModal: React.FC<StudentLoginModalProps> = ({
             </form>
           )}
 
-          {/* Back Button (except on email step) */}
-          {step !== 'email' && (
+          {/* Step 4: Password Success */}
+          {step === 'password-success' && (
+            <div className="text-center">
+              <div className="mb-6">
+                <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                  <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  Password Set Successfully!
+                </h3>
+                <p className="text-gray-600">
+                  Your password has been created. Please login with your email and new password to access your account.
+                </p>
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <p className="text-sm text-blue-800">
+                  <strong>Email:</strong> {email}
+                </p>
+              </div>
+
+              <button
+                onClick={() => {
+                  handleClose();
+                  // Redirect to submit-ticket page where login modal will reopen
+                  window.location.href = `/${customUrlPath}/submit-ticket`;
+                }}
+                className="w-full py-3 rounded-lg text-white font-semibold transition-all duration-200 hover:shadow-lg"
+                style={{ backgroundColor: primaryColor }}
+              >
+                Go to Login Page
+              </button>
+            </div>
+          )}
+
+          {/* Back Button (except on email and success steps) */}
+          {step !== 'email' && step !== 'password-success' && (
             <button
               onClick={() => {
                 if (step === 'otp' || step === 'password') {

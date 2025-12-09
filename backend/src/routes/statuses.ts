@@ -1,6 +1,7 @@
 import express from 'express';
 import {
   getStatusesByProject,
+  getAllStatuses,
   createStatus,
   updateStatus,
   deleteStatus,
@@ -11,6 +12,9 @@ import { authMiddleware } from '../middleware/auth';
 import { checkPermission } from '../middleware/permissions';
 
 const router = express.Router();
+
+// Get all statuses (admin/debug endpoint)
+router.get('/all', authMiddleware, getAllStatuses);
 
 // Get all statuses for a project (agents need this to change ticket status)
 router.get('/project/:projectId', authMiddleware, checkPermission(['TICKET_VIEW_ALL', 'MASTER_DATA_VIEW', 'View Own Tickets', 'Change Ticket Status']), getStatusesByProject);

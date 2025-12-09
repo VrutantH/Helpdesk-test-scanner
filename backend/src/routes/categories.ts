@@ -1,6 +1,7 @@
 import express from 'express';
 import {
   getCategoriesByProject,
+  getAllCategories,
   createCategory,
   updateCategory,
   deleteCategory,
@@ -10,6 +11,9 @@ import { authMiddleware } from '../middleware/auth';
 import { requirePermission } from '../middleware/permissions';
 
 const router = express.Router();
+
+// Get all categories (admin/debug endpoint)
+router.get('/all', authMiddleware, getAllCategories);
 
 // Get all categories for a project
 router.get('/project/:projectId', getCategoriesByProject);

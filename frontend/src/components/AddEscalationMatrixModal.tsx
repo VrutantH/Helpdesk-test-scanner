@@ -121,23 +121,53 @@ export const AddEscalationMatrixModal: React.FC<AddEscalationMatrixModalProps> =
   const fetchRoles = async () => {
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch(`${API_CONFIG.API_URL}/rbac/roles`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-        credentials: 'include',
-      });
+      // Try master role list first, then fall back to other role endpoints
+      const endpoints = [
+        '/roles/master/list',
+        '/rbac/roles',
+        '/roles'
+      ];
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success && Array.isArray(data.data)) {
-          setRoles(data.data);
-        } else {
-          setRoles([]);
+      let rolesResult: any[] = [];
+
+      for (const ep of endpoints) {
+        try {
+          const res = await fetch(`${API_CONFIG.API_URL}${ep.startsWith('/') ? '' : '/'}${ep}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+            credentials: 'include',
+          });
+
+            if (!res.ok) continue;
+
+            const payload = await res.json();
+
+            // possible shapes: { success: true, data: [...] } or { data: { roles: [...] } } or [...]
+            let list: any[] = [];
+            if (payload) {
+              if (Array.isArray(payload.data)) list = payload.data;
+              else if (payload.data && Array.isArray(payload.data.roles)) list = payload.data.roles;
+              else if (Array.isArray(payload)) list = payload;
+            }
+
+            if (list.length > 0) {
+              rolesResult = list;
+              break;
+            }
+        } catch (innerErr) {
+          // try next endpoint
+          continue;
         }
-      } else {
-        setRoles([]);
       }
+
+      // Normalize role objects to {_id, name}
+      const normalized = rolesResult.map(r => ({
+        _id: r._id || r.id || r._id?.toString?.() || r.id?.toString?.(),
+        name: r.name || r.title || r.displayName || r.code || '',
+      })).filter(r => r._id && r.name);
+
+      setRoles(normalized);
     } catch (error) {
       console.error('Error fetching roles:', error);
       setRoles([]);

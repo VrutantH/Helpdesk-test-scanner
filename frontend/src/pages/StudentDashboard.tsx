@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import axios from 'axios';
+import DOMPurify from 'dompurify';
 import { API_CONFIG } from '../config/constants';
+import { PERMISSIONS } from '../constants/permissions';
+import { usePermissions } from '../hooks/usePermissions';
+import { LanguageToggle } from '../components/LanguageToggle';
 import {
   HomeIcon,
   TicketIcon,
@@ -21,6 +26,7 @@ import {
   HandThumbDownIcon,
   ArrowLeftIcon,
   PaperClipIcon,
+  EyeIcon,
 } from '@heroicons/react/24/outline';
 
 interface Ticket {
@@ -122,13 +128,21 @@ interface KBArticle {
 const StudentDashboard: React.FC = () => {
   const navigate = useNavigate();
   const { customUrlPath } = useParams();
+  const { hasPermission } = usePermissions();
+  const { t } = useTranslation();
   const [activeModule, setActiveModule] = useState<'dashboard' | 'submit-ticket' | 'find-center' | 'knowledge-base' | 'ticket-detail'>('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
-  const [projectBranding, setProjectBranding] = useState<any>(null);
+  
+  // Initialize projectBranding from sessionStorage immediately to prevent flickering
+  const [projectBranding, setProjectBranding] = useState<any>(() => {
+    const cachedBrandingKey = `branding_${customUrlPath}`;
+    const cachedData = sessionStorage.getItem(cachedBrandingKey);
+    return cachedData ? JSON.parse(cachedData) : null;
+  });
   
   // Ticket submission states
   const [ticketSettings, setTicketSettings] = useState<TicketSubmissionSettings | null>(null);
@@ -148,7 +162,7 @@ const StudentDashboard: React.FC = () => {
   const [kbCategories, setKbCategories] = useState<string[]>([]);
   const [kbSelectedCategory, setKbSelectedCategory] = useState<string>('all');
   const [kbSearchQuery, setKbSearchQuery] = useState('');
-  const [expandedArticles, setExpandedArticles] = useState<Set<string>>(new Set());
+  const [selectedKbArticle, setSelectedKbArticle] = useState<KBArticle | null>(null);
   const [articleVotes, setArticleVotes] = useState<Record<string, 'helpful' | 'not-helpful' | null>>({});
 
   // Ticket Detail states
@@ -217,38 +231,53 @@ const StudentDashboard: React.FC = () => {
         return;
       }
       
-      // Fetch project branding
-      const brandingRes = await axios.get(
-        `${API_CONFIG.API_URL}/projects/branding/${customUrlPath}`
-      );
-      const brandingData = brandingRes.data.success ? brandingRes.data.data : brandingRes.data;
+      // Try to get cached branding from sessionStorage first
+      const cachedBrandingKey = `branding_${customUrlPath}`;
+      const cachedBrandingData = sessionStorage.getItem(cachedBrandingKey);
       
-      // Parse colorTheme if it's a string
-      let colorTheme = brandingData.branding?.colorTheme;
-      if (typeof colorTheme === 'string') {
-        // Parse string like "@{primary=#49bc8f; secondary=#64748b; accent=#3b82f6; background=#ffffff}"
-        const parsed: any = {};
-        const matches = colorTheme.match(/(\w+)=#([a-zA-Z0-9]+)/g);
-        if (matches) {
-          matches.forEach((match: string) => {
-            const [key, value] = match.split('=');
-            parsed[key] = '#' + value;
-          });
-          colorTheme = parsed;
+      let branding;
+      if (cachedBrandingData) {
+        console.log('📦 Using cached branding data');
+        branding = JSON.parse(cachedBrandingData);
+        setProjectBranding(branding);
+      } else {
+        // Fetch project branding
+        console.log('🌐 Fetching branding data from API');
+        const brandingRes = await axios.get(
+          `${API_CONFIG.API_URL}/projects/branding/${customUrlPath}`
+        );
+        const brandingData = brandingRes.data.success ? brandingRes.data.data : brandingRes.data;
+        
+        // Parse colorTheme if it's a string
+        let colorTheme = brandingData.branding?.colorTheme;
+        if (typeof colorTheme === 'string') {
+          // Parse string like "@{primary=#49bc8f; secondary=#64748b; accent=#3b82f6; background=#ffffff}"
+          const parsed: any = {};
+          const matches = colorTheme.match(/(\w+)=#([a-zA-Z0-9]+)/g);
+          if (matches) {
+            matches.forEach((match: string) => {
+              const [key, value] = match.split('=');
+              parsed[key] = '#' + value;
+            });
+            colorTheme = parsed;
+          }
         }
+        
+        // Add parsed colors to branding
+        branding = {
+          ...brandingData,
+          branding: {
+            ...brandingData.branding,
+            colorTheme,
+          },
+          primaryColor: colorTheme?.primary || '#49bc8f',
+          secondaryColor: colorTheme?.secondary || '#64748b',
+        };
+        
+        // Cache the branding data
+        sessionStorage.setItem(cachedBrandingKey, JSON.stringify(branding));
+        setProjectBranding(branding);
       }
-      
-      // Add parsed colors to branding
-      const branding = {
-        ...brandingData,
-        branding: {
-          ...brandingData.branding,
-          colorTheme,
-        },
-        primaryColor: colorTheme?.primary || '#49bc8f',
-        secondaryColor: colorTheme?.secondary || '#64748b',
-      };
-      setProjectBranding(branding);
 
       // Fetch ticket settings for submit ticket and find center
       const settingsRes = await axios.get(
@@ -314,6 +343,8 @@ const StudentDashboard: React.FC = () => {
 
   const handleLogout = () => {
     localStorage.removeItem('authToken');
+    // Clear cached branding data on logout
+    sessionStorage.removeItem(`branding_${customUrlPath}`);
     navigate(`/${customUrlPath}/submit-ticket`);
   };
 
@@ -560,6 +591,26 @@ const StudentDashboard: React.FC = () => {
   };
 
   // Knowledge Base functions
+  const handleKbArticleClick = async (article: KBArticle) => {
+    setSelectedKbArticle(article);
+    
+    // Increment view count
+    try {
+      await axios.post(`${API_CONFIG.API_URL}/kb/${article._id}/view`);
+      
+      // Update local state
+      setKbArticles((prev) =>
+        prev.map((a) =>
+          a._id === article._id
+            ? { ...a, viewCount: a.viewCount + 1 }
+            : a
+        )
+      );
+    } catch (error) {
+      console.error('Error incrementing view count:', error);
+    }
+  };
+
   const handleKbFeedback = async (articleId: string, helpful: boolean) => {
     try {
       const currentVote = articleVotes[articleId];
@@ -584,6 +635,15 @@ const StudentDashboard: React.FC = () => {
               : article
           )
         );
+        
+        // Update selected article if it's the same
+        if (selectedKbArticle && selectedKbArticle._id === articleId) {
+          setSelectedKbArticle((prev) => prev ? {
+            ...prev,
+            helpfulCount: helpful ? Math.max(0, prev.helpfulCount - 1) : prev.helpfulCount,
+            notHelpfulCount: !helpful ? Math.max(0, prev.notHelpfulCount - 1) : prev.notHelpfulCount,
+          } : null);
+        }
         return;
       }
 
@@ -613,21 +673,18 @@ const StudentDashboard: React.FC = () => {
             : article
         )
       );
+      
+      // Update selected article if it's the same
+      if (selectedKbArticle && selectedKbArticle._id === articleId) {
+        setSelectedKbArticle((prev) => prev ? {
+          ...prev,
+          helpfulCount: helpful ? prev.helpfulCount + 1 : prev.helpfulCount,
+          notHelpfulCount: !helpful ? prev.notHelpfulCount + 1 : prev.notHelpfulCount,
+        } : null);
+      }
     } catch (error) {
       console.error('Error submitting KB feedback:', error);
     }
-  };
-
-  const toggleArticle = (articleId: string) => {
-    setExpandedArticles((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(articleId)) {
-        newSet.delete(articleId);
-      } else {
-        newSet.add(articleId);
-      }
-      return newSet;
-    });
   };
 
   const getFilteredKbArticles = () => {
@@ -815,6 +872,7 @@ const StudentDashboard: React.FC = () => {
 
           {/* Right: User Info */}
           <div className="flex items-center space-x-4">
+            <LanguageToggle />
             <div className="text-right hidden sm:block">
               <p className="text-white font-medium text-sm">
                 {user?.firstName} {user?.lastName}
@@ -826,7 +884,7 @@ const StudentDashboard: React.FC = () => {
               className="flex items-center space-x-2 px-3 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-white transition-colors"
             >
               <ArrowRightOnRectangleIcon className="h-5 w-5" />
-              <span className="hidden sm:inline">Logout</span>
+              <span className="hidden sm:inline">{t('logout')}</span>
             </button>
           </div>
         </div>
@@ -839,7 +897,7 @@ const StudentDashboard: React.FC = () => {
         } lg:translate-x-0`}
       >
         <nav className="p-4 space-y-2">
-          {/* Dashboard */}
+          {/* Dashboard - Always visible for logged-in users */}
           <button
             onClick={() => setActiveModule('dashboard')}
             className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
@@ -849,47 +907,55 @@ const StudentDashboard: React.FC = () => {
             }`}
           >
             <HomeIcon className="h-5 w-5" />
-            <span>Dashboard</span>
+            <span>{t('dashboard')}</span>
           </button>
 
-          {/* Submit Ticket */}
-          <button
-            onClick={() => setActiveModule('submit-ticket')}
-            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-              activeModule === 'submit-ticket'
-                ? 'bg-blue-50 text-blue-600 font-medium'
-                : 'text-gray-700 hover:bg-gray-50'
-            }`}
-          >
-            <TicketIcon className="h-5 w-5" />
-            <span>Submit Ticket</span>
-          </button>
+          {/* Submit Ticket - Requires TICKET_CREATE or TICKET_VIEW_OWN permission */}
+          {(hasPermission(PERMISSIONS.TICKET_CREATE) || 
+            hasPermission(PERMISSIONS.TICKET_VIEW_OWN) || 
+            hasPermission(PERMISSIONS.OFFLINE_TICKET_CREATE)) && (
+            <button
+              onClick={() => setActiveModule('submit-ticket')}
+              className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                activeModule === 'submit-ticket'
+                  ? 'bg-blue-50 text-blue-600 font-medium'
+                  : 'text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <TicketIcon className="h-5 w-5" />
+              <span>{t('submitTicket')}</span>
+            </button>
+          )}
 
-          {/* Find Center */}
-          <button
-            onClick={() => setActiveModule('find-center')}
-            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-              activeModule === 'find-center'
-                ? 'bg-blue-50 text-blue-600 font-medium'
-                : 'text-gray-700 hover:bg-gray-50'
-            }`}
-          >
-            <MapPinIcon className="h-5 w-5" />
-            <span>Find Center</span>
-          </button>
+          {/* Find Center - Requires OFFLINE_MODULE_ACCESS permission */}
+          {hasPermission(PERMISSIONS.OFFLINE_MODULE_ACCESS) && (
+            <button
+              onClick={() => setActiveModule('find-center')}
+              className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                activeModule === 'find-center'
+                  ? 'bg-blue-50 text-blue-600 font-medium'
+                  : 'text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <MapPinIcon className="h-5 w-5" />
+              <span>Find Center</span>
+            </button>
+          )}
 
-          {/* Knowledge Base */}
-          <button
-            onClick={() => setActiveModule('knowledge-base')}
-            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-              activeModule === 'knowledge-base'
-                ? 'bg-blue-50 text-blue-600 font-medium'
-                : 'text-gray-700 hover:bg-gray-50'
-            }`}
-          >
-            <BookOpenIcon className="h-5 w-5" />
-            <span>Knowledge Base</span>
-          </button>
+          {/* Knowledge Base - Requires KB_VIEW permission */}
+          {hasPermission(PERMISSIONS.KB_VIEW) && (
+            <button
+              onClick={() => setActiveModule('knowledge-base')}
+              className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                activeModule === 'knowledge-base'
+                  ? 'bg-blue-50 text-blue-600 font-medium'
+                  : 'text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <BookOpenIcon className="h-5 w-5" />
+              <span>Knowledge Base</span>
+            </button>
+          )}
         </nav>
       </aside>
 
@@ -901,18 +967,18 @@ const StudentDashboard: React.FC = () => {
       >
         <div className="p-6">
           {/* Dashboard Module */}
-          {activeModule === 'dashboard' && (
+          <div style={{ display: activeModule === 'dashboard' ? 'block' : 'none' }}>
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">My Tickets</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">{t('myTickets')}</h2>
               
               {tickets.length === 0 ? (
                 <div className="bg-white rounded-xl shadow-sm p-12 text-center">
                   <TicketIcon className="h-16 w-16 text-gray-300 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    No Tickets Yet
+                    {t('noTicketsYet')}
                   </h3>
                   <p className="text-gray-500 mb-6">
-                    You haven't submitted any tickets yet.
+                    {t('noTicketsMessage')}
                   </p>
                   <button
                     onClick={() => setActiveModule('submit-ticket')}
@@ -979,10 +1045,11 @@ const StudentDashboard: React.FC = () => {
                 </div>
               )}
             </div>
-          )}
+          </div>
 
           {/* Submit Ticket Module */}
-          {activeModule === 'submit-ticket' && ticketSettings && (
+          <div style={{ display: activeModule === 'submit-ticket' ? 'block' : 'none' }}>
+            {ticketSettings && (
             <div>
               <h2 className="text-2xl font-bold text-gray-900 mb-6">Submit New Ticket</h2>
               
@@ -1038,10 +1105,12 @@ const StudentDashboard: React.FC = () => {
                 </form>
               </div>
             </div>
-          )}
+            )}
+          </div>
 
           {/* Find Center Module */}
-          {activeModule === 'find-center' && ticketSettings && (
+          <div style={{ display: activeModule === 'find-center' ? 'block' : 'none' }}>
+            {ticketSettings && (
             <div>
               <h2 className="text-2xl font-bold text-gray-900 mb-6">Find Nearest Center</h2>
               
@@ -1201,10 +1270,11 @@ const StudentDashboard: React.FC = () => {
                 </div>
               </div>
             </div>
-          )}
+            )}
+          </div>
 
           {/* Knowledge Base Module */}
-          {activeModule === 'knowledge-base' && (
+          <div style={{ display: activeModule === 'knowledge-base' ? 'block' : 'none' }}>
             <div>
               <h2 className="text-2xl font-bold text-gray-900 mb-6">Knowledge Base</h2>
               
@@ -1241,103 +1311,126 @@ const StudentDashboard: React.FC = () => {
                 </div>
               </div>
 
-              {/* Articles */}
-              <div className="space-y-4">
-                {getFilteredKbArticles().length === 0 ? (
-                  <div className="bg-white rounded-xl shadow-sm p-12 text-center">
-                    <BookOpenIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500">
-                      {kbSearchQuery || kbSelectedCategory !== 'all'
-                        ? 'No articles found matching your search.'
-                        : 'No articles available yet.'}
-                    </p>
-                  </div>
-                ) : (
-                  getFilteredKbArticles().map((article) => (
-                    <div
-                      key={article._id}
-                      className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow"
-                    >
-                      {/* Article Header */}
-                      <button
-                        onClick={() => toggleArticle(article._id)}
-                        className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-gray-50 transition-colors rounded-t-xl"
-                      >
-                        <div className="flex-1">
-                          <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                            {article.title}
-                          </h3>
-                          <div className="flex items-center space-x-4 text-sm text-gray-500">
-                            {article.category && (
-                              <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded">
-                                {article.category}
-                              </span>
-                            )}
-                            <span>{article.viewCount} views</span>
-                          </div>
-                        </div>
-                        <div className="text-2xl font-bold text-gray-400">
-                          {expandedArticles.has(article._id) ? '−' : '+'}
-                        </div>
-                      </button>
-
-                      {/* Article Content (Expanded) */}
-                      {expandedArticles.has(article._id) && (
-                        <div className="px-6 pb-6 border-t border-gray-100">
-                          <div
-                            className="kb-content mt-4 prose max-w-none"
-                            dangerouslySetInnerHTML={{ __html: article.content }}
-                          />
-
-                          {/* Feedback */}
-                          <div className="mt-6 pt-4 border-t border-gray-200 flex items-center justify-between">
-                            <p className="text-sm text-gray-600">Was this helpful?</p>
-                            <div className="flex items-center space-x-2">
-                              <button
-                                onClick={() => handleKbFeedback(article._id, true)}
-                                className={`flex items-center space-x-1 px-3 py-1 text-sm rounded-lg transition-colors ${
-                                  articleVotes[article._id] === 'helpful'
-                                    ? 'bg-green-100 text-green-700 font-semibold'
-                                    : 'text-green-600 hover:bg-green-50'
-                                }`}
-                                title={
-                                  articleVotes[article._id] === 'helpful'
-                                    ? 'Click to remove your vote'
-                                    : 'Mark as helpful'
-                                }
-                              >
-                                <HandThumbUpIcon className="h-4 w-4" />
-                                <span>Yes ({article.helpfulCount})</span>
-                              </button>
-                              <button
-                                onClick={() => handleKbFeedback(article._id, false)}
-                                className={`flex items-center space-x-1 px-3 py-1 text-sm rounded-lg transition-colors ${
-                                  articleVotes[article._id] === 'not-helpful'
-                                    ? 'bg-red-100 text-red-700 font-semibold'
-                                    : 'text-red-600 hover:bg-red-50'
-                                }`}
-                                title={
-                                  articleVotes[article._id] === 'not-helpful'
-                                    ? 'Click to remove your vote'
-                                    : 'Mark as not helpful'
-                                }
-                              >
-                                <HandThumbDownIcon className="h-4 w-4" />
-                                <span>No ({article.notHelpfulCount})</span>
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      )}
+              {/* Articles Grid or Detail View */}
+              {!selectedKbArticle ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {getFilteredKbArticles().length === 0 ? (
+                    <div className="col-span-full bg-white rounded-xl shadow-sm p-12 text-center">
+                      <BookOpenIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-500">
+                        {kbSearchQuery || kbSelectedCategory !== 'all'
+                          ? 'No articles found matching your search.'
+                          : 'No articles available yet.'}
+                      </p>
                     </div>
-                  ))
-                )}
-              </div>
+                  ) : (
+                    getFilteredKbArticles().map((article) => (
+                      <div
+                        key={article._id}
+                        onClick={() => handleKbArticleClick(article)}
+                        className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-200 cursor-pointer hover:-translate-y-1 p-6 border border-gray-100"
+                      >
+                        <h3 className="text-lg font-semibold text-gray-900 mb-3 line-clamp-2">
+                          {article.title}
+                        </h3>
+
+                        {article.category && (
+                          <span className="inline-block px-3 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full mb-4">
+                            {article.category}
+                          </span>
+                        )}
+
+                        <div className="flex items-center space-x-4 text-sm text-gray-500 mt-4">
+                          <span className="flex items-center space-x-1">
+                            <EyeIcon className="h-4 w-4" />
+                            <span>{article.viewCount}</span>
+                          </span>
+                          <span className="flex items-center space-x-1">
+                            <HandThumbUpIcon className="h-4 w-4" />
+                            <span>{article.helpfulCount}</span>
+                          </span>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              ) : (
+                /* Article Detail View */
+                <div>
+                  <button
+                    onClick={() => setSelectedKbArticle(null)}
+                    className="mb-6 flex items-center space-x-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    <ArrowLeftIcon className="h-4 w-4" />
+                    <span>Back to Articles</span>
+                  </button>
+
+                  <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+                    <h1 className="text-3xl font-bold text-gray-900 mb-4">
+                      {selectedKbArticle.title}
+                    </h1>
+
+                    <div className="flex items-center space-x-6 text-sm text-gray-500 mb-6 pb-6 border-b border-gray-200">
+                      {selectedKbArticle.category && (
+                        <span className="inline-block px-3 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">
+                          {selectedKbArticle.category}
+                        </span>
+                      )}
+                      <span className="flex items-center space-x-1">
+                        <EyeIcon className="h-4 w-4" />
+                        <span>{selectedKbArticle.viewCount} views</span>
+                      </span>
+                      <span className="flex items-center space-x-1">
+                        <HandThumbUpIcon className="h-4 w-4" />
+                        <span>{selectedKbArticle.helpfulCount} helpful</span>
+                      </span>
+                    </div>
+
+                    <div
+                      className="prose prose-blue max-w-none mb-8 text-gray-700 leading-relaxed"
+                      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(selectedKbArticle.content) }}
+                    />
+
+                    {/* Feedback Section */}
+                    <div className="mt-8 pt-8 border-t border-gray-200">
+                      <p className="text-base font-semibold text-gray-900 mb-4">
+                        Was this article helpful?
+                      </p>
+                      <div className="flex items-center space-x-3">
+                        <button
+                          onClick={() => handleKbFeedback(selectedKbArticle._id, true)}
+                          className={`flex items-center space-x-2 px-6 py-3 text-sm font-medium rounded-lg transition-all ${
+                            articleVotes[selectedKbArticle._id] === 'helpful'
+                              ? 'bg-green-600 text-white shadow-lg'
+                              : 'bg-white text-green-600 border-2 border-green-600 hover:bg-green-50'
+                          }`}
+                          title={articleVotes[selectedKbArticle._id] === 'helpful' ? 'Click to remove your vote' : 'Mark as helpful'}
+                        >
+                          <HandThumbUpIcon className="h-5 w-5" />
+                          <span>Yes</span>
+                        </button>
+                        <button
+                          onClick={() => handleKbFeedback(selectedKbArticle._id, false)}
+                          className={`flex items-center space-x-2 px-6 py-3 text-sm font-medium rounded-lg transition-all ${
+                            articleVotes[selectedKbArticle._id] === 'not-helpful'
+                              ? 'bg-red-600 text-white shadow-lg'
+                              : 'bg-white text-red-600 border-2 border-red-600 hover:bg-red-50'
+                          }`}
+                          title={articleVotes[selectedKbArticle._id] === 'not-helpful' ? 'Click to remove your vote' : 'Mark as not helpful'}
+                        >
+                          <HandThumbDownIcon className="h-5 w-5" />
+                          <span>No</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
-          )}
+          </div>
 
           {/* Ticket Detail Module */}
-          {activeModule === 'ticket-detail' && (
+          <div style={{ display: activeModule === 'ticket-detail' ? 'block' : 'none' }}>
             <div className="space-y-6">
               {/* Header with Back Button */}
               <div className="flex items-center space-x-4">
@@ -1610,7 +1703,7 @@ const StudentDashboard: React.FC = () => {
                 </div>
               )}
             </div>
-          )}
+          </div>
         </div>
       </main>
 
