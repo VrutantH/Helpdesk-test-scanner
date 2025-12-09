@@ -21,6 +21,11 @@ export default defineConfig({
         changeOrigin: true,
       },
     },
+    hmr: {
+      host: 'localhost',
+      port: 3001,
+      protocol: 'ws',
+    },
   },
   resolve: {
     alias: {
