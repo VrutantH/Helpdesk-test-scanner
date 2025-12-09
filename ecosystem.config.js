@@ -1,4 +1,5 @@
 // PM2 configuration for production deployment
+// Environment variables are loaded from backend/.env file
 module.exports = {
   apps: [
     {
@@ -7,16 +8,7 @@ module.exports = {
       cwd: '/var/www/helpdesk/backend',
       instances: 1,
       exec_mode: 'fork',
-      env: {
-        NODE_ENV: 'production',
-        PORT: 3003,
-        FRONTEND_URL: 'https://helpdesk.hubblehox.ai',
-        MONGODB_URI: 'mongodb://helpdesk-dev:hELpDEsK-DeV2025@34.14.157.13:27017/sac_helpdesk?authSource=admin',
-        JWT_SECRET: 'your-super-secret-jwt-key-change-this-in-production',
-        SESSION_SECRET: 'your-session-secret-key-change-this',
-        MAX_FILE_SIZE: '10485760',
-        UPLOAD_PATH: '/var/www/helpdesk/backend/uploads'
-      },
+      env_file: '.env', // Load environment variables from .env file
       error_file: '~/.pm2/logs/helpdesk-backend-error.log',
       out_file: '~/.pm2/logs/helpdesk-backend-out.log',
       log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
@@ -27,6 +19,21 @@ module.exports = {
       restart_delay: 3000,
       max_restarts: 5,
       min_uptime: '10s'
+    },
+    {
+      name: 'helpdesk-frontend',
+      script: 'npx',
+      args: 'serve dist -l 3001 -s',
+      cwd: '/var/www/helpdesk/frontend',
+      instances: 1,
+      exec_mode: 'fork',
+      error_file: '~/.pm2/logs/helpdesk-frontend-error.log',
+      out_file: '~/.pm2/logs/helpdesk-frontend-out.log',
+      log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
+      merge_logs: true,
+      autorestart: true,
+      watch: false,
+      max_memory_restart: '300M'
     }
   ]
 };

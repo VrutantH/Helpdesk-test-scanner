@@ -25,9 +25,8 @@ export default defineConfig(({ mode }) => ({
       },
     } : {}),
     hmr: {
-      host: 'localhost',
-      port: 3001,
-      protocol: 'ws',
+      // Use current host for HMR to support both localhost and production domain
+      clientPort: 3001,
     },
   },
   resolve: {
