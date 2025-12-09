@@ -57,14 +57,15 @@ const httpServer = createServer(app);
 const PORT = process.env.PORT || 3003;
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
-// Get allowed origins from .env - parse comma-separated list
+// Get allowed origins from .env based on NODE_ENV
+// Code automatically selects LOCAL or PRODUCTION values
 const getAllowedOrigins = (): string[] => {
-  const allowedOriginsEnv = NODE_ENV === 'production' 
-    ? process.env.PRODUCTION_ALLOWED_ORIGINS 
-    : process.env.ALLOWED_ORIGINS;
+  const allowedOriginsEnv = NODE_ENV === 'production'
+    ? process.env.ALLOWED_ORIGINS_PRODUCTION
+    : process.env.ALLOWED_ORIGINS_LOCAL;
   
   if (!allowedOriginsEnv) {
-    console.warn('⚠️  No ALLOWED_ORIGINS or PRODUCTION_ALLOWED_ORIGINS in .env');
+    console.warn(`⚠️  ALLOWED_ORIGINS_${NODE_ENV.toUpperCase()} not set in .env`);
     return NODE_ENV === 'production' 
       ? ['https://helpdesk.hubblehox.ai']
       : ['http://localhost:3001', 'http://localhost:3000', 'http://localhost:3003'];

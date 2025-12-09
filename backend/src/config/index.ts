@@ -46,29 +46,33 @@ export const config = {
     refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '30d',
   },
   
-  // Database - Conditional based on environment
+  // Database - Conditional based on NODE_ENV only
   database: {
     localUri: process.env.MONGODB_LOCAL_URI || 'mongodb://localhost:27017/sac_helpdesk',
     productionUri: process.env.MONGODB_PRODUCTION_URI || 'mongodb://helpdesk-dev:hELpDEsK-DeV2025@34.14.157.13:27017/sac_helpdesk?authSource=admin',
   },
   
-  // CORS & URLs - All from .env
+  // CORS & URLs - Auto-selected based on NODE_ENV from .env
   cors: {
-    allowedOrigins: isProduction
-      ? (process.env.PRODUCTION_ALLOWED_ORIGINS || 'https://helpdesk.hubblehox.ai').split(',')
-      : (process.env.ALLOWED_ORIGINS || 'http://localhost:3001,http://localhost:3000').split(','),
+    allowedOrigins: (isProduction
+      ? process.env.ALLOWED_ORIGINS_PRODUCTION || 'https://helpdesk.hubblehox.ai'
+      : process.env.ALLOWED_ORIGINS_LOCAL || 'http://localhost:3001,http://localhost:3000'
+    ).split(',').map(o => o.trim()),
   },
   
   urls: {
     frontend: isProduction
-      ? process.env.PRODUCTION_FRONTEND_URL || 'https://helpdesk.hubblehox.ai'
-      : process.env.FRONTEND_URL || 'http://localhost:3001',
+      ? process.env.FRONTEND_URL_PRODUCTION || 'https://helpdesk.hubblehox.ai'
+      : process.env.FRONTEND_URL_LOCAL || 'http://localhost:3001',
     backend: isProduction
-      ? process.env.PRODUCTION_BACKEND_URL || 'https://api.helpdesk.hubblehox.ai'
-      : process.env.BACKEND_URL || 'http://localhost:3003',
+      ? process.env.BACKEND_URL_PRODUCTION || 'https://api.helpdesk.hubblehox.ai'
+      : process.env.BACKEND_URL_LOCAL || 'http://localhost:3003',
     api: isProduction
-      ? process.env.PRODUCTION_API_URL || 'https://api.helpdesk.hubblehox.ai/api'
-      : process.env.API_URL || 'http://localhost:3003/api',
+      ? process.env.API_URL_PRODUCTION || 'https://api.helpdesk.hubblehox.ai/api'
+      : process.env.API_URL_LOCAL || 'http://localhost:3003/api',
+    socketCors: isProduction
+      ? process.env.SOCKET_CORS_ORIGIN_PRODUCTION || 'https://helpdesk.hubblehox.ai'
+      : process.env.SOCKET_CORS_ORIGIN_LOCAL || 'http://localhost:3001',
   },
   
   // File Upload

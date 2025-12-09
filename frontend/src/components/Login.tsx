@@ -5,7 +5,6 @@ import * as yup from 'yup';
 import { useTranslation } from 'react-i18next';
 import DOMPurify from 'dompurify';
 import { API_CONFIG } from '../config/constants';
-import API_BASE_URL from '../config/api';
 import {
   EyeIcon, 
   EyeSlashIcon, 
@@ -64,7 +63,7 @@ const Login: React.FC = () => {
       try {
         // Get the current domain/project URL
         const hostname = window.location.hostname;
-        const response = await fetch(`${API_BASE_URL}/projects/by-domain/${hostname}`);
+        const response = await fetch(`${API_CONFIG.BASE_URL}/api/projects/by-domain/${hostname}`);
         if (response.ok) {
           const project = await response.json();
           

@@ -1,37 +1,26 @@
 import mongoose from 'mongoose';
 
 /**
- * Get MongoDB URI based on environment and domain
- * If running on production domain (helpdesk.hubblehox.ai), use production MongoDB
- * Otherwise use local MongoDB for development
+ * Get MongoDB URI based on NODE_ENV
+ * If NODE_ENV=production -> use MONGODB_PRODUCTION_URI
+ * Otherwise -> use MONGODB_LOCAL_URI
  */
 const getMongoDBUri = (): string => {
   const isProduction = process.env.NODE_ENV === 'production';
-  const productionDomain = 'helpdesk.hubblehox.ai';
   
-  // Check if any environment variable points to production domain
-  const isProductionDomain = 
-    process.env.PRODUCTION_FRONTEND_URL?.includes(productionDomain) ||
-    process.env.PRODUCTION_BACKEND_URL?.includes(productionDomain) ||
-    process.env.PRODUCTION_API_URL?.includes(productionDomain);
-  
-  // Use production MongoDB if:
-  // 1. NODE_ENV is 'production' OR
-  // 2. Domain is production domain
-  if (isProduction || isProductionDomain) {
+  if (isProduction) {
     const uri = process.env.MONGODB_PRODUCTION_URI;
     if (!uri) {
       console.error('❌ MONGODB_PRODUCTION_URI is not set in .env');
-      console.error('Production domain detected but no production MongoDB configured');
       throw new Error('MONGODB_PRODUCTION_URI must be set for production deployments');
     }
-    console.log('🔐 Using PRODUCTION MongoDB');
+    console.log('🔐 Using PRODUCTION MongoDB (from MONGODB_PRODUCTION_URI)');
     return uri;
   }
   
   // Development MongoDB
   const uri = process.env.MONGODB_LOCAL_URI || 'mongodb://localhost:27017/sac_helpdesk';
-  console.log('💾 Using LOCAL development MongoDB');
+  console.log('💾 Using LOCAL development MongoDB (from MONGODB_LOCAL_URI)');
   return uri;
 };
 
