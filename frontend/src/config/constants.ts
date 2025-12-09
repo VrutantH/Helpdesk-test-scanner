@@ -62,10 +62,14 @@ const getWsUrl = (): string => {
 const API_BASE_URL = getApiUrl();
 const WS_URL = getWsUrl();
 
-// Log which URL is being used
-console.log(`🌐 Detected hostname: ${window.location.hostname}`);
-console.log(`🔗 Using API URL: ${API_BASE_URL}`);
-console.log(`📡 Using WebSocket URL: ${WS_URL}`);
+// Log which URL is being used - DETAILED
+console.log('╔════════════════════════════════════════════════════════════╗');
+console.log('║         ENVIRONMENT AUTO-DETECTION RESULTS                 ║');
+console.log('╠════════════════════════════════════════════════════════════╣');
+console.log(`║ 🌐 Hostname: ${window.location.hostname.padEnd(43)}║`);
+console.log(`║ 🔗 API URL:  ${API_BASE_URL.padEnd(43)}║`);
+console.log(`║ 📡 WS URL:   ${WS_URL.padEnd(43)}║`);
+console.log('╚════════════════════════════════════════════════════════════╝');
 
 /**
  * API Configuration
