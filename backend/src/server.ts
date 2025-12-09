@@ -57,24 +57,39 @@ const httpServer = createServer(app);
 const PORT = process.env.PORT || 3003;
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
-// Get allowed origins from .env based on NODE_ENV
-// Code automatically selects LOCAL or PRODUCTION values
+// Get allowed origins from .env - Supports both old and new format
+// Old format: FRONTEND_URL, PRODUCTION_FRONTEND_URL
+// New format: ALLOWED_ORIGINS_LOCAL, ALLOWED_ORIGINS_PRODUCTION
 const getAllowedOrigins = (): string[] => {
-  const allowedOriginsEnv = NODE_ENV === 'production'
+  const isProduction = NODE_ENV === 'production';
+  
+  // Try new format first
+  const newFormatOrigins = isProduction
     ? process.env.ALLOWED_ORIGINS_PRODUCTION
     : process.env.ALLOWED_ORIGINS_LOCAL;
   
-  if (!allowedOriginsEnv) {
-    console.warn(`⚠️  ALLOWED_ORIGINS_${NODE_ENV.toUpperCase()} not set in .env`);
-    return NODE_ENV === 'production' 
-      ? ['https://helpdesk.hubblehox.ai']
-      : ['http://localhost:3001', 'http://localhost:3000', 'http://localhost:3003'];
+  if (newFormatOrigins) {
+    return newFormatOrigins
+      .split(',')
+      .map(origin => origin.trim())
+      .filter(Boolean);
   }
   
-  return allowedOriginsEnv
-    .split(',')
-    .map(origin => origin.trim())
-    .filter(Boolean);
+  // Fallback to old format (FRONTEND_URL / PRODUCTION_FRONTEND_URL)
+  const oldFormatUrl = isProduction
+    ? process.env.PRODUCTION_FRONTEND_URL
+    : process.env.FRONTEND_URL;
+  
+  if (oldFormatUrl) {
+    console.log(`📍 Using ${isProduction ? 'PRODUCTION_FRONTEND_URL' : 'FRONTEND_URL'} for CORS`);
+    return [oldFormatUrl];
+  }
+  
+  // Final fallback
+  console.warn(`⚠️  No CORS origins configured in .env`);
+  return isProduction 
+    ? ['https://helpdesk.hubblehox.ai']
+    : ['http://localhost:3001', 'http://localhost:3000', 'http://localhost:3003'];
 };
 
 const allowedOrigins = getAllowedOrigins();
