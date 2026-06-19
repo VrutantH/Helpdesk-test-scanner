@@ -1,0 +1,891 @@
+<html>
+<head>
+<title>TestNG:  Surefire test</title>
+<link href="../testng.css" rel="stylesheet" type="text/css" />
+<link href="../my-testng.css" rel="stylesheet" type="text/css" />
+
+<style type="text/css">
+.log { display: none;} 
+.stack-trace { display: none;} 
+</style>
+<script type="text/javascript">
+<!--
+function flip(e) {
+  current = e.style.display;
+  if (current == 'block') {
+    e.style.display = 'none';
+    return 0;
+  }
+  else {
+    e.style.display = 'block';
+    return 1;
+  }
+}
+
+function toggleBox(szDivId, elem, msg1, msg2)
+{
+  var res = -1;  if (document.getElementById) {
+    res = flip(document.getElementById(szDivId));
+  }
+  else if (document.all) {
+    // this is the way old msie versions work
+    res = flip(document.all[szDivId]);
+  }
+  if(elem) {
+    if(res == 0) elem.innerHTML = msg1; else elem.innerHTML = msg2;
+  }
+
+}
+
+function toggleAllBoxes() {
+  if (document.getElementsByTagName) {
+    d = document.getElementsByTagName('div');
+    for (i = 0; i < d.length; i++) {
+      if (d[i].className == 'log') {
+        flip(d[i]);
+      }
+    }
+  }
+}
+
+// -->
+</script>
+
+</head>
+<body>
+<h2 align='center'>Surefire test</h2><table border='1' align="center">
+<tr>
+<td>Tests passed/Failed/Skipped:</td><td>72/8/0</td>
+</tr><tr>
+<td>Started on:</td><td>Tue Jun 09 18:24:35 IST 2026</td>
+</tr>
+<tr><td>Total time:</td><td>521 seconds (521196 ms)</td>
+</tr><tr>
+<td>Included groups:</td><td></td>
+</tr><tr>
+<td>Excluded groups:</td><td></td>
+</tr>
+</table><p/>
+<small><i>(Hover the method name to see the test class name)</i></small><p/>
+<table width='100%' border='1' class='invocation-failed'>
+<tr><td colspan='4' align='center'><b>FAILED TESTS</b></td></tr>
+<tr><td><b>Test method</b></td>
+<td><b>Attribute(s)</b></td>
+<td width="30%"><b>Exception</b></td>
+<td width="10%"><b>Time (seconds)</b></td>
+<td><b>Instance</b></td>
+</tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_26()'><b>TC_QC_26</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td><div><pre>org.openqa.selenium.TimeoutException: Expected condition failed: waiting for element to be clickable: By.xpath: //button[normalize-space()=&apos;Ticket Categories&apos;] (tried for 20 second(s) with 500 milliseconds interval)
+Build info: version: &apos;4.18.1&apos;, revision: &apos;b1d3319b48&apos;
+System info: os.name: &apos;Windows 11&apos;, os.arch: &apos;amd64&apos;, os.version: &apos;10.0&apos;, java.version: &apos;25.0.2&apos;
+Driver info: org.openqa.selenium.chrome.ChromeDriver
+Capabilities {acceptInsecureCerts: false, browserName: chrome, browserVersion: 148.0.7778.217, chrome: {chromedriverVersion: 148.0.7778.178 (d096af1c9e9..., userDataDir: C:\Users\NIKHIL~1.CHA\AppDa...}, fedcm:accounts: true, goog:chromeOptions: {debuggerAddress: localhost:59604}, goog:processID: 30220, networkConnectionEnabled: false, pageLoadStrategy: normal, platformName: windows, proxy: Proxy(), se:cdp: ws://localhost:59604/devtoo..., se:cdpVersion: 148.0.7778.217, setWindowRect: true, strictFileInteractability: false, timeouts: {implicit: 0, pageLoad: 300000, script: 30000}, unhandledPromptBehavior: dismiss and notify, webauthn:extension:credBlob: true, webauthn:extension:largeBlob: true, webauthn:extension:minPinLength: true, webauthn:extension:prf: true, webauthn:virtualAuthenticators: true}
+Session ID: afcc90e78edff6c1fd855097548ff004
+	at org.openqa.selenium.support.ui.WebDriverWait.timeoutException(WebDriverWait.java:84)
+	at org.openqa.selenium.support.ui.FluentWait.until(FluentWait.java:228)
+	at com.hubblehox.automation.pages.TicketConfigPage.clickTab(TicketConfigPage.java:130)
+	at com.hubblehox.automation.tests.TicketConfigTest.TC_QC_26(TicketConfigTest.java:288)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+... Removed 30 stack frames</pre></div><a href='#' onClick='toggleBox("stack-trace1991443937", this, "Click to show all stack frames", "Click to hide stack frames")'>Click to show all stack frames</a>
+<div class='stack-trace' id='stack-trace1991443937'><pre>org.openqa.selenium.TimeoutException: Expected condition failed: waiting for element to be clickable: By.xpath: //button[normalize-space()=&apos;Ticket Categories&apos;] (tried for 20 second(s) with 500 milliseconds interval)
+Build info: version: &apos;4.18.1&apos;, revision: &apos;b1d3319b48&apos;
+System info: os.name: &apos;Windows 11&apos;, os.arch: &apos;amd64&apos;, os.version: &apos;10.0&apos;, java.version: &apos;25.0.2&apos;
+Driver info: org.openqa.selenium.chrome.ChromeDriver
+Capabilities {acceptInsecureCerts: false, browserName: chrome, browserVersion: 148.0.7778.217, chrome: {chromedriverVersion: 148.0.7778.178 (d096af1c9e9..., userDataDir: C:\Users\NIKHIL~1.CHA\AppDa...}, fedcm:accounts: true, goog:chromeOptions: {debuggerAddress: localhost:59604}, goog:processID: 30220, networkConnectionEnabled: false, pageLoadStrategy: normal, platformName: windows, proxy: Proxy(), se:cdp: ws://localhost:59604/devtoo..., se:cdpVersion: 148.0.7778.217, setWindowRect: true, strictFileInteractability: false, timeouts: {implicit: 0, pageLoad: 300000, script: 30000}, unhandledPromptBehavior: dismiss and notify, webauthn:extension:credBlob: true, webauthn:extension:largeBlob: true, webauthn:extension:minPinLength: true, webauthn:extension:prf: true, webauthn:virtualAuthenticators: true}
+Session ID: afcc90e78edff6c1fd855097548ff004
+	at org.openqa.selenium.support.ui.WebDriverWait.timeoutException(WebDriverWait.java:84)
+	at org.openqa.selenium.support.ui.FluentWait.until(FluentWait.java:228)
+	at com.hubblehox.automation.pages.TicketConfigPage.clickTab(TicketConfigPage.java:130)
+	at com.hubblehox.automation.tests.TicketConfigTest.TC_QC_26(TicketConfigTest.java:288)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at org.testng.internal.invokers.MethodInvocationHelper.invokeMethod(MethodInvocationHelper.java:139)
+	at org.testng.internal.invokers.TestInvoker.invokeMethod(TestInvoker.java:664)
+	at org.testng.internal.invokers.TestInvoker.invokeTestMethod(TestInvoker.java:228)
+	at org.testng.internal.invokers.MethodRunner.runInSequence(MethodRunner.java:63)
+	at org.testng.internal.invokers.TestInvoker$MethodInvocationAgent.invoke(TestInvoker.java:961)
+	at org.testng.internal.invokers.TestInvoker.invokeTestMethods(TestInvoker.java:201)
+	at org.testng.internal.invokers.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:148)
+	at org.testng.internal.invokers.TestMethodWorker.run(TestMethodWorker.java:128)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+	at org.testng.TestRunner.privateRun(TestRunner.java:819)
+	at org.testng.TestRunner.run(TestRunner.java:619)
+	at org.testng.SuiteRunner.runTest(SuiteRunner.java:443)
+	at org.testng.SuiteRunner.runSequentially(SuiteRunner.java:437)
+	at org.testng.SuiteRunner.privateRun(SuiteRunner.java:397)
+	at org.testng.SuiteRunner.run(SuiteRunner.java:336)
+	at org.testng.SuiteRunnerWorker.runSuite(SuiteRunnerWorker.java:52)
+	at org.testng.SuiteRunnerWorker.run(SuiteRunnerWorker.java:95)
+	at org.testng.TestNG.runSuitesSequentially(TestNG.java:1301)
+	at org.testng.TestNG.runSuitesLocally(TestNG.java:1228)
+	at org.testng.TestNG.runSuites(TestNG.java:1134)
+	at org.testng.TestNG.run(TestNG.java:1101)
+	at org.apache.maven.surefire.testng.TestNGExecutor.run(TestNGExecutor.java:155)
+	at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.executeSingleClass(TestNGDirectoryTestSuite.java:102)
+	at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.execute(TestNGDirectoryTestSuite.java:91)
+	at org.apache.maven.surefire.testng.TestNGProvider.invoke(TestNGProvider.java:137)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+</pre></div></td>
+<td>20</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_31()'><b>TC_QC_31</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td><div><pre>org.openqa.selenium.TimeoutException: Expected condition failed: waiting for element to be clickable: By.xpath: //button[normalize-space()=&apos;Save&apos;] (tried for 20 second(s) with 500 milliseconds interval)
+Build info: version: &apos;4.18.1&apos;, revision: &apos;b1d3319b48&apos;
+System info: os.name: &apos;Windows 11&apos;, os.arch: &apos;amd64&apos;, os.version: &apos;10.0&apos;, java.version: &apos;25.0.2&apos;
+Driver info: org.openqa.selenium.chrome.ChromeDriver
+Capabilities {acceptInsecureCerts: false, browserName: chrome, browserVersion: 148.0.7778.217, chrome: {chromedriverVersion: 148.0.7778.178 (d096af1c9e9..., userDataDir: C:\Users\NIKHIL~1.CHA\AppDa...}, fedcm:accounts: true, goog:chromeOptions: {debuggerAddress: localhost:59604}, goog:processID: 30220, networkConnectionEnabled: false, pageLoadStrategy: normal, platformName: windows, proxy: Proxy(), se:cdp: ws://localhost:59604/devtoo..., se:cdpVersion: 148.0.7778.217, setWindowRect: true, strictFileInteractability: false, timeouts: {implicit: 0, pageLoad: 300000, script: 30000}, unhandledPromptBehavior: dismiss and notify, webauthn:extension:credBlob: true, webauthn:extension:largeBlob: true, webauthn:extension:minPinLength: true, webauthn:extension:prf: true, webauthn:virtualAuthenticators: true}
+Session ID: afcc90e78edff6c1fd855097548ff004
+	at org.openqa.selenium.support.ui.WebDriverWait.timeoutException(WebDriverWait.java:84)
+	at org.openqa.selenium.support.ui.FluentWait.until(FluentWait.java:228)
+	at com.hubblehox.automation.pages.TicketConfigPage.clickModalSave(TicketConfigPage.java:225)
+	at com.hubblehox.automation.tests.TicketConfigTest.TC_QC_31(TicketConfigTest.java:325)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+... Removed 30 stack frames</pre></div><a href='#' onClick='toggleBox("stack-trace1296761246", this, "Click to show all stack frames", "Click to hide stack frames")'>Click to show all stack frames</a>
+<div class='stack-trace' id='stack-trace1296761246'><pre>org.openqa.selenium.TimeoutException: Expected condition failed: waiting for element to be clickable: By.xpath: //button[normalize-space()=&apos;Save&apos;] (tried for 20 second(s) with 500 milliseconds interval)
+Build info: version: &apos;4.18.1&apos;, revision: &apos;b1d3319b48&apos;
+System info: os.name: &apos;Windows 11&apos;, os.arch: &apos;amd64&apos;, os.version: &apos;10.0&apos;, java.version: &apos;25.0.2&apos;
+Driver info: org.openqa.selenium.chrome.ChromeDriver
+Capabilities {acceptInsecureCerts: false, browserName: chrome, browserVersion: 148.0.7778.217, chrome: {chromedriverVersion: 148.0.7778.178 (d096af1c9e9..., userDataDir: C:\Users\NIKHIL~1.CHA\AppDa...}, fedcm:accounts: true, goog:chromeOptions: {debuggerAddress: localhost:59604}, goog:processID: 30220, networkConnectionEnabled: false, pageLoadStrategy: normal, platformName: windows, proxy: Proxy(), se:cdp: ws://localhost:59604/devtoo..., se:cdpVersion: 148.0.7778.217, setWindowRect: true, strictFileInteractability: false, timeouts: {implicit: 0, pageLoad: 300000, script: 30000}, unhandledPromptBehavior: dismiss and notify, webauthn:extension:credBlob: true, webauthn:extension:largeBlob: true, webauthn:extension:minPinLength: true, webauthn:extension:prf: true, webauthn:virtualAuthenticators: true}
+Session ID: afcc90e78edff6c1fd855097548ff004
+	at org.openqa.selenium.support.ui.WebDriverWait.timeoutException(WebDriverWait.java:84)
+	at org.openqa.selenium.support.ui.FluentWait.until(FluentWait.java:228)
+	at com.hubblehox.automation.pages.TicketConfigPage.clickModalSave(TicketConfigPage.java:225)
+	at com.hubblehox.automation.tests.TicketConfigTest.TC_QC_31(TicketConfigTest.java:325)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at org.testng.internal.invokers.MethodInvocationHelper.invokeMethod(MethodInvocationHelper.java:139)
+	at org.testng.internal.invokers.TestInvoker.invokeMethod(TestInvoker.java:664)
+	at org.testng.internal.invokers.TestInvoker.invokeTestMethod(TestInvoker.java:228)
+	at org.testng.internal.invokers.MethodRunner.runInSequence(MethodRunner.java:63)
+	at org.testng.internal.invokers.TestInvoker$MethodInvocationAgent.invoke(TestInvoker.java:961)
+	at org.testng.internal.invokers.TestInvoker.invokeTestMethods(TestInvoker.java:201)
+	at org.testng.internal.invokers.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:148)
+	at org.testng.internal.invokers.TestMethodWorker.run(TestMethodWorker.java:128)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+	at org.testng.TestRunner.privateRun(TestRunner.java:819)
+	at org.testng.TestRunner.run(TestRunner.java:619)
+	at org.testng.SuiteRunner.runTest(SuiteRunner.java:443)
+	at org.testng.SuiteRunner.runSequentially(SuiteRunner.java:437)
+	at org.testng.SuiteRunner.privateRun(SuiteRunner.java:397)
+	at org.testng.SuiteRunner.run(SuiteRunner.java:336)
+	at org.testng.SuiteRunnerWorker.runSuite(SuiteRunnerWorker.java:52)
+	at org.testng.SuiteRunnerWorker.run(SuiteRunnerWorker.java:95)
+	at org.testng.TestNG.runSuitesSequentially(TestNG.java:1301)
+	at org.testng.TestNG.runSuitesLocally(TestNG.java:1228)
+	at org.testng.TestNG.runSuites(TestNG.java:1134)
+	at org.testng.TestNG.run(TestNG.java:1101)
+	at org.apache.maven.surefire.testng.TestNGExecutor.run(TestNGExecutor.java:155)
+	at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.executeSingleClass(TestNGDirectoryTestSuite.java:102)
+	at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.execute(TestNGDirectoryTestSuite.java:91)
+	at org.apache.maven.surefire.testng.TestNGProvider.invoke(TestNGProvider.java:137)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+</pre></div></td>
+<td>41</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_37()'><b>TC_QC_37</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td><div><pre>org.openqa.selenium.TimeoutException: Expected condition failed: waiting for element to be clickable: By.xpath: //button[contains(normalize-space(),&apos;+ Add Field&apos;)] (tried for 20 second(s) with 500 milliseconds interval)
+Build info: version: &apos;4.18.1&apos;, revision: &apos;b1d3319b48&apos;
+System info: os.name: &apos;Windows 11&apos;, os.arch: &apos;amd64&apos;, os.version: &apos;10.0&apos;, java.version: &apos;25.0.2&apos;
+Driver info: org.openqa.selenium.chrome.ChromeDriver
+Capabilities {acceptInsecureCerts: false, browserName: chrome, browserVersion: 148.0.7778.217, chrome: {chromedriverVersion: 148.0.7778.178 (d096af1c9e9..., userDataDir: C:\Users\NIKHIL~1.CHA\AppDa...}, fedcm:accounts: true, goog:chromeOptions: {debuggerAddress: localhost:59604}, goog:processID: 30220, networkConnectionEnabled: false, pageLoadStrategy: normal, platformName: windows, proxy: Proxy(), se:cdp: ws://localhost:59604/devtoo..., se:cdpVersion: 148.0.7778.217, setWindowRect: true, strictFileInteractability: false, timeouts: {implicit: 0, pageLoad: 300000, script: 30000}, unhandledPromptBehavior: dismiss and notify, webauthn:extension:credBlob: true, webauthn:extension:largeBlob: true, webauthn:extension:minPinLength: true, webauthn:extension:prf: true, webauthn:virtualAuthenticators: true}
+Session ID: afcc90e78edff6c1fd855097548ff004
+	at org.openqa.selenium.support.ui.WebDriverWait.timeoutException(WebDriverWait.java:84)
+	at org.openqa.selenium.support.ui.FluentWait.until(FluentWait.java:228)
+	at com.hubblehox.automation.pages.TicketConfigPage.clickAddField(TicketConfigPage.java:261)
+	at com.hubblehox.automation.tests.TicketConfigTest.TC_QC_37(TicketConfigTest.java:367)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+... Removed 30 stack frames</pre></div><a href='#' onClick='toggleBox("stack-trace350475321", this, "Click to show all stack frames", "Click to hide stack frames")'>Click to show all stack frames</a>
+<div class='stack-trace' id='stack-trace350475321'><pre>org.openqa.selenium.TimeoutException: Expected condition failed: waiting for element to be clickable: By.xpath: //button[contains(normalize-space(),&apos;+ Add Field&apos;)] (tried for 20 second(s) with 500 milliseconds interval)
+Build info: version: &apos;4.18.1&apos;, revision: &apos;b1d3319b48&apos;
+System info: os.name: &apos;Windows 11&apos;, os.arch: &apos;amd64&apos;, os.version: &apos;10.0&apos;, java.version: &apos;25.0.2&apos;
+Driver info: org.openqa.selenium.chrome.ChromeDriver
+Capabilities {acceptInsecureCerts: false, browserName: chrome, browserVersion: 148.0.7778.217, chrome: {chromedriverVersion: 148.0.7778.178 (d096af1c9e9..., userDataDir: C:\Users\NIKHIL~1.CHA\AppDa...}, fedcm:accounts: true, goog:chromeOptions: {debuggerAddress: localhost:59604}, goog:processID: 30220, networkConnectionEnabled: false, pageLoadStrategy: normal, platformName: windows, proxy: Proxy(), se:cdp: ws://localhost:59604/devtoo..., se:cdpVersion: 148.0.7778.217, setWindowRect: true, strictFileInteractability: false, timeouts: {implicit: 0, pageLoad: 300000, script: 30000}, unhandledPromptBehavior: dismiss and notify, webauthn:extension:credBlob: true, webauthn:extension:largeBlob: true, webauthn:extension:minPinLength: true, webauthn:extension:prf: true, webauthn:virtualAuthenticators: true}
+Session ID: afcc90e78edff6c1fd855097548ff004
+	at org.openqa.selenium.support.ui.WebDriverWait.timeoutException(WebDriverWait.java:84)
+	at org.openqa.selenium.support.ui.FluentWait.until(FluentWait.java:228)
+	at com.hubblehox.automation.pages.TicketConfigPage.clickAddField(TicketConfigPage.java:261)
+	at com.hubblehox.automation.tests.TicketConfigTest.TC_QC_37(TicketConfigTest.java:367)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at org.testng.internal.invokers.MethodInvocationHelper.invokeMethod(MethodInvocationHelper.java:139)
+	at org.testng.internal.invokers.TestInvoker.invokeMethod(TestInvoker.java:664)
+	at org.testng.internal.invokers.TestInvoker.invokeTestMethod(TestInvoker.java:228)
+	at org.testng.internal.invokers.MethodRunner.runInSequence(MethodRunner.java:63)
+	at org.testng.internal.invokers.TestInvoker$MethodInvocationAgent.invoke(TestInvoker.java:961)
+	at org.testng.internal.invokers.TestInvoker.invokeTestMethods(TestInvoker.java:201)
+	at org.testng.internal.invokers.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:148)
+	at org.testng.internal.invokers.TestMethodWorker.run(TestMethodWorker.java:128)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+	at org.testng.TestRunner.privateRun(TestRunner.java:819)
+	at org.testng.TestRunner.run(TestRunner.java:619)
+	at org.testng.SuiteRunner.runTest(SuiteRunner.java:443)
+	at org.testng.SuiteRunner.runSequentially(SuiteRunner.java:437)
+	at org.testng.SuiteRunner.privateRun(SuiteRunner.java:397)
+	at org.testng.SuiteRunner.run(SuiteRunner.java:336)
+	at org.testng.SuiteRunnerWorker.runSuite(SuiteRunnerWorker.java:52)
+	at org.testng.SuiteRunnerWorker.run(SuiteRunnerWorker.java:95)
+	at org.testng.TestNG.runSuitesSequentially(TestNG.java:1301)
+	at org.testng.TestNG.runSuitesLocally(TestNG.java:1228)
+	at org.testng.TestNG.runSuites(TestNG.java:1134)
+	at org.testng.TestNG.run(TestNG.java:1101)
+	at org.apache.maven.surefire.testng.TestNGExecutor.run(TestNGExecutor.java:155)
+	at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.executeSingleClass(TestNGDirectoryTestSuite.java:102)
+	at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.execute(TestNGDirectoryTestSuite.java:91)
+	at org.apache.maven.surefire.testng.TestNGProvider.invoke(TestNGProvider.java:137)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+</pre></div></td>
+<td>20</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_27()'><b>TC_QC_27</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td><div><pre>org.openqa.selenium.TimeoutException: Expected condition failed: waiting for element to be clickable: By.xpath: //button[contains(normalize-space(),&apos;Add Category&apos;)] (tried for 20 second(s) with 500 milliseconds interval)
+Build info: version: &apos;4.18.1&apos;, revision: &apos;b1d3319b48&apos;
+System info: os.name: &apos;Windows 11&apos;, os.arch: &apos;amd64&apos;, os.version: &apos;10.0&apos;, java.version: &apos;25.0.2&apos;
+Driver info: org.openqa.selenium.chrome.ChromeDriver
+Capabilities {acceptInsecureCerts: false, browserName: chrome, browserVersion: 148.0.7778.217, chrome: {chromedriverVersion: 148.0.7778.178 (d096af1c9e9..., userDataDir: C:\Users\NIKHIL~1.CHA\AppDa...}, fedcm:accounts: true, goog:chromeOptions: {debuggerAddress: localhost:59604}, goog:processID: 30220, networkConnectionEnabled: false, pageLoadStrategy: normal, platformName: windows, proxy: Proxy(), se:cdp: ws://localhost:59604/devtoo..., se:cdpVersion: 148.0.7778.217, setWindowRect: true, strictFileInteractability: false, timeouts: {implicit: 0, pageLoad: 300000, script: 30000}, unhandledPromptBehavior: dismiss and notify, webauthn:extension:credBlob: true, webauthn:extension:largeBlob: true, webauthn:extension:minPinLength: true, webauthn:extension:prf: true, webauthn:virtualAuthenticators: true}
+Session ID: afcc90e78edff6c1fd855097548ff004
+	at org.openqa.selenium.support.ui.WebDriverWait.timeoutException(WebDriverWait.java:84)
+	at org.openqa.selenium.support.ui.FluentWait.until(FluentWait.java:228)
+	at com.hubblehox.automation.pages.TicketConfigPage.clickAddCategory(TicketConfigPage.java:233)
+	at com.hubblehox.automation.tests.TicketConfigTest.TC_QC_27(TicketConfigTest.java:295)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+... Removed 30 stack frames</pre></div><a href='#' onClick='toggleBox("stack-trace1865233297", this, "Click to show all stack frames", "Click to hide stack frames")'>Click to show all stack frames</a>
+<div class='stack-trace' id='stack-trace1865233297'><pre>org.openqa.selenium.TimeoutException: Expected condition failed: waiting for element to be clickable: By.xpath: //button[contains(normalize-space(),&apos;Add Category&apos;)] (tried for 20 second(s) with 500 milliseconds interval)
+Build info: version: &apos;4.18.1&apos;, revision: &apos;b1d3319b48&apos;
+System info: os.name: &apos;Windows 11&apos;, os.arch: &apos;amd64&apos;, os.version: &apos;10.0&apos;, java.version: &apos;25.0.2&apos;
+Driver info: org.openqa.selenium.chrome.ChromeDriver
+Capabilities {acceptInsecureCerts: false, browserName: chrome, browserVersion: 148.0.7778.217, chrome: {chromedriverVersion: 148.0.7778.178 (d096af1c9e9..., userDataDir: C:\Users\NIKHIL~1.CHA\AppDa...}, fedcm:accounts: true, goog:chromeOptions: {debuggerAddress: localhost:59604}, goog:processID: 30220, networkConnectionEnabled: false, pageLoadStrategy: normal, platformName: windows, proxy: Proxy(), se:cdp: ws://localhost:59604/devtoo..., se:cdpVersion: 148.0.7778.217, setWindowRect: true, strictFileInteractability: false, timeouts: {implicit: 0, pageLoad: 300000, script: 30000}, unhandledPromptBehavior: dismiss and notify, webauthn:extension:credBlob: true, webauthn:extension:largeBlob: true, webauthn:extension:minPinLength: true, webauthn:extension:prf: true, webauthn:virtualAuthenticators: true}
+Session ID: afcc90e78edff6c1fd855097548ff004
+	at org.openqa.selenium.support.ui.WebDriverWait.timeoutException(WebDriverWait.java:84)
+	at org.openqa.selenium.support.ui.FluentWait.until(FluentWait.java:228)
+	at com.hubblehox.automation.pages.TicketConfigPage.clickAddCategory(TicketConfigPage.java:233)
+	at com.hubblehox.automation.tests.TicketConfigTest.TC_QC_27(TicketConfigTest.java:295)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at org.testng.internal.invokers.MethodInvocationHelper.invokeMethod(MethodInvocationHelper.java:139)
+	at org.testng.internal.invokers.TestInvoker.invokeMethod(TestInvoker.java:664)
+	at org.testng.internal.invokers.TestInvoker.invokeTestMethod(TestInvoker.java:228)
+	at org.testng.internal.invokers.MethodRunner.runInSequence(MethodRunner.java:63)
+	at org.testng.internal.invokers.TestInvoker$MethodInvocationAgent.invoke(TestInvoker.java:961)
+	at org.testng.internal.invokers.TestInvoker.invokeTestMethods(TestInvoker.java:201)
+	at org.testng.internal.invokers.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:148)
+	at org.testng.internal.invokers.TestMethodWorker.run(TestMethodWorker.java:128)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+	at org.testng.TestRunner.privateRun(TestRunner.java:819)
+	at org.testng.TestRunner.run(TestRunner.java:619)
+	at org.testng.SuiteRunner.runTest(SuiteRunner.java:443)
+	at org.testng.SuiteRunner.runSequentially(SuiteRunner.java:437)
+	at org.testng.SuiteRunner.privateRun(SuiteRunner.java:397)
+	at org.testng.SuiteRunner.run(SuiteRunner.java:336)
+	at org.testng.SuiteRunnerWorker.runSuite(SuiteRunnerWorker.java:52)
+	at org.testng.SuiteRunnerWorker.run(SuiteRunnerWorker.java:95)
+	at org.testng.TestNG.runSuitesSequentially(TestNG.java:1301)
+	at org.testng.TestNG.runSuitesLocally(TestNG.java:1228)
+	at org.testng.TestNG.runSuites(TestNG.java:1134)
+	at org.testng.TestNG.run(TestNG.java:1101)
+	at org.apache.maven.surefire.testng.TestNGExecutor.run(TestNGExecutor.java:155)
+	at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.executeSingleClass(TestNGDirectoryTestSuite.java:102)
+	at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.execute(TestNGDirectoryTestSuite.java:91)
+	at org.apache.maven.surefire.testng.TestNGProvider.invoke(TestNGProvider.java:137)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+</pre></div></td>
+<td>20</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_08()'><b>TC_QC_08</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td><div><pre>java.lang.AssertionError: QC_08 FAILED: Preview updates to show the starting number expected [true] but found [false]
+	at com.hubblehox.automation.tests.TicketConfigTest.writeResult(TicketConfigTest.java:60)
+	at com.hubblehox.automation.tests.TicketConfigTest.TC_QC_08(TicketConfigTest.java:146)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+... Removed 33 stack frames</pre></div><a href='#' onClick='toggleBox("stack-trace1404793317", this, "Click to show all stack frames", "Click to hide stack frames")'>Click to show all stack frames</a>
+<div class='stack-trace' id='stack-trace1404793317'><pre>java.lang.AssertionError: QC_08 FAILED: Preview updates to show the starting number expected [true] but found [false]
+	at org.testng.Assert.fail(Assert.java:111)
+	at org.testng.Assert.failNotEquals(Assert.java:1578)
+	at org.testng.Assert.assertTrue(Assert.java:57)
+	at com.hubblehox.automation.tests.TicketConfigTest.writeResult(TicketConfigTest.java:60)
+	at com.hubblehox.automation.tests.TicketConfigTest.TC_QC_08(TicketConfigTest.java:146)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at org.testng.internal.invokers.MethodInvocationHelper.invokeMethod(MethodInvocationHelper.java:139)
+	at org.testng.internal.invokers.TestInvoker.invokeMethod(TestInvoker.java:664)
+	at org.testng.internal.invokers.TestInvoker.invokeTestMethod(TestInvoker.java:228)
+	at org.testng.internal.invokers.MethodRunner.runInSequence(MethodRunner.java:63)
+	at org.testng.internal.invokers.TestInvoker$MethodInvocationAgent.invoke(TestInvoker.java:961)
+	at org.testng.internal.invokers.TestInvoker.invokeTestMethods(TestInvoker.java:201)
+	at org.testng.internal.invokers.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:148)
+	at org.testng.internal.invokers.TestMethodWorker.run(TestMethodWorker.java:128)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+	at org.testng.TestRunner.privateRun(TestRunner.java:819)
+	at org.testng.TestRunner.run(TestRunner.java:619)
+	at org.testng.SuiteRunner.runTest(SuiteRunner.java:443)
+	at org.testng.SuiteRunner.runSequentially(SuiteRunner.java:437)
+	at org.testng.SuiteRunner.privateRun(SuiteRunner.java:397)
+	at org.testng.SuiteRunner.run(SuiteRunner.java:336)
+	at org.testng.SuiteRunnerWorker.runSuite(SuiteRunnerWorker.java:52)
+	at org.testng.SuiteRunnerWorker.run(SuiteRunnerWorker.java:95)
+	at org.testng.TestNG.runSuitesSequentially(TestNG.java:1301)
+	at org.testng.TestNG.runSuitesLocally(TestNG.java:1228)
+	at org.testng.TestNG.runSuites(TestNG.java:1134)
+	at org.testng.TestNG.run(TestNG.java:1101)
+	at org.apache.maven.surefire.testng.TestNGExecutor.run(TestNGExecutor.java:155)
+	at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.executeSingleClass(TestNGDirectoryTestSuite.java:102)
+	at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.execute(TestNGDirectoryTestSuite.java:91)
+	at org.apache.maven.surefire.testng.TestNGProvider.invoke(TestNGProvider.java:137)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+</pre></div></td>
+<td>1</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_29()'><b>TC_QC_29</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td><div><pre>org.openqa.selenium.TimeoutException: Expected condition failed: waiting for visibility of element located by By.xpath: //label[contains(normalize-space(),&apos;Description&apos;)]/following::textarea[1] (tried for 20 second(s) with 500 milliseconds interval)
+Build info: version: &apos;4.18.1&apos;, revision: &apos;b1d3319b48&apos;
+System info: os.name: &apos;Windows 11&apos;, os.arch: &apos;amd64&apos;, os.version: &apos;10.0&apos;, java.version: &apos;25.0.2&apos;
+Driver info: org.openqa.selenium.chrome.ChromeDriver
+Capabilities {acceptInsecureCerts: false, browserName: chrome, browserVersion: 148.0.7778.217, chrome: {chromedriverVersion: 148.0.7778.178 (d096af1c9e9..., userDataDir: C:\Users\NIKHIL~1.CHA\AppDa...}, fedcm:accounts: true, goog:chromeOptions: {debuggerAddress: localhost:59604}, goog:processID: 30220, networkConnectionEnabled: false, pageLoadStrategy: normal, platformName: windows, proxy: Proxy(), se:cdp: ws://localhost:59604/devtoo..., se:cdpVersion: 148.0.7778.217, setWindowRect: true, strictFileInteractability: false, timeouts: {implicit: 0, pageLoad: 300000, script: 30000}, unhandledPromptBehavior: dismiss and notify, webauthn:extension:credBlob: true, webauthn:extension:largeBlob: true, webauthn:extension:minPinLength: true, webauthn:extension:prf: true, webauthn:virtualAuthenticators: true}
+Session ID: afcc90e78edff6c1fd855097548ff004
+	at org.openqa.selenium.support.ui.WebDriverWait.timeoutException(WebDriverWait.java:84)
+	at org.openqa.selenium.support.ui.FluentWait.until(FluentWait.java:228)
+	at com.hubblehox.automation.pages.TicketConfigPage.enterCategoryDescription(TicketConfigPage.java:250)
+	at com.hubblehox.automation.tests.TicketConfigTest.TC_QC_29(TicketConfigTest.java:310)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+... Removed 30 stack frames</pre></div><a href='#' onClick='toggleBox("stack-trace391308380", this, "Click to show all stack frames", "Click to hide stack frames")'>Click to show all stack frames</a>
+<div class='stack-trace' id='stack-trace391308380'><pre>org.openqa.selenium.TimeoutException: Expected condition failed: waiting for visibility of element located by By.xpath: //label[contains(normalize-space(),&apos;Description&apos;)]/following::textarea[1] (tried for 20 second(s) with 500 milliseconds interval)
+Build info: version: &apos;4.18.1&apos;, revision: &apos;b1d3319b48&apos;
+System info: os.name: &apos;Windows 11&apos;, os.arch: &apos;amd64&apos;, os.version: &apos;10.0&apos;, java.version: &apos;25.0.2&apos;
+Driver info: org.openqa.selenium.chrome.ChromeDriver
+Capabilities {acceptInsecureCerts: false, browserName: chrome, browserVersion: 148.0.7778.217, chrome: {chromedriverVersion: 148.0.7778.178 (d096af1c9e9..., userDataDir: C:\Users\NIKHIL~1.CHA\AppDa...}, fedcm:accounts: true, goog:chromeOptions: {debuggerAddress: localhost:59604}, goog:processID: 30220, networkConnectionEnabled: false, pageLoadStrategy: normal, platformName: windows, proxy: Proxy(), se:cdp: ws://localhost:59604/devtoo..., se:cdpVersion: 148.0.7778.217, setWindowRect: true, strictFileInteractability: false, timeouts: {implicit: 0, pageLoad: 300000, script: 30000}, unhandledPromptBehavior: dismiss and notify, webauthn:extension:credBlob: true, webauthn:extension:largeBlob: true, webauthn:extension:minPinLength: true, webauthn:extension:prf: true, webauthn:virtualAuthenticators: true}
+Session ID: afcc90e78edff6c1fd855097548ff004
+	at org.openqa.selenium.support.ui.WebDriverWait.timeoutException(WebDriverWait.java:84)
+	at org.openqa.selenium.support.ui.FluentWait.until(FluentWait.java:228)
+	at com.hubblehox.automation.pages.TicketConfigPage.enterCategoryDescription(TicketConfigPage.java:250)
+	at com.hubblehox.automation.tests.TicketConfigTest.TC_QC_29(TicketConfigTest.java:310)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at org.testng.internal.invokers.MethodInvocationHelper.invokeMethod(MethodInvocationHelper.java:139)
+	at org.testng.internal.invokers.TestInvoker.invokeMethod(TestInvoker.java:664)
+	at org.testng.internal.invokers.TestInvoker.invokeTestMethod(TestInvoker.java:228)
+	at org.testng.internal.invokers.MethodRunner.runInSequence(MethodRunner.java:63)
+	at org.testng.internal.invokers.TestInvoker$MethodInvocationAgent.invoke(TestInvoker.java:961)
+	at org.testng.internal.invokers.TestInvoker.invokeTestMethods(TestInvoker.java:201)
+	at org.testng.internal.invokers.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:148)
+	at org.testng.internal.invokers.TestMethodWorker.run(TestMethodWorker.java:128)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+	at org.testng.TestRunner.privateRun(TestRunner.java:819)
+	at org.testng.TestRunner.run(TestRunner.java:619)
+	at org.testng.SuiteRunner.runTest(SuiteRunner.java:443)
+	at org.testng.SuiteRunner.runSequentially(SuiteRunner.java:437)
+	at org.testng.SuiteRunner.privateRun(SuiteRunner.java:397)
+	at org.testng.SuiteRunner.run(SuiteRunner.java:336)
+	at org.testng.SuiteRunnerWorker.runSuite(SuiteRunnerWorker.java:52)
+	at org.testng.SuiteRunnerWorker.run(SuiteRunnerWorker.java:95)
+	at org.testng.TestNG.runSuitesSequentially(TestNG.java:1301)
+	at org.testng.TestNG.runSuitesLocally(TestNG.java:1228)
+	at org.testng.TestNG.runSuites(TestNG.java:1134)
+	at org.testng.TestNG.run(TestNG.java:1101)
+	at org.apache.maven.surefire.testng.TestNGExecutor.run(TestNGExecutor.java:155)
+	at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.executeSingleClass(TestNGDirectoryTestSuite.java:102)
+	at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.execute(TestNGDirectoryTestSuite.java:91)
+	at org.apache.maven.surefire.testng.TestNGProvider.invoke(TestNGProvider.java:137)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+</pre></div></td>
+<td>20</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_17()'><b>TC_QC_17</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td><div><pre>java.lang.AssertionError: QC_17 FAILED: Code auto-filled:  expected [true] but found [false]
+	at com.hubblehox.automation.tests.TicketConfigTest.writeResult(TicketConfigTest.java:60)
+	at com.hubblehox.automation.tests.TicketConfigTest.TC_QC_17(TicketConfigTest.java:224)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+... Removed 33 stack frames</pre></div><a href='#' onClick='toggleBox("stack-trace630298110", this, "Click to show all stack frames", "Click to hide stack frames")'>Click to show all stack frames</a>
+<div class='stack-trace' id='stack-trace630298110'><pre>java.lang.AssertionError: QC_17 FAILED: Code auto-filled:  expected [true] but found [false]
+	at org.testng.Assert.fail(Assert.java:111)
+	at org.testng.Assert.failNotEquals(Assert.java:1578)
+	at org.testng.Assert.assertTrue(Assert.java:57)
+	at com.hubblehox.automation.tests.TicketConfigTest.writeResult(TicketConfigTest.java:60)
+	at com.hubblehox.automation.tests.TicketConfigTest.TC_QC_17(TicketConfigTest.java:224)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at org.testng.internal.invokers.MethodInvocationHelper.invokeMethod(MethodInvocationHelper.java:139)
+	at org.testng.internal.invokers.TestInvoker.invokeMethod(TestInvoker.java:664)
+	at org.testng.internal.invokers.TestInvoker.invokeTestMethod(TestInvoker.java:228)
+	at org.testng.internal.invokers.MethodRunner.runInSequence(MethodRunner.java:63)
+	at org.testng.internal.invokers.TestInvoker$MethodInvocationAgent.invoke(TestInvoker.java:961)
+	at org.testng.internal.invokers.TestInvoker.invokeTestMethods(TestInvoker.java:201)
+	at org.testng.internal.invokers.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:148)
+	at org.testng.internal.invokers.TestMethodWorker.run(TestMethodWorker.java:128)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+	at org.testng.TestRunner.privateRun(TestRunner.java:819)
+	at org.testng.TestRunner.run(TestRunner.java:619)
+	at org.testng.SuiteRunner.runTest(SuiteRunner.java:443)
+	at org.testng.SuiteRunner.runSequentially(SuiteRunner.java:437)
+	at org.testng.SuiteRunner.privateRun(SuiteRunner.java:397)
+	at org.testng.SuiteRunner.run(SuiteRunner.java:336)
+	at org.testng.SuiteRunnerWorker.runSuite(SuiteRunnerWorker.java:52)
+	at org.testng.SuiteRunnerWorker.run(SuiteRunnerWorker.java:95)
+	at org.testng.TestNG.runSuitesSequentially(TestNG.java:1301)
+	at org.testng.TestNG.runSuitesLocally(TestNG.java:1228)
+	at org.testng.TestNG.runSuites(TestNG.java:1134)
+	at org.testng.TestNG.run(TestNG.java:1101)
+	at org.apache.maven.surefire.testng.TestNGExecutor.run(TestNGExecutor.java:155)
+	at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.executeSingleClass(TestNGDirectoryTestSuite.java:102)
+	at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.execute(TestNGDirectoryTestSuite.java:91)
+	at org.apache.maven.surefire.testng.TestNGProvider.invoke(TestNGProvider.java:137)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+</pre></div></td>
+<td>21</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_28()'><b>TC_QC_28</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td><div><pre>org.openqa.selenium.TimeoutException: Expected condition failed: waiting for visibility of element located by By.xpath: //label[contains(normalize-space(),&apos;Name *&apos;)]/following::input[1] (tried for 20 second(s) with 500 milliseconds interval)
+Build info: version: &apos;4.18.1&apos;, revision: &apos;b1d3319b48&apos;
+System info: os.name: &apos;Windows 11&apos;, os.arch: &apos;amd64&apos;, os.version: &apos;10.0&apos;, java.version: &apos;25.0.2&apos;
+Driver info: org.openqa.selenium.chrome.ChromeDriver
+Capabilities {acceptInsecureCerts: false, browserName: chrome, browserVersion: 148.0.7778.217, chrome: {chromedriverVersion: 148.0.7778.178 (d096af1c9e9..., userDataDir: C:\Users\NIKHIL~1.CHA\AppDa...}, fedcm:accounts: true, goog:chromeOptions: {debuggerAddress: localhost:59604}, goog:processID: 30220, networkConnectionEnabled: false, pageLoadStrategy: normal, platformName: windows, proxy: Proxy(), se:cdp: ws://localhost:59604/devtoo..., se:cdpVersion: 148.0.7778.217, setWindowRect: true, strictFileInteractability: false, timeouts: {implicit: 0, pageLoad: 300000, script: 30000}, unhandledPromptBehavior: dismiss and notify, webauthn:extension:credBlob: true, webauthn:extension:largeBlob: true, webauthn:extension:minPinLength: true, webauthn:extension:prf: true, webauthn:virtualAuthenticators: true}
+Session ID: afcc90e78edff6c1fd855097548ff004
+	at org.openqa.selenium.support.ui.WebDriverWait.timeoutException(WebDriverWait.java:84)
+	at org.openqa.selenium.support.ui.FluentWait.until(FluentWait.java:228)
+	at com.hubblehox.automation.pages.TicketConfigPage.enterCategoryName(TicketConfigPage.java:240)
+	at com.hubblehox.automation.tests.TicketConfigTest.TC_QC_28(TicketConfigTest.java:302)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+... Removed 30 stack frames</pre></div><a href='#' onClick='toggleBox("stack-trace1664479306", this, "Click to show all stack frames", "Click to hide stack frames")'>Click to show all stack frames</a>
+<div class='stack-trace' id='stack-trace1664479306'><pre>org.openqa.selenium.TimeoutException: Expected condition failed: waiting for visibility of element located by By.xpath: //label[contains(normalize-space(),&apos;Name *&apos;)]/following::input[1] (tried for 20 second(s) with 500 milliseconds interval)
+Build info: version: &apos;4.18.1&apos;, revision: &apos;b1d3319b48&apos;
+System info: os.name: &apos;Windows 11&apos;, os.arch: &apos;amd64&apos;, os.version: &apos;10.0&apos;, java.version: &apos;25.0.2&apos;
+Driver info: org.openqa.selenium.chrome.ChromeDriver
+Capabilities {acceptInsecureCerts: false, browserName: chrome, browserVersion: 148.0.7778.217, chrome: {chromedriverVersion: 148.0.7778.178 (d096af1c9e9..., userDataDir: C:\Users\NIKHIL~1.CHA\AppDa...}, fedcm:accounts: true, goog:chromeOptions: {debuggerAddress: localhost:59604}, goog:processID: 30220, networkConnectionEnabled: false, pageLoadStrategy: normal, platformName: windows, proxy: Proxy(), se:cdp: ws://localhost:59604/devtoo..., se:cdpVersion: 148.0.7778.217, setWindowRect: true, strictFileInteractability: false, timeouts: {implicit: 0, pageLoad: 300000, script: 30000}, unhandledPromptBehavior: dismiss and notify, webauthn:extension:credBlob: true, webauthn:extension:largeBlob: true, webauthn:extension:minPinLength: true, webauthn:extension:prf: true, webauthn:virtualAuthenticators: true}
+Session ID: afcc90e78edff6c1fd855097548ff004
+	at org.openqa.selenium.support.ui.WebDriverWait.timeoutException(WebDriverWait.java:84)
+	at org.openqa.selenium.support.ui.FluentWait.until(FluentWait.java:228)
+	at com.hubblehox.automation.pages.TicketConfigPage.enterCategoryName(TicketConfigPage.java:240)
+	at com.hubblehox.automation.tests.TicketConfigTest.TC_QC_28(TicketConfigTest.java:302)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at org.testng.internal.invokers.MethodInvocationHelper.invokeMethod(MethodInvocationHelper.java:139)
+	at org.testng.internal.invokers.TestInvoker.invokeMethod(TestInvoker.java:664)
+	at org.testng.internal.invokers.TestInvoker.invokeTestMethod(TestInvoker.java:228)
+	at org.testng.internal.invokers.MethodRunner.runInSequence(MethodRunner.java:63)
+	at org.testng.internal.invokers.TestInvoker$MethodInvocationAgent.invoke(TestInvoker.java:961)
+	at org.testng.internal.invokers.TestInvoker.invokeTestMethods(TestInvoker.java:201)
+	at org.testng.internal.invokers.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:148)
+	at org.testng.internal.invokers.TestMethodWorker.run(TestMethodWorker.java:128)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+	at org.testng.TestRunner.privateRun(TestRunner.java:819)
+	at org.testng.TestRunner.run(TestRunner.java:619)
+	at org.testng.SuiteRunner.runTest(SuiteRunner.java:443)
+	at org.testng.SuiteRunner.runSequentially(SuiteRunner.java:437)
+	at org.testng.SuiteRunner.privateRun(SuiteRunner.java:397)
+	at org.testng.SuiteRunner.run(SuiteRunner.java:336)
+	at org.testng.SuiteRunnerWorker.runSuite(SuiteRunnerWorker.java:52)
+	at org.testng.SuiteRunnerWorker.run(SuiteRunnerWorker.java:95)
+	at org.testng.TestNG.runSuitesSequentially(TestNG.java:1301)
+	at org.testng.TestNG.runSuitesLocally(TestNG.java:1228)
+	at org.testng.TestNG.runSuites(TestNG.java:1134)
+	at org.testng.TestNG.run(TestNG.java:1101)
+	at org.apache.maven.surefire.testng.TestNGExecutor.run(TestNGExecutor.java:155)
+	at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.executeSingleClass(TestNGDirectoryTestSuite.java:102)
+	at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.execute(TestNGDirectoryTestSuite.java:91)
+	at org.apache.maven.surefire.testng.TestNGProvider.invoke(TestNGProvider.java:137)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+</pre></div></td>
+<td>20</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+</table><p>
+<table width='100%' border='1' class='invocation-passed'>
+<tr><td colspan='4' align='center'><b>PASSED TESTS</b></td></tr>
+<tr><td><b>Test method</b></td>
+<td><b>Attribute(s)</b></td>
+<td width="30%"><b>Exception</b></td>
+<td width="10%"><b>Time (seconds)</b></td>
+<td><b>Instance</b></td>
+</tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_65()'><b>TC_QC_65</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>0</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_76()'><b>TC_QC_76</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>0</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_68()'><b>TC_QC_68</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>0</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_11()'><b>TC_QC_11</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>0</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_15()'><b>TC_QC_15</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>1</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_35()'><b>TC_QC_35</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>0</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_39()'><b>TC_QC_39</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>10</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_50()'><b>TC_QC_50</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>10</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_79()'><b>TC_QC_79</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>0</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_70()'><b>TC_QC_70</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>0</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_07()'><b>TC_QC_07</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>0</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_54()'><b>TC_QC_54</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>0</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_38()'><b>TC_QC_38</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>10</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_40()'><b>TC_QC_40</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>10</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_63()'><b>TC_QC_63</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>0</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_66()'><b>TC_QC_66</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>0</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_25()'><b>TC_QC_25</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>0</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_34()'><b>TC_QC_34</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>0</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_18()'><b>TC_QC_18</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>0</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_52()'><b>TC_QC_52</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>20</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_75()'><b>TC_QC_75</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>0</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_04()'><b>TC_QC_04</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>22</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_30()'><b>TC_QC_30</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>20</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_46()'><b>TC_QC_46</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>0</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_57()'><b>TC_QC_57</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>0</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_44()'><b>TC_QC_44</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>0</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_06()'><b>TC_QC_06</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>0</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_16()'><b>TC_QC_16</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>0</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_71()'><b>TC_QC_71</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>0</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_80()'><b>TC_QC_80</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>0</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_13()'><b>TC_QC_13</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>1</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_02()'><b>TC_QC_02</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>0</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_45()'><b>TC_QC_45</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>0</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_64()'><b>TC_QC_64</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>0</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_01()'><b>TC_QC_01</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>11</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_42()'><b>TC_QC_42</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>10</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_67()'><b>TC_QC_67</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>0</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_14()'><b>TC_QC_14</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>2</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_19()'><b>TC_QC_19</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>0</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_33()'><b>TC_QC_33</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>0</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_23()'><b>TC_QC_23</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>0</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_53()'><b>TC_QC_53</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>20</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_58()'><b>TC_QC_58</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>0</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_05()'><b>TC_QC_05</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>0</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_69()'><b>TC_QC_69</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>0</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_03()'><b>TC_QC_03</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>10</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_21()'><b>TC_QC_21</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>1</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_73()'><b>TC_QC_73</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>0</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_43()'><b>TC_QC_43</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>10</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_48()'><b>TC_QC_48</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>0</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_20()'><b>TC_QC_20</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>20</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_61()'><b>TC_QC_61</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>0</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_10()'><b>TC_QC_10</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>0</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_32()'><b>TC_QC_32</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>0</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_55()'><b>TC_QC_55</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>1</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_74()'><b>TC_QC_74</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>0</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_72()'><b>TC_QC_72</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>0</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_59()'><b>TC_QC_59</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>0</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_47()'><b>TC_QC_47</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>1</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_09()'><b>TC_QC_09</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>0</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_24()'><b>TC_QC_24</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>0</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_51()'><b>TC_QC_51</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>10</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_60()'><b>TC_QC_60</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>0</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_49()'><b>TC_QC_49</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>1</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_78()'><b>TC_QC_78</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>0</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_12()'><b>TC_QC_12</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>0</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_41()'><b>TC_QC_41</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>10</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_77()'><b>TC_QC_77</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>0</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_56()'><b>TC_QC_56</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>0</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_36()'><b>TC_QC_36</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>1</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_22()'><b>TC_QC_22</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>0</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+<tr>
+<td title='com.hubblehox.automation.tests.TicketConfigTest.TC_QC_62()'><b>TC_QC_62</b><br>Test class: com.hubblehox.automation.tests.TicketConfigTest</td>
+<td></td>
+<td>0</td>
+<td>com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c</td></tr>
+</table><p>
+</body>
+</html>

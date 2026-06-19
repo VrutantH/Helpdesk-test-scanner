@@ -1,0 +1,2523 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testng-results ignored="0" total="80" passed="72" failed="8" skipped="0">
+  <reporter-output>
+  </reporter-output>
+  <suite started-at="2026-06-09T18:24:35 IST" name="Surefire suite" finished-at="2026-06-09T18:33:16 IST" duration-ms="521196">
+    <groups>
+    </groups>
+    <test started-at="2026-06-09T18:24:35 IST" name="Surefire test" finished-at="2026-06-09T18:33:16 IST" duration-ms="521196">
+      <class name="com.hubblehox.automation.tests.TicketConfigTest">
+        <test-method is-config="true" signature="initReport()[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:24:34 IST" name="initReport" finished-at="2026-06-09T18:24:35 IST" duration-ms="630" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- initReport -->
+        <test-method is-config="true" signature="launchBrowser()[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:24:35 IST" name="launchBrowser" finished-at="2026-06-09T18:24:41 IST" duration-ms="6246" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- launchBrowser -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:24:41 IST" name="setUp" finished-at="2026-06-09T18:24:41 IST" duration-ms="39" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_01()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method signature="TC_QC_01()[pri:1, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:24:41 IST" name="TC_QC_01" finished-at="2026-06-09T18:24:52 IST" duration-ms="11299" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_01 -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:24:52 IST" name="tearDown" finished-at="2026-06-09T18:24:58 IST" duration-ms="6096" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_01 status=SUCCESS method=TicketConfigTest.TC_QC_01()[pri:1, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:24:58 IST" name="setUp" finished-at="2026-06-09T18:24:59 IST" duration-ms="9" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_02()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method signature="TC_QC_02()[pri:2, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:24:59 IST" name="TC_QC_02" finished-at="2026-06-09T18:24:59 IST" duration-ms="823" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_02 -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:24:59 IST" name="tearDown" finished-at="2026-06-09T18:25:01 IST" duration-ms="1460" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_02 status=SUCCESS method=TicketConfigTest.TC_QC_02()[pri:2, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:25:01 IST" name="setUp" finished-at="2026-06-09T18:25:01 IST" duration-ms="2" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_03()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method signature="TC_QC_03()[pri:3, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:25:01 IST" name="TC_QC_03" finished-at="2026-06-09T18:25:12 IST" duration-ms="10776" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_03 -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:25:12 IST" name="tearDown" finished-at="2026-06-09T18:25:13 IST" duration-ms="1351" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_03 status=SUCCESS method=TicketConfigTest.TC_QC_03()[pri:3, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_04()[pri:4, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:25:13 IST" name="TC_QC_04" finished-at="2026-06-09T18:25:36 IST" duration-ms="22748" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_04 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:25:13 IST" name="setUp" finished-at="2026-06-09T18:25:13 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_04()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:25:36 IST" name="tearDown" finished-at="2026-06-09T18:25:37 IST" duration-ms="1329" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_04 status=SUCCESS method=TicketConfigTest.TC_QC_04()[pri:4, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_05()[pri:5, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:25:37 IST" name="TC_QC_05" finished-at="2026-06-09T18:25:37 IST" duration-ms="181" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_05 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:25:37 IST" name="setUp" finished-at="2026-06-09T18:25:37 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_05()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:25:37 IST" name="tearDown" finished-at="2026-06-09T18:25:38 IST" duration-ms="1266" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_05 status=SUCCESS method=TicketConfigTest.TC_QC_05()[pri:5, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_06()[pri:6, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:25:38 IST" name="TC_QC_06" finished-at="2026-06-09T18:25:39 IST" duration-ms="78" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_06 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:25:38 IST" name="setUp" finished-at="2026-06-09T18:25:38 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_06()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:25:39 IST" name="tearDown" finished-at="2026-06-09T18:25:40 IST" duration-ms="1324" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_06 status=SUCCESS method=TicketConfigTest.TC_QC_06()[pri:6, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_07()[pri:7, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:25:40 IST" name="TC_QC_07" finished-at="2026-06-09T18:25:40 IST" duration-ms="460" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_07 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:25:40 IST" name="setUp" finished-at="2026-06-09T18:25:40 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_07()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:25:40 IST" name="tearDown" finished-at="2026-06-09T18:25:42 IST" duration-ms="1287" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_07 status=SUCCESS method=TicketConfigTest.TC_QC_07()[pri:7, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_08()[pri:8, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:25:42 IST" name="TC_QC_08" finished-at="2026-06-09T18:25:43 IST" duration-ms="1495" status="FAIL">
+          <exception class="java.lang.AssertionError">
+            <message>
+              <![CDATA[QC_08 FAILED: Preview updates to show the starting number expected [true] but found [false]]]>
+            </message>
+            <full-stacktrace>
+              <![CDATA[java.lang.AssertionError: QC_08 FAILED: Preview updates to show the starting number expected [true] but found [false]
+at org.testng.Assert.fail(Assert.java:111)
+at org.testng.Assert.failNotEquals(Assert.java:1578)
+at org.testng.Assert.assertTrue(Assert.java:57)
+at com.hubblehox.automation.tests.TicketConfigTest.writeResult(TicketConfigTest.java:60)
+at com.hubblehox.automation.tests.TicketConfigTest.TC_QC_08(TicketConfigTest.java:146)
+at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+at org.testng.internal.invokers.MethodInvocationHelper.invokeMethod(MethodInvocationHelper.java:139)
+at org.testng.internal.invokers.TestInvoker.invokeMethod(TestInvoker.java:664)
+at org.testng.internal.invokers.TestInvoker.invokeTestMethod(TestInvoker.java:228)
+at org.testng.internal.invokers.MethodRunner.runInSequence(MethodRunner.java:63)
+at org.testng.internal.invokers.TestInvoker$MethodInvocationAgent.invoke(TestInvoker.java:961)
+at org.testng.internal.invokers.TestInvoker.invokeTestMethods(TestInvoker.java:201)
+at org.testng.internal.invokers.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:148)
+at org.testng.internal.invokers.TestMethodWorker.run(TestMethodWorker.java:128)
+at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+at org.testng.TestRunner.privateRun(TestRunner.java:819)
+at org.testng.TestRunner.run(TestRunner.java:619)
+at org.testng.SuiteRunner.runTest(SuiteRunner.java:443)
+at org.testng.SuiteRunner.runSequentially(SuiteRunner.java:437)
+at org.testng.SuiteRunner.privateRun(SuiteRunner.java:397)
+at org.testng.SuiteRunner.run(SuiteRunner.java:336)
+at org.testng.SuiteRunnerWorker.runSuite(SuiteRunnerWorker.java:52)
+at org.testng.SuiteRunnerWorker.run(SuiteRunnerWorker.java:95)
+at org.testng.TestNG.runSuitesSequentially(TestNG.java:1301)
+at org.testng.TestNG.runSuitesLocally(TestNG.java:1228)
+at org.testng.TestNG.runSuites(TestNG.java:1134)
+at org.testng.TestNG.run(TestNG.java:1101)
+at org.apache.maven.surefire.testng.TestNGExecutor.run(TestNGExecutor.java:155)
+at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.executeSingleClass(TestNGDirectoryTestSuite.java:102)
+at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.execute(TestNGDirectoryTestSuite.java:91)
+at org.apache.maven.surefire.testng.TestNGProvider.invoke(TestNGProvider.java:137)
+at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+]]>
+            </full-stacktrace>
+          </exception> <!-- java.lang.AssertionError -->
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_08 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:25:42 IST" name="setUp" finished-at="2026-06-09T18:25:42 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_08()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:25:43 IST" name="tearDown" finished-at="2026-06-09T18:25:44 IST" duration-ms="1330" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_08 status=FAILURE method=TicketConfigTest.TC_QC_08()[pri:8, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_09()[pri:9, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:25:44 IST" name="TC_QC_09" finished-at="2026-06-09T18:25:45 IST" duration-ms="343" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_09 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:25:44 IST" name="setUp" finished-at="2026-06-09T18:25:44 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_09()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:25:45 IST" name="tearDown" finished-at="2026-06-09T18:25:46 IST" duration-ms="1227" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_09 status=SUCCESS method=TicketConfigTest.TC_QC_09()[pri:9, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_10()[pri:10, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:25:46 IST" name="TC_QC_10" finished-at="2026-06-09T18:25:46 IST" duration-ms="181" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_10 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:25:46 IST" name="setUp" finished-at="2026-06-09T18:25:46 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_10()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:25:46 IST" name="tearDown" finished-at="2026-06-09T18:25:47 IST" duration-ms="1214" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_10 status=SUCCESS method=TicketConfigTest.TC_QC_10()[pri:10, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_11()[pri:11, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:25:47 IST" name="TC_QC_11" finished-at="2026-06-09T18:25:47 IST" duration-ms="97" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_11 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:25:47 IST" name="setUp" finished-at="2026-06-09T18:25:47 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_11()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:25:47 IST" name="tearDown" finished-at="2026-06-09T18:25:49 IST" duration-ms="1228" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_11 status=SUCCESS method=TicketConfigTest.TC_QC_11()[pri:11, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_12()[pri:12, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:25:49 IST" name="TC_QC_12" finished-at="2026-06-09T18:25:49 IST" duration-ms="237" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_12 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:25:49 IST" name="setUp" finished-at="2026-06-09T18:25:49 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_12()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:25:49 IST" name="tearDown" finished-at="2026-06-09T18:25:50 IST" duration-ms="1366" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_12 status=SUCCESS method=TicketConfigTest.TC_QC_12()[pri:12, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_13()[pri:13, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:25:50 IST" name="TC_QC_13" finished-at="2026-06-09T18:25:52 IST" duration-ms="1391" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_13 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:25:50 IST" name="setUp" finished-at="2026-06-09T18:25:50 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_13()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:25:52 IST" name="tearDown" finished-at="2026-06-09T18:25:53 IST" duration-ms="1225" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_13 status=SUCCESS method=TicketConfigTest.TC_QC_13()[pri:13, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_14()[pri:14, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:25:53 IST" name="TC_QC_14" finished-at="2026-06-09T18:25:55 IST" duration-ms="2511" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_14 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:25:53 IST" name="setUp" finished-at="2026-06-09T18:25:53 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_14()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:25:55 IST" name="tearDown" finished-at="2026-06-09T18:25:57 IST" duration-ms="1397" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_14 status=SUCCESS method=TicketConfigTest.TC_QC_14()[pri:14, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_15()[pri:15, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:25:57 IST" name="TC_QC_15" finished-at="2026-06-09T18:25:58 IST" duration-ms="1257" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_15 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:25:57 IST" name="setUp" finished-at="2026-06-09T18:25:57 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_15()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:25:58 IST" name="tearDown" finished-at="2026-06-09T18:25:59 IST" duration-ms="1289" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_15 status=SUCCESS method=TicketConfigTest.TC_QC_15()[pri:15, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_16()[pri:16, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:25:59 IST" name="TC_QC_16" finished-at="2026-06-09T18:26:00 IST" duration-ms="215" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_16 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:25:59 IST" name="setUp" finished-at="2026-06-09T18:25:59 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_16()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:26:00 IST" name="tearDown" finished-at="2026-06-09T18:26:01 IST" duration-ms="1271" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_16 status=SUCCESS method=TicketConfigTest.TC_QC_16()[pri:16, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_17()[pri:17, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:26:01 IST" name="TC_QC_17" finished-at="2026-06-09T18:26:22 IST" duration-ms="21554" status="FAIL">
+          <exception class="java.lang.AssertionError">
+            <message>
+              <![CDATA[QC_17 FAILED: Code auto-filled:  expected [true] but found [false]]]>
+            </message>
+            <full-stacktrace>
+              <![CDATA[java.lang.AssertionError: QC_17 FAILED: Code auto-filled:  expected [true] but found [false]
+at org.testng.Assert.fail(Assert.java:111)
+at org.testng.Assert.failNotEquals(Assert.java:1578)
+at org.testng.Assert.assertTrue(Assert.java:57)
+at com.hubblehox.automation.tests.TicketConfigTest.writeResult(TicketConfigTest.java:60)
+at com.hubblehox.automation.tests.TicketConfigTest.TC_QC_17(TicketConfigTest.java:224)
+at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+at org.testng.internal.invokers.MethodInvocationHelper.invokeMethod(MethodInvocationHelper.java:139)
+at org.testng.internal.invokers.TestInvoker.invokeMethod(TestInvoker.java:664)
+at org.testng.internal.invokers.TestInvoker.invokeTestMethod(TestInvoker.java:228)
+at org.testng.internal.invokers.MethodRunner.runInSequence(MethodRunner.java:63)
+at org.testng.internal.invokers.TestInvoker$MethodInvocationAgent.invoke(TestInvoker.java:961)
+at org.testng.internal.invokers.TestInvoker.invokeTestMethods(TestInvoker.java:201)
+at org.testng.internal.invokers.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:148)
+at org.testng.internal.invokers.TestMethodWorker.run(TestMethodWorker.java:128)
+at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+at org.testng.TestRunner.privateRun(TestRunner.java:819)
+at org.testng.TestRunner.run(TestRunner.java:619)
+at org.testng.SuiteRunner.runTest(SuiteRunner.java:443)
+at org.testng.SuiteRunner.runSequentially(SuiteRunner.java:437)
+at org.testng.SuiteRunner.privateRun(SuiteRunner.java:397)
+at org.testng.SuiteRunner.run(SuiteRunner.java:336)
+at org.testng.SuiteRunnerWorker.runSuite(SuiteRunnerWorker.java:52)
+at org.testng.SuiteRunnerWorker.run(SuiteRunnerWorker.java:95)
+at org.testng.TestNG.runSuitesSequentially(TestNG.java:1301)
+at org.testng.TestNG.runSuitesLocally(TestNG.java:1228)
+at org.testng.TestNG.runSuites(TestNG.java:1134)
+at org.testng.TestNG.run(TestNG.java:1101)
+at org.apache.maven.surefire.testng.TestNGExecutor.run(TestNGExecutor.java:155)
+at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.executeSingleClass(TestNGDirectoryTestSuite.java:102)
+at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.execute(TestNGDirectoryTestSuite.java:91)
+at org.apache.maven.surefire.testng.TestNGProvider.invoke(TestNGProvider.java:137)
+at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+]]>
+            </full-stacktrace>
+          </exception> <!-- java.lang.AssertionError -->
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_17 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:26:01 IST" name="setUp" finished-at="2026-06-09T18:26:01 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_17()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:26:22 IST" name="tearDown" finished-at="2026-06-09T18:26:24 IST" duration-ms="1464" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_17 status=FAILURE method=TicketConfigTest.TC_QC_17()[pri:17, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_18()[pri:18, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:26:24 IST" name="TC_QC_18" finished-at="2026-06-09T18:26:24 IST" duration-ms="150" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_18 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:26:24 IST" name="setUp" finished-at="2026-06-09T18:26:24 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_18()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:26:24 IST" name="tearDown" finished-at="2026-06-09T18:26:25 IST" duration-ms="1261" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_18 status=SUCCESS method=TicketConfigTest.TC_QC_18()[pri:18, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_19()[pri:19, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:26:25 IST" name="TC_QC_19" finished-at="2026-06-09T18:26:26 IST" duration-ms="230" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_19 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:26:25 IST" name="setUp" finished-at="2026-06-09T18:26:25 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_19()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:26:26 IST" name="tearDown" finished-at="2026-06-09T18:26:27 IST" duration-ms="1283" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_19 status=SUCCESS method=TicketConfigTest.TC_QC_19()[pri:19, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_20()[pri:20, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:26:27 IST" name="TC_QC_20" finished-at="2026-06-09T18:26:47 IST" duration-ms="20666" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_20 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:26:27 IST" name="setUp" finished-at="2026-06-09T18:26:27 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_20()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:26:47 IST" name="tearDown" finished-at="2026-06-09T18:26:49 IST" duration-ms="1265" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_20 status=SUCCESS method=TicketConfigTest.TC_QC_20()[pri:20, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_21()[pri:21, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:26:49 IST" name="TC_QC_21" finished-at="2026-06-09T18:26:50 IST" duration-ms="1259" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_21 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:26:49 IST" name="setUp" finished-at="2026-06-09T18:26:49 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_21()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:26:50 IST" name="tearDown" finished-at="2026-06-09T18:26:51 IST" duration-ms="1172" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_21 status=SUCCESS method=TicketConfigTest.TC_QC_21()[pri:21, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_22()[pri:22, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:26:51 IST" name="TC_QC_22" finished-at="2026-06-09T18:26:51 IST" duration-ms="31" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_22 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:26:51 IST" name="setUp" finished-at="2026-06-09T18:26:51 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_22()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:26:51 IST" name="tearDown" finished-at="2026-06-09T18:26:52 IST" duration-ms="1193" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_22 status=SUCCESS method=TicketConfigTest.TC_QC_22()[pri:22, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_23()[pri:23, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:26:52 IST" name="TC_QC_23" finished-at="2026-06-09T18:26:52 IST" duration-ms="48" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_23 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:26:52 IST" name="setUp" finished-at="2026-06-09T18:26:52 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_23()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:26:52 IST" name="tearDown" finished-at="2026-06-09T18:26:54 IST" duration-ms="1174" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_23 status=SUCCESS method=TicketConfigTest.TC_QC_23()[pri:23, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_24()[pri:24, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:26:54 IST" name="TC_QC_24" finished-at="2026-06-09T18:26:54 IST" duration-ms="48" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_24 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:26:54 IST" name="setUp" finished-at="2026-06-09T18:26:54 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_24()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:26:54 IST" name="tearDown" finished-at="2026-06-09T18:26:55 IST" duration-ms="1177" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_24 status=SUCCESS method=TicketConfigTest.TC_QC_24()[pri:24, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:26:55 IST" name="setUp" finished-at="2026-06-09T18:26:55 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_25()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method signature="TC_QC_25()[pri:25, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:26:55 IST" name="TC_QC_25" finished-at="2026-06-09T18:26:55 IST" duration-ms="44" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_25 -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:26:55 IST" name="tearDown" finished-at="2026-06-09T18:26:56 IST" duration-ms="1158" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_25 status=SUCCESS method=TicketConfigTest.TC_QC_25()[pri:25, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_26()[pri:26, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:26:56 IST" name="TC_QC_26" finished-at="2026-06-09T18:27:17 IST" duration-ms="20606" status="FAIL">
+          <exception class="org.openqa.selenium.TimeoutException">
+            <message>
+              <![CDATA[Expected condition failed: waiting for element to be clickable: By.xpath: //button[normalize-space()='Ticket Categories'] (tried for 20 second(s) with 500 milliseconds interval)
+Build info: version: '4.18.1', revision: 'b1d3319b48'
+System info: os.name: 'Windows 11', os.arch: 'amd64', os.version: '10.0', java.version: '25.0.2'
+Driver info: org.openqa.selenium.chrome.ChromeDriver
+Capabilities {acceptInsecureCerts: false, browserName: chrome, browserVersion: 148.0.7778.217, chrome: {chromedriverVersion: 148.0.7778.178 (d096af1c9e9..., userDataDir: C:\Users\NIKHIL~1.CHA\AppDa...}, fedcm:accounts: true, goog:chromeOptions: {debuggerAddress: localhost:59604}, goog:processID: 30220, networkConnectionEnabled: false, pageLoadStrategy: normal, platformName: windows, proxy: Proxy(), se:cdp: ws://localhost:59604/devtoo..., se:cdpVersion: 148.0.7778.217, setWindowRect: true, strictFileInteractability: false, timeouts: {implicit: 0, pageLoad: 300000, script: 30000}, unhandledPromptBehavior: dismiss and notify, webauthn:extension:credBlob: true, webauthn:extension:largeBlob: true, webauthn:extension:minPinLength: true, webauthn:extension:prf: true, webauthn:virtualAuthenticators: true}
+Session ID: afcc90e78edff6c1fd855097548ff004]]>
+            </message>
+            <full-stacktrace>
+              <![CDATA[org.openqa.selenium.TimeoutException: Expected condition failed: waiting for element to be clickable: By.xpath: //button[normalize-space()='Ticket Categories'] (tried for 20 second(s) with 500 milliseconds interval)
+Build info: version: '4.18.1', revision: 'b1d3319b48'
+System info: os.name: 'Windows 11', os.arch: 'amd64', os.version: '10.0', java.version: '25.0.2'
+Driver info: org.openqa.selenium.chrome.ChromeDriver
+Capabilities {acceptInsecureCerts: false, browserName: chrome, browserVersion: 148.0.7778.217, chrome: {chromedriverVersion: 148.0.7778.178 (d096af1c9e9..., userDataDir: C:\Users\NIKHIL~1.CHA\AppDa...}, fedcm:accounts: true, goog:chromeOptions: {debuggerAddress: localhost:59604}, goog:processID: 30220, networkConnectionEnabled: false, pageLoadStrategy: normal, platformName: windows, proxy: Proxy(), se:cdp: ws://localhost:59604/devtoo..., se:cdpVersion: 148.0.7778.217, setWindowRect: true, strictFileInteractability: false, timeouts: {implicit: 0, pageLoad: 300000, script: 30000}, unhandledPromptBehavior: dismiss and notify, webauthn:extension:credBlob: true, webauthn:extension:largeBlob: true, webauthn:extension:minPinLength: true, webauthn:extension:prf: true, webauthn:virtualAuthenticators: true}
+Session ID: afcc90e78edff6c1fd855097548ff004
+at org.openqa.selenium.support.ui.WebDriverWait.timeoutException(WebDriverWait.java:84)
+at org.openqa.selenium.support.ui.FluentWait.until(FluentWait.java:228)
+at com.hubblehox.automation.pages.TicketConfigPage.clickTab(TicketConfigPage.java:130)
+at com.hubblehox.automation.tests.TicketConfigTest.TC_QC_26(TicketConfigTest.java:288)
+at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+at org.testng.internal.invokers.MethodInvocationHelper.invokeMethod(MethodInvocationHelper.java:139)
+at org.testng.internal.invokers.TestInvoker.invokeMethod(TestInvoker.java:664)
+at org.testng.internal.invokers.TestInvoker.invokeTestMethod(TestInvoker.java:228)
+at org.testng.internal.invokers.MethodRunner.runInSequence(MethodRunner.java:63)
+at org.testng.internal.invokers.TestInvoker$MethodInvocationAgent.invoke(TestInvoker.java:961)
+at org.testng.internal.invokers.TestInvoker.invokeTestMethods(TestInvoker.java:201)
+at org.testng.internal.invokers.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:148)
+at org.testng.internal.invokers.TestMethodWorker.run(TestMethodWorker.java:128)
+at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+at org.testng.TestRunner.privateRun(TestRunner.java:819)
+at org.testng.TestRunner.run(TestRunner.java:619)
+at org.testng.SuiteRunner.runTest(SuiteRunner.java:443)
+at org.testng.SuiteRunner.runSequentially(SuiteRunner.java:437)
+at org.testng.SuiteRunner.privateRun(SuiteRunner.java:397)
+at org.testng.SuiteRunner.run(SuiteRunner.java:336)
+at org.testng.SuiteRunnerWorker.runSuite(SuiteRunnerWorker.java:52)
+at org.testng.SuiteRunnerWorker.run(SuiteRunnerWorker.java:95)
+at org.testng.TestNG.runSuitesSequentially(TestNG.java:1301)
+at org.testng.TestNG.runSuitesLocally(TestNG.java:1228)
+at org.testng.TestNG.runSuites(TestNG.java:1134)
+at org.testng.TestNG.run(TestNG.java:1101)
+at org.apache.maven.surefire.testng.TestNGExecutor.run(TestNGExecutor.java:155)
+at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.executeSingleClass(TestNGDirectoryTestSuite.java:102)
+at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.execute(TestNGDirectoryTestSuite.java:91)
+at org.apache.maven.surefire.testng.TestNGProvider.invoke(TestNGProvider.java:137)
+at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+]]>
+            </full-stacktrace>
+          </exception> <!-- org.openqa.selenium.TimeoutException -->
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_26 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:26:56 IST" name="setUp" finished-at="2026-06-09T18:26:56 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_26()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:27:17 IST" name="tearDown" finished-at="2026-06-09T18:27:18 IST" duration-ms="1363" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_26 status=FAILURE method=TicketConfigTest.TC_QC_26()[pri:26, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_27()[pri:27, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:27:18 IST" name="TC_QC_27" finished-at="2026-06-09T18:27:39 IST" duration-ms="20573" status="FAIL">
+          <exception class="org.openqa.selenium.TimeoutException">
+            <message>
+              <![CDATA[Expected condition failed: waiting for element to be clickable: By.xpath: //button[contains(normalize-space(),'Add Category')] (tried for 20 second(s) with 500 milliseconds interval)
+Build info: version: '4.18.1', revision: 'b1d3319b48'
+System info: os.name: 'Windows 11', os.arch: 'amd64', os.version: '10.0', java.version: '25.0.2'
+Driver info: org.openqa.selenium.chrome.ChromeDriver
+Capabilities {acceptInsecureCerts: false, browserName: chrome, browserVersion: 148.0.7778.217, chrome: {chromedriverVersion: 148.0.7778.178 (d096af1c9e9..., userDataDir: C:\Users\NIKHIL~1.CHA\AppDa...}, fedcm:accounts: true, goog:chromeOptions: {debuggerAddress: localhost:59604}, goog:processID: 30220, networkConnectionEnabled: false, pageLoadStrategy: normal, platformName: windows, proxy: Proxy(), se:cdp: ws://localhost:59604/devtoo..., se:cdpVersion: 148.0.7778.217, setWindowRect: true, strictFileInteractability: false, timeouts: {implicit: 0, pageLoad: 300000, script: 30000}, unhandledPromptBehavior: dismiss and notify, webauthn:extension:credBlob: true, webauthn:extension:largeBlob: true, webauthn:extension:minPinLength: true, webauthn:extension:prf: true, webauthn:virtualAuthenticators: true}
+Session ID: afcc90e78edff6c1fd855097548ff004]]>
+            </message>
+            <full-stacktrace>
+              <![CDATA[org.openqa.selenium.TimeoutException: Expected condition failed: waiting for element to be clickable: By.xpath: //button[contains(normalize-space(),'Add Category')] (tried for 20 second(s) with 500 milliseconds interval)
+Build info: version: '4.18.1', revision: 'b1d3319b48'
+System info: os.name: 'Windows 11', os.arch: 'amd64', os.version: '10.0', java.version: '25.0.2'
+Driver info: org.openqa.selenium.chrome.ChromeDriver
+Capabilities {acceptInsecureCerts: false, browserName: chrome, browserVersion: 148.0.7778.217, chrome: {chromedriverVersion: 148.0.7778.178 (d096af1c9e9..., userDataDir: C:\Users\NIKHIL~1.CHA\AppDa...}, fedcm:accounts: true, goog:chromeOptions: {debuggerAddress: localhost:59604}, goog:processID: 30220, networkConnectionEnabled: false, pageLoadStrategy: normal, platformName: windows, proxy: Proxy(), se:cdp: ws://localhost:59604/devtoo..., se:cdpVersion: 148.0.7778.217, setWindowRect: true, strictFileInteractability: false, timeouts: {implicit: 0, pageLoad: 300000, script: 30000}, unhandledPromptBehavior: dismiss and notify, webauthn:extension:credBlob: true, webauthn:extension:largeBlob: true, webauthn:extension:minPinLength: true, webauthn:extension:prf: true, webauthn:virtualAuthenticators: true}
+Session ID: afcc90e78edff6c1fd855097548ff004
+at org.openqa.selenium.support.ui.WebDriverWait.timeoutException(WebDriverWait.java:84)
+at org.openqa.selenium.support.ui.FluentWait.until(FluentWait.java:228)
+at com.hubblehox.automation.pages.TicketConfigPage.clickAddCategory(TicketConfigPage.java:233)
+at com.hubblehox.automation.tests.TicketConfigTest.TC_QC_27(TicketConfigTest.java:295)
+at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+at org.testng.internal.invokers.MethodInvocationHelper.invokeMethod(MethodInvocationHelper.java:139)
+at org.testng.internal.invokers.TestInvoker.invokeMethod(TestInvoker.java:664)
+at org.testng.internal.invokers.TestInvoker.invokeTestMethod(TestInvoker.java:228)
+at org.testng.internal.invokers.MethodRunner.runInSequence(MethodRunner.java:63)
+at org.testng.internal.invokers.TestInvoker$MethodInvocationAgent.invoke(TestInvoker.java:961)
+at org.testng.internal.invokers.TestInvoker.invokeTestMethods(TestInvoker.java:201)
+at org.testng.internal.invokers.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:148)
+at org.testng.internal.invokers.TestMethodWorker.run(TestMethodWorker.java:128)
+at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+at org.testng.TestRunner.privateRun(TestRunner.java:819)
+at org.testng.TestRunner.run(TestRunner.java:619)
+at org.testng.SuiteRunner.runTest(SuiteRunner.java:443)
+at org.testng.SuiteRunner.runSequentially(SuiteRunner.java:437)
+at org.testng.SuiteRunner.privateRun(SuiteRunner.java:397)
+at org.testng.SuiteRunner.run(SuiteRunner.java:336)
+at org.testng.SuiteRunnerWorker.runSuite(SuiteRunnerWorker.java:52)
+at org.testng.SuiteRunnerWorker.run(SuiteRunnerWorker.java:95)
+at org.testng.TestNG.runSuitesSequentially(TestNG.java:1301)
+at org.testng.TestNG.runSuitesLocally(TestNG.java:1228)
+at org.testng.TestNG.runSuites(TestNG.java:1134)
+at org.testng.TestNG.run(TestNG.java:1101)
+at org.apache.maven.surefire.testng.TestNGExecutor.run(TestNGExecutor.java:155)
+at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.executeSingleClass(TestNGDirectoryTestSuite.java:102)
+at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.execute(TestNGDirectoryTestSuite.java:91)
+at org.apache.maven.surefire.testng.TestNGProvider.invoke(TestNGProvider.java:137)
+at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+]]>
+            </full-stacktrace>
+          </exception> <!-- org.openqa.selenium.TimeoutException -->
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_27 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:27:18 IST" name="setUp" finished-at="2026-06-09T18:27:18 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_27()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:27:39 IST" name="tearDown" finished-at="2026-06-09T18:27:40 IST" duration-ms="1448" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_27 status=FAILURE method=TicketConfigTest.TC_QC_27()[pri:27, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:27:40 IST" name="setUp" finished-at="2026-06-09T18:27:40 IST" duration-ms="1" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_28()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method signature="TC_QC_28()[pri:28, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:27:40 IST" name="TC_QC_28" finished-at="2026-06-09T18:28:01 IST" duration-ms="20570" status="FAIL">
+          <exception class="org.openqa.selenium.TimeoutException">
+            <message>
+              <![CDATA[Expected condition failed: waiting for visibility of element located by By.xpath: //label[contains(normalize-space(),'Name *')]/following::input[1] (tried for 20 second(s) with 500 milliseconds interval)
+Build info: version: '4.18.1', revision: 'b1d3319b48'
+System info: os.name: 'Windows 11', os.arch: 'amd64', os.version: '10.0', java.version: '25.0.2'
+Driver info: org.openqa.selenium.chrome.ChromeDriver
+Capabilities {acceptInsecureCerts: false, browserName: chrome, browserVersion: 148.0.7778.217, chrome: {chromedriverVersion: 148.0.7778.178 (d096af1c9e9..., userDataDir: C:\Users\NIKHIL~1.CHA\AppDa...}, fedcm:accounts: true, goog:chromeOptions: {debuggerAddress: localhost:59604}, goog:processID: 30220, networkConnectionEnabled: false, pageLoadStrategy: normal, platformName: windows, proxy: Proxy(), se:cdp: ws://localhost:59604/devtoo..., se:cdpVersion: 148.0.7778.217, setWindowRect: true, strictFileInteractability: false, timeouts: {implicit: 0, pageLoad: 300000, script: 30000}, unhandledPromptBehavior: dismiss and notify, webauthn:extension:credBlob: true, webauthn:extension:largeBlob: true, webauthn:extension:minPinLength: true, webauthn:extension:prf: true, webauthn:virtualAuthenticators: true}
+Session ID: afcc90e78edff6c1fd855097548ff004]]>
+            </message>
+            <full-stacktrace>
+              <![CDATA[org.openqa.selenium.TimeoutException: Expected condition failed: waiting for visibility of element located by By.xpath: //label[contains(normalize-space(),'Name *')]/following::input[1] (tried for 20 second(s) with 500 milliseconds interval)
+Build info: version: '4.18.1', revision: 'b1d3319b48'
+System info: os.name: 'Windows 11', os.arch: 'amd64', os.version: '10.0', java.version: '25.0.2'
+Driver info: org.openqa.selenium.chrome.ChromeDriver
+Capabilities {acceptInsecureCerts: false, browserName: chrome, browserVersion: 148.0.7778.217, chrome: {chromedriverVersion: 148.0.7778.178 (d096af1c9e9..., userDataDir: C:\Users\NIKHIL~1.CHA\AppDa...}, fedcm:accounts: true, goog:chromeOptions: {debuggerAddress: localhost:59604}, goog:processID: 30220, networkConnectionEnabled: false, pageLoadStrategy: normal, platformName: windows, proxy: Proxy(), se:cdp: ws://localhost:59604/devtoo..., se:cdpVersion: 148.0.7778.217, setWindowRect: true, strictFileInteractability: false, timeouts: {implicit: 0, pageLoad: 300000, script: 30000}, unhandledPromptBehavior: dismiss and notify, webauthn:extension:credBlob: true, webauthn:extension:largeBlob: true, webauthn:extension:minPinLength: true, webauthn:extension:prf: true, webauthn:virtualAuthenticators: true}
+Session ID: afcc90e78edff6c1fd855097548ff004
+at org.openqa.selenium.support.ui.WebDriverWait.timeoutException(WebDriverWait.java:84)
+at org.openqa.selenium.support.ui.FluentWait.until(FluentWait.java:228)
+at com.hubblehox.automation.pages.TicketConfigPage.enterCategoryName(TicketConfigPage.java:240)
+at com.hubblehox.automation.tests.TicketConfigTest.TC_QC_28(TicketConfigTest.java:302)
+at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+at org.testng.internal.invokers.MethodInvocationHelper.invokeMethod(MethodInvocationHelper.java:139)
+at org.testng.internal.invokers.TestInvoker.invokeMethod(TestInvoker.java:664)
+at org.testng.internal.invokers.TestInvoker.invokeTestMethod(TestInvoker.java:228)
+at org.testng.internal.invokers.MethodRunner.runInSequence(MethodRunner.java:63)
+at org.testng.internal.invokers.TestInvoker$MethodInvocationAgent.invoke(TestInvoker.java:961)
+at org.testng.internal.invokers.TestInvoker.invokeTestMethods(TestInvoker.java:201)
+at org.testng.internal.invokers.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:148)
+at org.testng.internal.invokers.TestMethodWorker.run(TestMethodWorker.java:128)
+at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+at org.testng.TestRunner.privateRun(TestRunner.java:819)
+at org.testng.TestRunner.run(TestRunner.java:619)
+at org.testng.SuiteRunner.runTest(SuiteRunner.java:443)
+at org.testng.SuiteRunner.runSequentially(SuiteRunner.java:437)
+at org.testng.SuiteRunner.privateRun(SuiteRunner.java:397)
+at org.testng.SuiteRunner.run(SuiteRunner.java:336)
+at org.testng.SuiteRunnerWorker.runSuite(SuiteRunnerWorker.java:52)
+at org.testng.SuiteRunnerWorker.run(SuiteRunnerWorker.java:95)
+at org.testng.TestNG.runSuitesSequentially(TestNG.java:1301)
+at org.testng.TestNG.runSuitesLocally(TestNG.java:1228)
+at org.testng.TestNG.runSuites(TestNG.java:1134)
+at org.testng.TestNG.run(TestNG.java:1101)
+at org.apache.maven.surefire.testng.TestNGExecutor.run(TestNGExecutor.java:155)
+at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.executeSingleClass(TestNGDirectoryTestSuite.java:102)
+at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.execute(TestNGDirectoryTestSuite.java:91)
+at org.apache.maven.surefire.testng.TestNGProvider.invoke(TestNGProvider.java:137)
+at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+]]>
+            </full-stacktrace>
+          </exception> <!-- org.openqa.selenium.TimeoutException -->
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_28 -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:28:01 IST" name="tearDown" finished-at="2026-06-09T18:28:02 IST" duration-ms="1545" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_28 status=FAILURE method=TicketConfigTest.TC_QC_28()[pri:28, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:28:02 IST" name="setUp" finished-at="2026-06-09T18:28:02 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_29()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method signature="TC_QC_29()[pri:29, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:28:02 IST" name="TC_QC_29" finished-at="2026-06-09T18:28:23 IST" duration-ms="20569" status="FAIL">
+          <exception class="org.openqa.selenium.TimeoutException">
+            <message>
+              <![CDATA[Expected condition failed: waiting for visibility of element located by By.xpath: //label[contains(normalize-space(),'Description')]/following::textarea[1] (tried for 20 second(s) with 500 milliseconds interval)
+Build info: version: '4.18.1', revision: 'b1d3319b48'
+System info: os.name: 'Windows 11', os.arch: 'amd64', os.version: '10.0', java.version: '25.0.2'
+Driver info: org.openqa.selenium.chrome.ChromeDriver
+Capabilities {acceptInsecureCerts: false, browserName: chrome, browserVersion: 148.0.7778.217, chrome: {chromedriverVersion: 148.0.7778.178 (d096af1c9e9..., userDataDir: C:\Users\NIKHIL~1.CHA\AppDa...}, fedcm:accounts: true, goog:chromeOptions: {debuggerAddress: localhost:59604}, goog:processID: 30220, networkConnectionEnabled: false, pageLoadStrategy: normal, platformName: windows, proxy: Proxy(), se:cdp: ws://localhost:59604/devtoo..., se:cdpVersion: 148.0.7778.217, setWindowRect: true, strictFileInteractability: false, timeouts: {implicit: 0, pageLoad: 300000, script: 30000}, unhandledPromptBehavior: dismiss and notify, webauthn:extension:credBlob: true, webauthn:extension:largeBlob: true, webauthn:extension:minPinLength: true, webauthn:extension:prf: true, webauthn:virtualAuthenticators: true}
+Session ID: afcc90e78edff6c1fd855097548ff004]]>
+            </message>
+            <full-stacktrace>
+              <![CDATA[org.openqa.selenium.TimeoutException: Expected condition failed: waiting for visibility of element located by By.xpath: //label[contains(normalize-space(),'Description')]/following::textarea[1] (tried for 20 second(s) with 500 milliseconds interval)
+Build info: version: '4.18.1', revision: 'b1d3319b48'
+System info: os.name: 'Windows 11', os.arch: 'amd64', os.version: '10.0', java.version: '25.0.2'
+Driver info: org.openqa.selenium.chrome.ChromeDriver
+Capabilities {acceptInsecureCerts: false, browserName: chrome, browserVersion: 148.0.7778.217, chrome: {chromedriverVersion: 148.0.7778.178 (d096af1c9e9..., userDataDir: C:\Users\NIKHIL~1.CHA\AppDa...}, fedcm:accounts: true, goog:chromeOptions: {debuggerAddress: localhost:59604}, goog:processID: 30220, networkConnectionEnabled: false, pageLoadStrategy: normal, platformName: windows, proxy: Proxy(), se:cdp: ws://localhost:59604/devtoo..., se:cdpVersion: 148.0.7778.217, setWindowRect: true, strictFileInteractability: false, timeouts: {implicit: 0, pageLoad: 300000, script: 30000}, unhandledPromptBehavior: dismiss and notify, webauthn:extension:credBlob: true, webauthn:extension:largeBlob: true, webauthn:extension:minPinLength: true, webauthn:extension:prf: true, webauthn:virtualAuthenticators: true}
+Session ID: afcc90e78edff6c1fd855097548ff004
+at org.openqa.selenium.support.ui.WebDriverWait.timeoutException(WebDriverWait.java:84)
+at org.openqa.selenium.support.ui.FluentWait.until(FluentWait.java:228)
+at com.hubblehox.automation.pages.TicketConfigPage.enterCategoryDescription(TicketConfigPage.java:250)
+at com.hubblehox.automation.tests.TicketConfigTest.TC_QC_29(TicketConfigTest.java:310)
+at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+at org.testng.internal.invokers.MethodInvocationHelper.invokeMethod(MethodInvocationHelper.java:139)
+at org.testng.internal.invokers.TestInvoker.invokeMethod(TestInvoker.java:664)
+at org.testng.internal.invokers.TestInvoker.invokeTestMethod(TestInvoker.java:228)
+at org.testng.internal.invokers.MethodRunner.runInSequence(MethodRunner.java:63)
+at org.testng.internal.invokers.TestInvoker$MethodInvocationAgent.invoke(TestInvoker.java:961)
+at org.testng.internal.invokers.TestInvoker.invokeTestMethods(TestInvoker.java:201)
+at org.testng.internal.invokers.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:148)
+at org.testng.internal.invokers.TestMethodWorker.run(TestMethodWorker.java:128)
+at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+at org.testng.TestRunner.privateRun(TestRunner.java:819)
+at org.testng.TestRunner.run(TestRunner.java:619)
+at org.testng.SuiteRunner.runTest(SuiteRunner.java:443)
+at org.testng.SuiteRunner.runSequentially(SuiteRunner.java:437)
+at org.testng.SuiteRunner.privateRun(SuiteRunner.java:397)
+at org.testng.SuiteRunner.run(SuiteRunner.java:336)
+at org.testng.SuiteRunnerWorker.runSuite(SuiteRunnerWorker.java:52)
+at org.testng.SuiteRunnerWorker.run(SuiteRunnerWorker.java:95)
+at org.testng.TestNG.runSuitesSequentially(TestNG.java:1301)
+at org.testng.TestNG.runSuitesLocally(TestNG.java:1228)
+at org.testng.TestNG.runSuites(TestNG.java:1134)
+at org.testng.TestNG.run(TestNG.java:1101)
+at org.apache.maven.surefire.testng.TestNGExecutor.run(TestNGExecutor.java:155)
+at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.executeSingleClass(TestNGDirectoryTestSuite.java:102)
+at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.execute(TestNGDirectoryTestSuite.java:91)
+at org.apache.maven.surefire.testng.TestNGProvider.invoke(TestNGProvider.java:137)
+at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+]]>
+            </full-stacktrace>
+          </exception> <!-- org.openqa.selenium.TimeoutException -->
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_29 -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:28:23 IST" name="tearDown" finished-at="2026-06-09T18:28:24 IST" duration-ms="1471" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_29 status=FAILURE method=TicketConfigTest.TC_QC_29()[pri:29, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_30()[pri:30, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:28:24 IST" name="TC_QC_30" finished-at="2026-06-09T18:28:45 IST" duration-ms="20675" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_30 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:28:24 IST" name="setUp" finished-at="2026-06-09T18:28:24 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_30()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:28:45 IST" name="tearDown" finished-at="2026-06-09T18:28:46 IST" duration-ms="1458" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_30 status=SUCCESS method=TicketConfigTest.TC_QC_30()[pri:30, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_31()[pri:31, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:28:46 IST" name="TC_QC_31" finished-at="2026-06-09T18:29:28 IST" duration-ms="41222" status="FAIL">
+          <exception class="org.openqa.selenium.TimeoutException">
+            <message>
+              <![CDATA[Expected condition failed: waiting for element to be clickable: By.xpath: //button[normalize-space()='Save'] (tried for 20 second(s) with 500 milliseconds interval)
+Build info: version: '4.18.1', revision: 'b1d3319b48'
+System info: os.name: 'Windows 11', os.arch: 'amd64', os.version: '10.0', java.version: '25.0.2'
+Driver info: org.openqa.selenium.chrome.ChromeDriver
+Capabilities {acceptInsecureCerts: false, browserName: chrome, browserVersion: 148.0.7778.217, chrome: {chromedriverVersion: 148.0.7778.178 (d096af1c9e9..., userDataDir: C:\Users\NIKHIL~1.CHA\AppDa...}, fedcm:accounts: true, goog:chromeOptions: {debuggerAddress: localhost:59604}, goog:processID: 30220, networkConnectionEnabled: false, pageLoadStrategy: normal, platformName: windows, proxy: Proxy(), se:cdp: ws://localhost:59604/devtoo..., se:cdpVersion: 148.0.7778.217, setWindowRect: true, strictFileInteractability: false, timeouts: {implicit: 0, pageLoad: 300000, script: 30000}, unhandledPromptBehavior: dismiss and notify, webauthn:extension:credBlob: true, webauthn:extension:largeBlob: true, webauthn:extension:minPinLength: true, webauthn:extension:prf: true, webauthn:virtualAuthenticators: true}
+Session ID: afcc90e78edff6c1fd855097548ff004]]>
+            </message>
+            <full-stacktrace>
+              <![CDATA[org.openqa.selenium.TimeoutException: Expected condition failed: waiting for element to be clickable: By.xpath: //button[normalize-space()='Save'] (tried for 20 second(s) with 500 milliseconds interval)
+Build info: version: '4.18.1', revision: 'b1d3319b48'
+System info: os.name: 'Windows 11', os.arch: 'amd64', os.version: '10.0', java.version: '25.0.2'
+Driver info: org.openqa.selenium.chrome.ChromeDriver
+Capabilities {acceptInsecureCerts: false, browserName: chrome, browserVersion: 148.0.7778.217, chrome: {chromedriverVersion: 148.0.7778.178 (d096af1c9e9..., userDataDir: C:\Users\NIKHIL~1.CHA\AppDa...}, fedcm:accounts: true, goog:chromeOptions: {debuggerAddress: localhost:59604}, goog:processID: 30220, networkConnectionEnabled: false, pageLoadStrategy: normal, platformName: windows, proxy: Proxy(), se:cdp: ws://localhost:59604/devtoo..., se:cdpVersion: 148.0.7778.217, setWindowRect: true, strictFileInteractability: false, timeouts: {implicit: 0, pageLoad: 300000, script: 30000}, unhandledPromptBehavior: dismiss and notify, webauthn:extension:credBlob: true, webauthn:extension:largeBlob: true, webauthn:extension:minPinLength: true, webauthn:extension:prf: true, webauthn:virtualAuthenticators: true}
+Session ID: afcc90e78edff6c1fd855097548ff004
+at org.openqa.selenium.support.ui.WebDriverWait.timeoutException(WebDriverWait.java:84)
+at org.openqa.selenium.support.ui.FluentWait.until(FluentWait.java:228)
+at com.hubblehox.automation.pages.TicketConfigPage.clickModalSave(TicketConfigPage.java:225)
+at com.hubblehox.automation.tests.TicketConfigTest.TC_QC_31(TicketConfigTest.java:325)
+at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+at org.testng.internal.invokers.MethodInvocationHelper.invokeMethod(MethodInvocationHelper.java:139)
+at org.testng.internal.invokers.TestInvoker.invokeMethod(TestInvoker.java:664)
+at org.testng.internal.invokers.TestInvoker.invokeTestMethod(TestInvoker.java:228)
+at org.testng.internal.invokers.MethodRunner.runInSequence(MethodRunner.java:63)
+at org.testng.internal.invokers.TestInvoker$MethodInvocationAgent.invoke(TestInvoker.java:961)
+at org.testng.internal.invokers.TestInvoker.invokeTestMethods(TestInvoker.java:201)
+at org.testng.internal.invokers.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:148)
+at org.testng.internal.invokers.TestMethodWorker.run(TestMethodWorker.java:128)
+at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+at org.testng.TestRunner.privateRun(TestRunner.java:819)
+at org.testng.TestRunner.run(TestRunner.java:619)
+at org.testng.SuiteRunner.runTest(SuiteRunner.java:443)
+at org.testng.SuiteRunner.runSequentially(SuiteRunner.java:437)
+at org.testng.SuiteRunner.privateRun(SuiteRunner.java:397)
+at org.testng.SuiteRunner.run(SuiteRunner.java:336)
+at org.testng.SuiteRunnerWorker.runSuite(SuiteRunnerWorker.java:52)
+at org.testng.SuiteRunnerWorker.run(SuiteRunnerWorker.java:95)
+at org.testng.TestNG.runSuitesSequentially(TestNG.java:1301)
+at org.testng.TestNG.runSuitesLocally(TestNG.java:1228)
+at org.testng.TestNG.runSuites(TestNG.java:1134)
+at org.testng.TestNG.run(TestNG.java:1101)
+at org.apache.maven.surefire.testng.TestNGExecutor.run(TestNGExecutor.java:155)
+at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.executeSingleClass(TestNGDirectoryTestSuite.java:102)
+at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.execute(TestNGDirectoryTestSuite.java:91)
+at org.apache.maven.surefire.testng.TestNGProvider.invoke(TestNGProvider.java:137)
+at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+]]>
+            </full-stacktrace>
+          </exception> <!-- org.openqa.selenium.TimeoutException -->
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_31 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:28:46 IST" name="setUp" finished-at="2026-06-09T18:28:46 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_31()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:29:28 IST" name="tearDown" finished-at="2026-06-09T18:29:29 IST" duration-ms="1473" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_31 status=FAILURE method=TicketConfigTest.TC_QC_31()[pri:31, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:29:29 IST" name="setUp" finished-at="2026-06-09T18:29:29 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_32()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method signature="TC_QC_32()[pri:32, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:29:29 IST" name="TC_QC_32" finished-at="2026-06-09T18:29:29 IST" duration-ms="90" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_32 -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:29:29 IST" name="tearDown" finished-at="2026-06-09T18:29:31 IST" duration-ms="1530" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_32 status=SUCCESS method=TicketConfigTest.TC_QC_32()[pri:32, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_33()[pri:33, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:29:31 IST" name="TC_QC_33" finished-at="2026-06-09T18:29:31 IST" duration-ms="127" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_33 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:29:31 IST" name="setUp" finished-at="2026-06-09T18:29:31 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_33()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:29:31 IST" name="tearDown" finished-at="2026-06-09T18:29:32 IST" duration-ms="1178" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_33 status=SUCCESS method=TicketConfigTest.TC_QC_33()[pri:33, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_34()[pri:34, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:29:32 IST" name="TC_QC_34" finished-at="2026-06-09T18:29:32 IST" duration-ms="88" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_34 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:29:32 IST" name="setUp" finished-at="2026-06-09T18:29:32 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_34()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:29:32 IST" name="tearDown" finished-at="2026-06-09T18:29:33 IST" duration-ms="1277" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_34 status=SUCCESS method=TicketConfigTest.TC_QC_34()[pri:34, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_35()[pri:35, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:29:33 IST" name="TC_QC_35" finished-at="2026-06-09T18:29:33 IST" duration-ms="72" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_35 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:29:33 IST" name="setUp" finished-at="2026-06-09T18:29:33 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_35()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:29:33 IST" name="tearDown" finished-at="2026-06-09T18:29:35 IST" duration-ms="1258" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_35 status=SUCCESS method=TicketConfigTest.TC_QC_35()[pri:35, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_36()[pri:36, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:29:35 IST" name="TC_QC_36" finished-at="2026-06-09T18:29:36 IST" duration-ms="1217" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_36 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:29:35 IST" name="setUp" finished-at="2026-06-09T18:29:35 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_36()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:29:36 IST" name="tearDown" finished-at="2026-06-09T18:29:37 IST" duration-ms="1241" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_36 status=SUCCESS method=TicketConfigTest.TC_QC_36()[pri:36, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:29:37 IST" name="setUp" finished-at="2026-06-09T18:29:37 IST" duration-ms="2" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_37()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method signature="TC_QC_37()[pri:37, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:29:37 IST" name="TC_QC_37" finished-at="2026-06-09T18:29:58 IST" duration-ms="20682" status="FAIL">
+          <exception class="org.openqa.selenium.TimeoutException">
+            <message>
+              <![CDATA[Expected condition failed: waiting for element to be clickable: By.xpath: //button[contains(normalize-space(),'+ Add Field')] (tried for 20 second(s) with 500 milliseconds interval)
+Build info: version: '4.18.1', revision: 'b1d3319b48'
+System info: os.name: 'Windows 11', os.arch: 'amd64', os.version: '10.0', java.version: '25.0.2'
+Driver info: org.openqa.selenium.chrome.ChromeDriver
+Capabilities {acceptInsecureCerts: false, browserName: chrome, browserVersion: 148.0.7778.217, chrome: {chromedriverVersion: 148.0.7778.178 (d096af1c9e9..., userDataDir: C:\Users\NIKHIL~1.CHA\AppDa...}, fedcm:accounts: true, goog:chromeOptions: {debuggerAddress: localhost:59604}, goog:processID: 30220, networkConnectionEnabled: false, pageLoadStrategy: normal, platformName: windows, proxy: Proxy(), se:cdp: ws://localhost:59604/devtoo..., se:cdpVersion: 148.0.7778.217, setWindowRect: true, strictFileInteractability: false, timeouts: {implicit: 0, pageLoad: 300000, script: 30000}, unhandledPromptBehavior: dismiss and notify, webauthn:extension:credBlob: true, webauthn:extension:largeBlob: true, webauthn:extension:minPinLength: true, webauthn:extension:prf: true, webauthn:virtualAuthenticators: true}
+Session ID: afcc90e78edff6c1fd855097548ff004]]>
+            </message>
+            <full-stacktrace>
+              <![CDATA[org.openqa.selenium.TimeoutException: Expected condition failed: waiting for element to be clickable: By.xpath: //button[contains(normalize-space(),'+ Add Field')] (tried for 20 second(s) with 500 milliseconds interval)
+Build info: version: '4.18.1', revision: 'b1d3319b48'
+System info: os.name: 'Windows 11', os.arch: 'amd64', os.version: '10.0', java.version: '25.0.2'
+Driver info: org.openqa.selenium.chrome.ChromeDriver
+Capabilities {acceptInsecureCerts: false, browserName: chrome, browserVersion: 148.0.7778.217, chrome: {chromedriverVersion: 148.0.7778.178 (d096af1c9e9..., userDataDir: C:\Users\NIKHIL~1.CHA\AppDa...}, fedcm:accounts: true, goog:chromeOptions: {debuggerAddress: localhost:59604}, goog:processID: 30220, networkConnectionEnabled: false, pageLoadStrategy: normal, platformName: windows, proxy: Proxy(), se:cdp: ws://localhost:59604/devtoo..., se:cdpVersion: 148.0.7778.217, setWindowRect: true, strictFileInteractability: false, timeouts: {implicit: 0, pageLoad: 300000, script: 30000}, unhandledPromptBehavior: dismiss and notify, webauthn:extension:credBlob: true, webauthn:extension:largeBlob: true, webauthn:extension:minPinLength: true, webauthn:extension:prf: true, webauthn:virtualAuthenticators: true}
+Session ID: afcc90e78edff6c1fd855097548ff004
+at org.openqa.selenium.support.ui.WebDriverWait.timeoutException(WebDriverWait.java:84)
+at org.openqa.selenium.support.ui.FluentWait.until(FluentWait.java:228)
+at com.hubblehox.automation.pages.TicketConfigPage.clickAddField(TicketConfigPage.java:261)
+at com.hubblehox.automation.tests.TicketConfigTest.TC_QC_37(TicketConfigTest.java:367)
+at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+at org.testng.internal.invokers.MethodInvocationHelper.invokeMethod(MethodInvocationHelper.java:139)
+at org.testng.internal.invokers.TestInvoker.invokeMethod(TestInvoker.java:664)
+at org.testng.internal.invokers.TestInvoker.invokeTestMethod(TestInvoker.java:228)
+at org.testng.internal.invokers.MethodRunner.runInSequence(MethodRunner.java:63)
+at org.testng.internal.invokers.TestInvoker$MethodInvocationAgent.invoke(TestInvoker.java:961)
+at org.testng.internal.invokers.TestInvoker.invokeTestMethods(TestInvoker.java:201)
+at org.testng.internal.invokers.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:148)
+at org.testng.internal.invokers.TestMethodWorker.run(TestMethodWorker.java:128)
+at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+at org.testng.TestRunner.privateRun(TestRunner.java:819)
+at org.testng.TestRunner.run(TestRunner.java:619)
+at org.testng.SuiteRunner.runTest(SuiteRunner.java:443)
+at org.testng.SuiteRunner.runSequentially(SuiteRunner.java:437)
+at org.testng.SuiteRunner.privateRun(SuiteRunner.java:397)
+at org.testng.SuiteRunner.run(SuiteRunner.java:336)
+at org.testng.SuiteRunnerWorker.runSuite(SuiteRunnerWorker.java:52)
+at org.testng.SuiteRunnerWorker.run(SuiteRunnerWorker.java:95)
+at org.testng.TestNG.runSuitesSequentially(TestNG.java:1301)
+at org.testng.TestNG.runSuitesLocally(TestNG.java:1228)
+at org.testng.TestNG.runSuites(TestNG.java:1134)
+at org.testng.TestNG.run(TestNG.java:1101)
+at org.apache.maven.surefire.testng.TestNGExecutor.run(TestNGExecutor.java:155)
+at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.executeSingleClass(TestNGDirectoryTestSuite.java:102)
+at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.execute(TestNGDirectoryTestSuite.java:91)
+at org.apache.maven.surefire.testng.TestNGProvider.invoke(TestNGProvider.java:137)
+at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+]]>
+            </full-stacktrace>
+          </exception> <!-- org.openqa.selenium.TimeoutException -->
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_37 -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:29:58 IST" name="tearDown" finished-at="2026-06-09T18:29:59 IST" duration-ms="1625" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_37 status=FAILURE method=TicketConfigTest.TC_QC_37()[pri:37, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_38()[pri:38, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:30:00 IST" name="TC_QC_38" finished-at="2026-06-09T18:30:10 IST" duration-ms="10126" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_38 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:30:00 IST" name="setUp" finished-at="2026-06-09T18:30:00 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_38()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:30:10 IST" name="tearDown" finished-at="2026-06-09T18:30:11 IST" duration-ms="1443" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_38 status=SUCCESS method=TicketConfigTest.TC_QC_38()[pri:38, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:30:11 IST" name="setUp" finished-at="2026-06-09T18:30:11 IST" duration-ms="2" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_39()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method signature="TC_QC_39()[pri:39, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:30:11 IST" name="TC_QC_39" finished-at="2026-06-09T18:30:21 IST" duration-ms="10129" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_39 -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:30:21 IST" name="tearDown" finished-at="2026-06-09T18:30:23 IST" duration-ms="1645" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_39 status=SUCCESS method=TicketConfigTest.TC_QC_39()[pri:39, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_40()[pri:40, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:30:23 IST" name="TC_QC_40" finished-at="2026-06-09T18:30:33 IST" duration-ms="10090" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_40 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:30:23 IST" name="setUp" finished-at="2026-06-09T18:30:23 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_40()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:30:33 IST" name="tearDown" finished-at="2026-06-09T18:30:34 IST" duration-ms="1491" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_40 status=SUCCESS method=TicketConfigTest.TC_QC_40()[pri:40, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_41()[pri:41, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:30:34 IST" name="TC_QC_41" finished-at="2026-06-09T18:30:45 IST" duration-ms="10109" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_41 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:30:34 IST" name="setUp" finished-at="2026-06-09T18:30:34 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_41()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:30:45 IST" name="tearDown" finished-at="2026-06-09T18:30:46 IST" duration-ms="1353" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_41 status=SUCCESS method=TicketConfigTest.TC_QC_41()[pri:41, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:30:46 IST" name="setUp" finished-at="2026-06-09T18:30:46 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_42()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method signature="TC_QC_42()[pri:42, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:30:46 IST" name="TC_QC_42" finished-at="2026-06-09T18:30:56 IST" duration-ms="10106" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_42 -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:30:56 IST" name="tearDown" finished-at="2026-06-09T18:30:57 IST" duration-ms="1287" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_42 status=SUCCESS method=TicketConfigTest.TC_QC_42()[pri:42, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_43()[pri:43, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:30:57 IST" name="TC_QC_43" finished-at="2026-06-09T18:31:07 IST" duration-ms="10134" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_43 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:30:57 IST" name="setUp" finished-at="2026-06-09T18:30:57 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_43()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:31:07 IST" name="tearDown" finished-at="2026-06-09T18:31:09 IST" duration-ms="1434" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_43 status=SUCCESS method=TicketConfigTest.TC_QC_43()[pri:43, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_44()[pri:44, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:31:09 IST" name="TC_QC_44" finished-at="2026-06-09T18:31:09 IST" duration-ms="60" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_44 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:31:09 IST" name="setUp" finished-at="2026-06-09T18:31:09 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_44()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:31:09 IST" name="tearDown" finished-at="2026-06-09T18:31:11 IST" duration-ms="1743" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_44 status=SUCCESS method=TicketConfigTest.TC_QC_44()[pri:44, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:31:11 IST" name="setUp" finished-at="2026-06-09T18:31:11 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_45()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method signature="TC_QC_45()[pri:45, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:31:11 IST" name="TC_QC_45" finished-at="2026-06-09T18:31:11 IST" duration-ms="65" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_45 -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:31:11 IST" name="tearDown" finished-at="2026-06-09T18:31:17 IST" duration-ms="6486" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_45 status=SUCCESS method=TicketConfigTest.TC_QC_45()[pri:45, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_46()[pri:46, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:31:17 IST" name="TC_QC_46" finished-at="2026-06-09T18:31:17 IST" duration-ms="87" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_46 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:31:17 IST" name="setUp" finished-at="2026-06-09T18:31:17 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_46()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:31:17 IST" name="tearDown" finished-at="2026-06-09T18:31:19 IST" duration-ms="1299" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_46 status=SUCCESS method=TicketConfigTest.TC_QC_46()[pri:46, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_47()[pri:47, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:31:19 IST" name="TC_QC_47" finished-at="2026-06-09T18:31:20 IST" duration-ms="1533" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_47 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:31:19 IST" name="setUp" finished-at="2026-06-09T18:31:19 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_47()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:31:20 IST" name="tearDown" finished-at="2026-06-09T18:31:21 IST" duration-ms="1287" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_47 status=SUCCESS method=TicketConfigTest.TC_QC_47()[pri:47, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_48()[pri:48, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:31:21 IST" name="TC_QC_48" finished-at="2026-06-09T18:31:21 IST" duration-ms="50" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_48 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:31:21 IST" name="setUp" finished-at="2026-06-09T18:31:21 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_48()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:31:21 IST" name="tearDown" finished-at="2026-06-09T18:31:23 IST" duration-ms="1254" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_48 status=SUCCESS method=TicketConfigTest.TC_QC_48()[pri:48, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_49()[pri:49, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:31:23 IST" name="TC_QC_49" finished-at="2026-06-09T18:31:24 IST" duration-ms="1328" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_49 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:31:23 IST" name="setUp" finished-at="2026-06-09T18:31:23 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_49()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:31:24 IST" name="tearDown" finished-at="2026-06-09T18:31:25 IST" duration-ms="1221" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_49 status=SUCCESS method=TicketConfigTest.TC_QC_49()[pri:49, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_50()[pri:50, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:31:25 IST" name="TC_QC_50" finished-at="2026-06-09T18:31:35 IST" duration-ms="10096" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_50 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:31:25 IST" name="setUp" finished-at="2026-06-09T18:31:25 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_50()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:31:35 IST" name="tearDown" finished-at="2026-06-09T18:31:37 IST" duration-ms="1382" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_50 status=SUCCESS method=TicketConfigTest.TC_QC_50()[pri:50, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:31:37 IST" name="setUp" finished-at="2026-06-09T18:31:37 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_51()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method signature="TC_QC_51()[pri:51, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:31:37 IST" name="TC_QC_51" finished-at="2026-06-09T18:31:47 IST" duration-ms="10159" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_51 -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:31:47 IST" name="tearDown" finished-at="2026-06-09T18:31:48 IST" duration-ms="1420" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_51 status=SUCCESS method=TicketConfigTest.TC_QC_51()[pri:51, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_52()[pri:52, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:31:48 IST" name="TC_QC_52" finished-at="2026-06-09T18:32:09 IST" duration-ms="20721" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_52 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:31:48 IST" name="setUp" finished-at="2026-06-09T18:31:48 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_52()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:09 IST" name="tearDown" finished-at="2026-06-09T18:32:10 IST" duration-ms="1374" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_52 status=SUCCESS method=TicketConfigTest.TC_QC_52()[pri:52, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_53()[pri:53, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:10 IST" name="TC_QC_53" finished-at="2026-06-09T18:32:31 IST" duration-ms="20630" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_53 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:10 IST" name="setUp" finished-at="2026-06-09T18:32:10 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_53()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:31 IST" name="tearDown" finished-at="2026-06-09T18:32:33 IST" duration-ms="1778" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_53 status=SUCCESS method=TicketConfigTest.TC_QC_53()[pri:53, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_54()[pri:54, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:33 IST" name="TC_QC_54" finished-at="2026-06-09T18:32:33 IST" duration-ms="129" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_54 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:33 IST" name="setUp" finished-at="2026-06-09T18:32:33 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_54()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:33 IST" name="tearDown" finished-at="2026-06-09T18:32:34 IST" duration-ms="1374" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_54 status=SUCCESS method=TicketConfigTest.TC_QC_54()[pri:54, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:34 IST" name="setUp" finished-at="2026-06-09T18:32:34 IST" duration-ms="2" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_55()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method signature="TC_QC_55()[pri:55, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:34 IST" name="TC_QC_55" finished-at="2026-06-09T18:32:36 IST" duration-ms="1501" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_55 -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:36 IST" name="tearDown" finished-at="2026-06-09T18:32:37 IST" duration-ms="1393" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_55 status=SUCCESS method=TicketConfigTest.TC_QC_55()[pri:55, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_56()[pri:56, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:37 IST" name="TC_QC_56" finished-at="2026-06-09T18:32:37 IST" duration-ms="51" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_56 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:37 IST" name="setUp" finished-at="2026-06-09T18:32:37 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_56()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:37 IST" name="tearDown" finished-at="2026-06-09T18:32:39 IST" duration-ms="1460" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_56 status=SUCCESS method=TicketConfigTest.TC_QC_56()[pri:56, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:39 IST" name="setUp" finished-at="2026-06-09T18:32:39 IST" duration-ms="2" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_57()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method signature="TC_QC_57()[pri:57, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:39 IST" name="TC_QC_57" finished-at="2026-06-09T18:32:39 IST" duration-ms="84" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_57 -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:39 IST" name="tearDown" finished-at="2026-06-09T18:32:40 IST" duration-ms="1476" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_57 status=SUCCESS method=TicketConfigTest.TC_QC_57()[pri:57, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_58()[pri:58, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:40 IST" name="TC_QC_58" finished-at="2026-06-09T18:32:40 IST" duration-ms="65" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_58 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:40 IST" name="setUp" finished-at="2026-06-09T18:32:40 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_58()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:40 IST" name="tearDown" finished-at="2026-06-09T18:32:42 IST" duration-ms="1487" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_58 status=SUCCESS method=TicketConfigTest.TC_QC_58()[pri:58, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:42 IST" name="setUp" finished-at="2026-06-09T18:32:42 IST" duration-ms="5" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_59()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method signature="TC_QC_59()[pri:59, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:42 IST" name="TC_QC_59" finished-at="2026-06-09T18:32:42 IST" duration-ms="47" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_59 -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:42 IST" name="tearDown" finished-at="2026-06-09T18:32:43 IST" duration-ms="1376" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_59 status=SUCCESS method=TicketConfigTest.TC_QC_59()[pri:59, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:43 IST" name="setUp" finished-at="2026-06-09T18:32:43 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_60()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method signature="TC_QC_60()[pri:60, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:43 IST" name="TC_QC_60" finished-at="2026-06-09T18:32:43 IST" duration-ms="56" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_60 -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:43 IST" name="tearDown" finished-at="2026-06-09T18:32:45 IST" duration-ms="1469" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_60 status=SUCCESS method=TicketConfigTest.TC_QC_60()[pri:60, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_61()[pri:61, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:45 IST" name="TC_QC_61" finished-at="2026-06-09T18:32:45 IST" duration-ms="57" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_61 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:45 IST" name="setUp" finished-at="2026-06-09T18:32:45 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_61()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:45 IST" name="tearDown" finished-at="2026-06-09T18:32:47 IST" duration-ms="1567" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_61 status=SUCCESS method=TicketConfigTest.TC_QC_61()[pri:61, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_62()[pri:62, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:47 IST" name="TC_QC_62" finished-at="2026-06-09T18:32:47 IST" duration-ms="130" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_62 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:47 IST" name="setUp" finished-at="2026-06-09T18:32:47 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_62()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:47 IST" name="tearDown" finished-at="2026-06-09T18:32:48 IST" duration-ms="1712" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_62 status=SUCCESS method=TicketConfigTest.TC_QC_62()[pri:62, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_63()[pri:63, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:48 IST" name="TC_QC_63" finished-at="2026-06-09T18:32:48 IST" duration-ms="80" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_63 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:48 IST" name="setUp" finished-at="2026-06-09T18:32:48 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_63()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:48 IST" name="tearDown" finished-at="2026-06-09T18:32:50 IST" duration-ms="1453" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_63 status=SUCCESS method=TicketConfigTest.TC_QC_63()[pri:63, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_64()[pri:64, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:50 IST" name="TC_QC_64" finished-at="2026-06-09T18:32:50 IST" duration-ms="48" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_64 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:50 IST" name="setUp" finished-at="2026-06-09T18:32:50 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_64()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:50 IST" name="tearDown" finished-at="2026-06-09T18:32:51 IST" duration-ms="1298" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_64 status=SUCCESS method=TicketConfigTest.TC_QC_64()[pri:64, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_65()[pri:65, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:51 IST" name="TC_QC_65" finished-at="2026-06-09T18:32:51 IST" duration-ms="88" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_65 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:51 IST" name="setUp" finished-at="2026-06-09T18:32:51 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_65()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:51 IST" name="tearDown" finished-at="2026-06-09T18:32:53 IST" duration-ms="1213" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_65 status=SUCCESS method=TicketConfigTest.TC_QC_65()[pri:65, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_66()[pri:66, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:53 IST" name="TC_QC_66" finished-at="2026-06-09T18:32:53 IST" duration-ms="50" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_66 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:53 IST" name="setUp" finished-at="2026-06-09T18:32:53 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_66()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:53 IST" name="tearDown" finished-at="2026-06-09T18:32:54 IST" duration-ms="1576" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_66 status=SUCCESS method=TicketConfigTest.TC_QC_66()[pri:66, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_67()[pri:67, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:54 IST" name="TC_QC_67" finished-at="2026-06-09T18:32:54 IST" duration-ms="64" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_67 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:54 IST" name="setUp" finished-at="2026-06-09T18:32:54 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_67()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:54 IST" name="tearDown" finished-at="2026-06-09T18:32:56 IST" duration-ms="1372" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_67 status=SUCCESS method=TicketConfigTest.TC_QC_67()[pri:67, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_68()[pri:68, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:56 IST" name="TC_QC_68" finished-at="2026-06-09T18:32:56 IST" duration-ms="48" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_68 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:56 IST" name="setUp" finished-at="2026-06-09T18:32:56 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_68()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:56 IST" name="tearDown" finished-at="2026-06-09T18:32:57 IST" duration-ms="1389" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_68 status=SUCCESS method=TicketConfigTest.TC_QC_68()[pri:68, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_69()[pri:69, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:57 IST" name="TC_QC_69" finished-at="2026-06-09T18:32:57 IST" duration-ms="59" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_69 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:57 IST" name="setUp" finished-at="2026-06-09T18:32:57 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_69()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:57 IST" name="tearDown" finished-at="2026-06-09T18:32:59 IST" duration-ms="1576" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_69 status=SUCCESS method=TicketConfigTest.TC_QC_69()[pri:69, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_70()[pri:70, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:59 IST" name="TC_QC_70" finished-at="2026-06-09T18:32:59 IST" duration-ms="60" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_70 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:59 IST" name="setUp" finished-at="2026-06-09T18:32:59 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_70()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:32:59 IST" name="tearDown" finished-at="2026-06-09T18:33:00 IST" duration-ms="1473" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_70 status=SUCCESS method=TicketConfigTest.TC_QC_70()[pri:70, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_71()[pri:71, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:33:00 IST" name="TC_QC_71" finished-at="2026-06-09T18:33:00 IST" duration-ms="86" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_71 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:33:00 IST" name="setUp" finished-at="2026-06-09T18:33:00 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_71()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:33:00 IST" name="tearDown" finished-at="2026-06-09T18:33:02 IST" duration-ms="1428" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_71 status=SUCCESS method=TicketConfigTest.TC_QC_71()[pri:71, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:33:02 IST" name="setUp" finished-at="2026-06-09T18:33:02 IST" duration-ms="1" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_72()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method signature="TC_QC_72()[pri:72, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:33:02 IST" name="TC_QC_72" finished-at="2026-06-09T18:33:02 IST" duration-ms="50" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_72 -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:33:02 IST" name="tearDown" finished-at="2026-06-09T18:33:03 IST" duration-ms="1500" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_72 status=SUCCESS method=TicketConfigTest.TC_QC_72()[pri:72, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_73()[pri:73, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:33:03 IST" name="TC_QC_73" finished-at="2026-06-09T18:33:03 IST" duration-ms="59" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_73 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:33:03 IST" name="setUp" finished-at="2026-06-09T18:33:03 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_73()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:33:03 IST" name="tearDown" finished-at="2026-06-09T18:33:05 IST" duration-ms="1681" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_73 status=SUCCESS method=TicketConfigTest.TC_QC_73()[pri:73, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_74()[pri:74, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:33:05 IST" name="TC_QC_74" finished-at="2026-06-09T18:33:05 IST" duration-ms="64" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_74 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:33:05 IST" name="setUp" finished-at="2026-06-09T18:33:05 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_74()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:33:05 IST" name="tearDown" finished-at="2026-06-09T18:33:07 IST" duration-ms="1574" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_74 status=SUCCESS method=TicketConfigTest.TC_QC_74()[pri:74, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:33:07 IST" name="setUp" finished-at="2026-06-09T18:33:07 IST" duration-ms="2" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_75()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method signature="TC_QC_75()[pri:75, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:33:07 IST" name="TC_QC_75" finished-at="2026-06-09T18:33:07 IST" duration-ms="235" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_75 -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:33:07 IST" name="tearDown" finished-at="2026-06-09T18:33:08 IST" duration-ms="1501" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_75 status=SUCCESS method=TicketConfigTest.TC_QC_75()[pri:75, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_76()[pri:76, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:33:08 IST" name="TC_QC_76" finished-at="2026-06-09T18:33:08 IST" duration-ms="53" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_76 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:33:08 IST" name="setUp" finished-at="2026-06-09T18:33:08 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_76()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:33:08 IST" name="tearDown" finished-at="2026-06-09T18:33:10 IST" duration-ms="1291" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_76 status=SUCCESS method=TicketConfigTest.TC_QC_76()[pri:76, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_77()[pri:77, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:33:10 IST" name="TC_QC_77" finished-at="2026-06-09T18:33:10 IST" duration-ms="65" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_77 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:33:10 IST" name="setUp" finished-at="2026-06-09T18:33:10 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_77()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:33:10 IST" name="tearDown" finished-at="2026-06-09T18:33:11 IST" duration-ms="1126" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_77 status=SUCCESS method=TicketConfigTest.TC_QC_77()[pri:77, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_78()[pri:78, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:33:11 IST" name="TC_QC_78" finished-at="2026-06-09T18:33:11 IST" duration-ms="87" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_78 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:33:11 IST" name="setUp" finished-at="2026-06-09T18:33:11 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_78()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:33:11 IST" name="tearDown" finished-at="2026-06-09T18:33:12 IST" duration-ms="1151" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_78 status=SUCCESS method=TicketConfigTest.TC_QC_78()[pri:78, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method signature="TC_QC_79()[pri:79, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:33:12 IST" name="TC_QC_79" finished-at="2026-06-09T18:33:12 IST" duration-ms="67" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_79 -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:33:12 IST" name="setUp" finished-at="2026-06-09T18:33:12 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_79()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:33:12 IST" name="tearDown" finished-at="2026-06-09T18:33:14 IST" duration-ms="1315" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_79 status=SUCCESS method=TicketConfigTest.TC_QC_79()[pri:79, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method is-config="true" signature="setUp(java.lang.reflect.Method)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:33:14 IST" name="setUp" finished-at="2026-06-09T18:33:14 IST" duration-ms="0" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void com.hubblehox.automation.tests.TicketConfigTest.TC_QC_80()]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setUp -->
+        <test-method signature="TC_QC_80()[pri:80, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:33:14 IST" name="TC_QC_80" finished-at="2026-06-09T18:33:14 IST" duration-ms="241" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- TC_QC_80 -->
+        <test-method is-config="true" signature="tearDown(org.testng.ITestResult)[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:33:14 IST" name="tearDown" finished-at="2026-06-09T18:33:15 IST" duration-ms="1352" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[[TestResult name=TC_QC_80 status=SUCCESS method=TicketConfigTest.TC_QC_80()[pri:80, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c] output={null}]]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+        <test-method is-config="true" signature="closeBrowser()[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:33:15 IST" name="closeBrowser" finished-at="2026-06-09T18:33:16 IST" duration-ms="647" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- closeBrowser -->
+        <test-method is-config="true" signature="flushReport()[pri:0, instance:com.hubblehox.automation.tests.TicketConfigTest@4b41dd5c]" started-at="2026-06-09T18:33:16 IST" name="flushReport" finished-at="2026-06-09T18:33:17 IST" duration-ms="790" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- flushReport -->
+      </class> <!-- com.hubblehox.automation.tests.TicketConfigTest -->
+    </test> <!-- Surefire test -->
+  </suite> <!-- Surefire suite -->
+</testng-results>

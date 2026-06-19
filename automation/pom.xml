@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.hubblehox</groupId>
+    <artifactId>automation</artifactId>
+    <version>1.0.0</version>
+    <packaging>jar</packaging>
+
+    <name>HubbleHox Automation Framework</name>
+    <description>Selenium TestNG Hybrid Automation Framework for SAC Helpdesk Portal</description>
+
+    <properties>
+        <java.version>17</java.version>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- Module selector: use -Dmodule=pm | login | all  (default: all) -->
+        <module>all</module>
+
+        <!-- Dependency Versions -->
+        <selenium.version>4.18.1</selenium.version>
+        <testng.version>7.9.0</testng.version>
+        <webdrivermanager.version>5.7.0</webdrivermanager.version>
+        <extentreports.version>5.1.1</extentreports.version>
+        <poi.version>5.2.5</poi.version>
+        <google.sheets.version>v4-rev20220927-2.0.0</google.sheets.version>
+        <google.api.client.version>2.2.0</google.api.client.version>
+        <google.auth.version>1.20.0</google.auth.version>
+        <jackson.version>2.16.1</jackson.version>
+        <log4j.version>2.22.1</log4j.version>
+        <httpclient.version>5.3.1</httpclient.version>
+    </properties>
+
+    <dependencies>
+
+        <!-- ===== SELENIUM ===== -->
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-java</artifactId>
+            <version>${selenium.version}</version>
+        </dependency>
+
+        <!-- ===== WEBDRIVER MANAGER (Auto manages browser drivers) ===== -->
+        <dependency>
+            <groupId>io.github.bonigarcia</groupId>
+            <artifactId>webdrivermanager</artifactId>
+            <version>${webdrivermanager.version}</version>
+        </dependency>
+
+        <!-- ===== TESTNG ===== -->
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <version>${testng.version}</version>
+        </dependency>
+
+        <!-- ===== EXTENT REPORTS (HTML Reporting) ===== -->
+        <dependency>
+            <groupId>com.aventstack</groupId>
+            <artifactId>extentreports</artifactId>
+            <version>${extentreports.version}</version>
+        </dependency>
+
+        <!-- ===== APACHE POI (Excel Read/Write) ===== -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi</artifactId>
+            <version>${poi.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>${poi.version}</version>
+        </dependency>
+
+        <!-- ===== GOOGLE SHEETS API ===== -->
+        <dependency>
+            <groupId>com.google.apis</groupId>
+            <artifactId>google-api-services-sheets</artifactId>
+            <version>${google.sheets.version}</version>
+        </dependency>
+
+        <!-- ===== GOOGLE API CLIENT ===== -->
+        <dependency>
+            <groupId>com.google.api-client</groupId>
+            <artifactId>google-api-client</artifactId>
+            <version>${google.api.client.version}</version>
+        </dependency>
+
+        <!-- ===== GOOGLE AUTH (Service Account) ===== -->
+        <dependency>
+            <groupId>com.google.auth</groupId>
+            <artifactId>google-auth-library-oauth2-http</artifactId>
+            <version>${google.auth.version}</version>
+        </dependency>
+
+        <!-- ===== JACKSON (JSON Parsing for API token injection) ===== -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+
+        <!-- ===== LOG4J2 (Logging) ===== -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+            <version>${log4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>${log4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j2-impl</artifactId>
+            <version>${log4j.version}</version>
+        </dependency>
+
+        <!-- ===== HTTP CLIENT (API Token Injection for non-login tests) ===== -->
+        <dependency>
+            <groupId>org.apache.httpcomponents.client5</groupId>
+            <artifactId>httpclient5</artifactId>
+            <version>${httpclient.version}</version>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+
+            <!-- Maven Compiler Plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <source>17</source>
+                    <target>17</target>
+                </configuration>
+            </plugin>
+
+            <!-- Maven Surefire Plugin (runs TestNG) -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
+                <configuration>
+                    <!-- Run a specific module:  mvn test -Dmodule=pm   or  -Dmodule=login  or  -Dmodule=all -->
+                    <suiteXmlFiles>
+                        <suiteXmlFile>testng-${module}.xml</suiteXmlFile>
+                    </suiteXmlFiles>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+
+</project>

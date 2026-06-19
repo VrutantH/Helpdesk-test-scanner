@@ -1,0 +1,5 @@
+com\hubblehox\automation\tests\LoginTest.class
+com\hubblehox\automation\tests\UserManagementTest.class
+com\hubblehox\automation\tests\RBACSetupTest.class
+com\hubblehox\automation\tests\ProjectManagementTest.class
+com\hubblehox\automation\tests\TicketConfigTest.class

@@ -141,9 +141,9 @@ export const menuConfig: MenuItem[] = [
   {
     path: '/ticket-config',
     icon: <MdSettings />,
-    label: 'Ticket Configuration',
-    labelHi: 'टिकट कॉन्फ़िगरेशन',
-    labelMr: 'तिकीट कॉन्फिगरेशन',
+    label: 'Query Configuration',
+    labelHi: 'क्वेरी कॉन्फ़िगरेशन',
+    labelMr: 'क्वेरी कॉन्फिगरेशन',
     permission: [
       PERMISSIONS.TICKET_CONFIG_VIEW,
       PERMISSIONS.TICKET_CONFIG_MANAGE_CATEGORIES,

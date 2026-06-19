@@ -1,0 +1,15 @@
+This folder contains local Excel result files.
+One file per module — mirrors the Google Sheet structure exactly.
+
+Structure per file:
+Columns: Test Case ID | Test Case Description | Steps | Expected Result | Actual Result | Comments | [Run Date-Time columns...]
+
+Files:
+- LOGIN_Results.xlsx
+- TICKETS_Results.xlsx
+- USERS_Results.xlsx
+- RBAC_Results.xlsx
+- MASTERDATA_Results.xlsx
+- SLA_Results.xlsx
+- KNOWLEDGEBASE_Results.xlsx
+- PROJECTS_Results.xlsx

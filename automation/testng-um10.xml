@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="User Management Suite – First 10" verbose="1" thread-count="1" parallel="none">
+    <test name="User Management Tests TC_UM_01 to TC_UM_10">
+        <classes>
+            <class name="com.hubblehox.automation.tests.UserManagementTest">
+                <methods>
+                    <include name="TC_UM_01"/>
+                    <include name="TC_UM_02"/>
+                    <include name="TC_UM_03"/>
+                    <include name="TC_UM_04"/>
+                    <include name="TC_UM_05"/>
+                    <include name="TC_UM_06"/>
+                    <include name="TC_UM_07"/>
+                    <include name="TC_UM_08"/>
+                    <include name="TC_UM_09"/>
+                    <include name="TC_UM_10"/>
+                </methods>
+            </class>
+        </classes>
+    </test>
+</suite>

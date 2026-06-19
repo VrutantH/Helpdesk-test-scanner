@@ -1,0 +1,504 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.hubblehox.automation.tests.TicketConfigTest" time="526.154" tests="80" errors="0" skipped="0" failures="8">
+  <properties>
+    <property name="java.specification.version" value="25"/>
+    <property name="webdriver.chrome.driver" value="C:\Users\nikhil.chaudhari\.cache\selenium\chromedriver\win64\148.0.7778.178\chromedriver.exe"/>
+    <property name="sun.cpu.isalist" value="amd64"/>
+    <property name="sun.jnu.encoding" value="Cp1252"/>
+    <property name="java.class.path" value="C:\Users\nikhil.chaudhari\OneDrive - Eduspark International Pvt. Ltd\Helpdesk\helpdesk\automation\target\test-classes;C:\Users\nikhil.chaudhari\OneDrive - Eduspark International Pvt. Ltd\Helpdesk\helpdesk\automation\target\classes;C:\Users\nikhil.chaudhari\.m2\repository\org\seleniumhq\selenium\selenium-java\4.18.1\selenium-java-4.18.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\seleniumhq\selenium\selenium-api\4.18.1\selenium-api-4.18.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\seleniumhq\selenium\selenium-chrome-driver\4.18.1\selenium-chrome-driver-4.18.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\google\auto\service\auto-service-annotations\1.1.1\auto-service-annotations-1.1.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\seleniumhq\selenium\selenium-chromium-driver\4.18.1\selenium-chromium-driver-4.18.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\seleniumhq\selenium\selenium-json\4.18.1\selenium-json-4.18.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\seleniumhq\selenium\selenium-manager\4.18.1\selenium-manager-4.18.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\seleniumhq\selenium\selenium-devtools-v120\4.18.1\selenium-devtools-v120-4.18.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\seleniumhq\selenium\selenium-devtools-v121\4.18.1\selenium-devtools-v121-4.18.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\seleniumhq\selenium\selenium-devtools-v122\4.18.1\selenium-devtools-v122-4.18.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\seleniumhq\selenium\selenium-devtools-v85\4.18.1\selenium-devtools-v85-4.18.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\seleniumhq\selenium\selenium-edge-driver\4.18.1\selenium-edge-driver-4.18.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\seleniumhq\selenium\selenium-firefox-driver\4.18.1\selenium-firefox-driver-4.18.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\seleniumhq\selenium\selenium-http\4.18.1\selenium-http-4.18.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\dev\failsafe\failsafe\3.3.2\failsafe-3.3.2.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\seleniumhq\selenium\selenium-ie-driver\4.18.1\selenium-ie-driver-4.18.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\seleniumhq\selenium\selenium-remote-driver\4.18.1\selenium-remote-driver-4.18.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\io\opentelemetry\semconv\opentelemetry-semconv\1.23.1-alpha\opentelemetry-semconv-1.23.1-alpha.jar;C:\Users\nikhil.chaudhari\.m2\repository\io\opentelemetry\opentelemetry-api\1.35.0\opentelemetry-api-1.35.0.jar;C:\Users\nikhil.chaudhari\.m2\repository\io\opentelemetry\opentelemetry-context\1.35.0\opentelemetry-context-1.35.0.jar;C:\Users\nikhil.chaudhari\.m2\repository\io\opentelemetry\opentelemetry-exporter-logging\1.35.0\opentelemetry-exporter-logging-1.35.0.jar;C:\Users\nikhil.chaudhari\.m2\repository\io\opentelemetry\opentelemetry-sdk-common\1.35.0\opentelemetry-sdk-common-1.35.0.jar;C:\Users\nikhil.chaudhari\.m2\repository\io\opentelemetry\opentelemetry-sdk-extension-autoconfigure-spi\1.35.0\opentelemetry-sdk-extension-autoconfigure-spi-1.35.0.jar;C:\Users\nikhil.chaudhari\.m2\repository\io\opentelemetry\opentelemetry-sdk-extension-autoconfigure\1.35.0\opentelemetry-sdk-extension-autoconfigure-1.35.0.jar;C:\Users\nikhil.chaudhari\.m2\repository\io\opentelemetry\opentelemetry-api-events\1.35.0-alpha\opentelemetry-api-events-1.35.0-alpha.jar;C:\Users\nikhil.chaudhari\.m2\repository\io\opentelemetry\opentelemetry-sdk-trace\1.35.0\opentelemetry-sdk-trace-1.35.0.jar;C:\Users\nikhil.chaudhari\.m2\repository\io\opentelemetry\opentelemetry-extension-incubator\1.35.0-alpha\opentelemetry-extension-incubator-1.35.0-alpha.jar;C:\Users\nikhil.chaudhari\.m2\repository\io\opentelemetry\opentelemetry-sdk\1.35.0\opentelemetry-sdk-1.35.0.jar;C:\Users\nikhil.chaudhari\.m2\repository\io\opentelemetry\opentelemetry-sdk-metrics\1.35.0\opentelemetry-sdk-metrics-1.35.0.jar;C:\Users\nikhil.chaudhari\.m2\repository\io\opentelemetry\opentelemetry-sdk-logs\1.35.0\opentelemetry-sdk-logs-1.35.0.jar;C:\Users\nikhil.chaudhari\.m2\repository\net\bytebuddy\byte-buddy\1.14.12\byte-buddy-1.14.12.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\seleniumhq\selenium\selenium-os\4.18.1\selenium-os-4.18.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\apache\commons\commons-exec\1.3\commons-exec-1.3.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\seleniumhq\selenium\selenium-safari-driver\4.18.1\selenium-safari-driver-4.18.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\seleniumhq\selenium\selenium-support\4.18.1\selenium-support-4.18.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\io\github\bonigarcia\webdrivermanager\5.7.0\webdrivermanager-5.7.0.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\slf4j\slf4j-api\2.0.12\slf4j-api-2.0.12.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\google\code\gson\gson\2.10.1\gson-2.10.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\github\docker-java\docker-java\3.3.5\docker-java-3.3.5.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\github\docker-java\docker-java-core\3.3.5\docker-java-core-3.3.5.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\github\docker-java\docker-java-api\3.3.5\docker-java-api-3.3.5.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\bouncycastle\bcpkix-jdk18on\1.76\bcpkix-jdk18on-1.76.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\bouncycastle\bcprov-jdk18on\1.76\bcprov-jdk18on-1.76.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\bouncycastle\bcutil-jdk18on\1.76\bcutil-jdk18on-1.76.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\slf4j\jcl-over-slf4j\1.7.30\jcl-over-slf4j-1.7.30.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\github\docker-java\docker-java-transport-httpclient5\3.3.5\docker-java-transport-httpclient5-3.3.5.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\github\docker-java\docker-java-transport\3.3.5\docker-java-transport-3.3.5.jar;C:\Users\nikhil.chaudhari\.m2\repository\net\java\dev\jna\jna\5.13.0\jna-5.13.0.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\brotli\dec\0.1.2\dec-0.1.2.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\apache\commons\commons-lang3\3.14.0\commons-lang3-3.14.0.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\apache\commons\commons-compress\1.26.0\commons-compress-1.26.0.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\testng\testng\7.9.0\testng-7.9.0.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\beust\jcommander\1.82\jcommander-1.82.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\webjars\jquery\3.7.1\jquery-3.7.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\aventstack\extentreports\5.1.1\extentreports-5.1.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\io\reactivex\rxjava3\rxjava\3.1.6\rxjava-3.1.6.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\reactivestreams\reactive-streams\1.0.4\reactive-streams-1.0.4.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\freemarker\freemarker\2.3.32\freemarker-2.3.32.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\projectlombok\lombok\1.18.26\lombok-1.18.26.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\apache\poi\poi\5.2.5\poi-5.2.5.jar;C:\Users\nikhil.chaudhari\.m2\repository\commons-codec\commons-codec\1.16.0\commons-codec-1.16.0.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\apache\commons\commons-collections4\4.4\commons-collections4-4.4.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\apache\commons\commons-math3\3.6.1\commons-math3-3.6.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\commons-io\commons-io\2.15.0\commons-io-2.15.0.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\zaxxer\SparseBitSet\1.3\SparseBitSet-1.3.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\apache\poi\poi-ooxml\5.2.5\poi-ooxml-5.2.5.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\apache\poi\poi-ooxml-lite\5.2.5\poi-ooxml-lite-5.2.5.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\apache\xmlbeans\xmlbeans\5.2.0\xmlbeans-5.2.0.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\github\virtuald\curvesapi\1.08\curvesapi-1.08.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\google\apis\google-api-services-sheets\v4-rev20220927-2.0.0\google-api-services-sheets-v4-rev20220927-2.0.0.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\google\api-client\google-api-client\2.2.0\google-api-client-2.2.0.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\google\oauth-client\google-oauth-client\1.34.1\google-oauth-client-1.34.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\google\http-client\google-http-client-gson\1.42.3\google-http-client-gson-1.42.3.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\google\guava\guava\31.1-jre\guava-31.1-jre.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\google\guava\failureaccess\1.0.1\failureaccess-1.0.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\google\guava\listenablefuture\9999.0-empty-to-avoid-conflict-with-guava\listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\checkerframework\checker-qual\3.12.0\checker-qual-3.12.0.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\google\errorprone\error_prone_annotations\2.11.0\error_prone_annotations-2.11.0.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\google\j2objc\j2objc-annotations\1.3\j2objc-annotations-1.3.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\google\http-client\google-http-client-apache-v2\1.42.3\google-http-client-apache-v2-1.42.3.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\apache\httpcomponents\httpcore\4.4.16\httpcore-4.4.16.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\apache\httpcomponents\httpclient\4.5.14\httpclient-4.5.14.jar;C:\Users\nikhil.chaudhari\.m2\repository\commons-logging\commons-logging\1.2\commons-logging-1.2.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\google\http-client\google-http-client\1.42.3\google-http-client-1.42.3.jar;C:\Users\nikhil.chaudhari\.m2\repository\io\opencensus\opencensus-api\0.31.1\opencensus-api-0.31.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\io\grpc\grpc-context\1.27.2\grpc-context-1.27.2.jar;C:\Users\nikhil.chaudhari\.m2\repository\io\opencensus\opencensus-contrib-http-util\0.31.1\opencensus-contrib-http-util-0.31.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\google\auth\google-auth-library-oauth2-http\1.20.0\google-auth-library-oauth2-http-1.20.0.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\google\auto\value\auto-value-annotations\1.10.4\auto-value-annotations-1.10.4.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\google\code\findbugs\jsr305\3.0.2\jsr305-3.0.2.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\google\auth\google-auth-library-credentials\1.20.0\google-auth-library-credentials-1.20.0.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\fasterxml\jackson\core\jackson-databind\2.16.1\jackson-databind-2.16.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\fasterxml\jackson\core\jackson-annotations\2.16.1\jackson-annotations-2.16.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\fasterxml\jackson\core\jackson-core\2.16.1\jackson-core-2.16.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\apache\logging\log4j\log4j-api\2.22.1\log4j-api-2.22.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\apache\logging\log4j\log4j-core\2.22.1\log4j-core-2.22.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\apache\logging\log4j\log4j-slf4j2-impl\2.22.1\log4j-slf4j2-impl-2.22.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\apache\httpcomponents\client5\httpclient5\5.3.1\httpclient5-5.3.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\apache\httpcomponents\core5\httpcore5\5.2.4\httpcore5-5.2.4.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\apache\httpcomponents\core5\httpcore5-h2\5.2.4\httpcore5-h2-5.2.4.jar;"/>
+    <property name="java.vm.vendor" value="Eclipse Adoptium"/>
+    <property name="sun.arch.data.model" value="64"/>
+    <property name="user.variant" value=""/>
+    <property name="java.vendor.url" value="https://adoptium.net/"/>
+    <property name="user.timezone" value="Asia/Calcutta"/>
+    <property name="os.name" value="Windows 11"/>
+    <property name="java.vm.specification.version" value="25"/>
+    <property name="sun.java.launcher" value="SUN_STANDARD"/>
+    <property name="user.country" value="IN"/>
+    <property name="sun.boot.library.path" value="C:\Program Files\Eclipse Adoptium\jdk-25.0.2.10-hotspot\bin"/>
+    <property name="sun.java.command" value="C:\Users\nikhil.chaudhari\AppData\Local\Temp\surefire8948374730131872375\surefirebooter-20260609182429489_3.jar C:\Users\nikhil.chaudhari\AppData\Local\Temp\surefire8948374730131872375 2026-06-09T18-24-28_746-jvmRun1 surefire-20260609182429489_1tmp surefire_0-20260609182429489_2tmp"/>
+    <property name="jdk.debug" value="release"/>
+    <property name="test" value="TicketConfigTest"/>
+    <property name="surefire.test.class.path" value="C:\Users\nikhil.chaudhari\OneDrive - Eduspark International Pvt. Ltd\Helpdesk\helpdesk\automation\target\test-classes;C:\Users\nikhil.chaudhari\OneDrive - Eduspark International Pvt. Ltd\Helpdesk\helpdesk\automation\target\classes;C:\Users\nikhil.chaudhari\.m2\repository\org\seleniumhq\selenium\selenium-java\4.18.1\selenium-java-4.18.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\seleniumhq\selenium\selenium-api\4.18.1\selenium-api-4.18.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\seleniumhq\selenium\selenium-chrome-driver\4.18.1\selenium-chrome-driver-4.18.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\google\auto\service\auto-service-annotations\1.1.1\auto-service-annotations-1.1.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\seleniumhq\selenium\selenium-chromium-driver\4.18.1\selenium-chromium-driver-4.18.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\seleniumhq\selenium\selenium-json\4.18.1\selenium-json-4.18.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\seleniumhq\selenium\selenium-manager\4.18.1\selenium-manager-4.18.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\seleniumhq\selenium\selenium-devtools-v120\4.18.1\selenium-devtools-v120-4.18.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\seleniumhq\selenium\selenium-devtools-v121\4.18.1\selenium-devtools-v121-4.18.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\seleniumhq\selenium\selenium-devtools-v122\4.18.1\selenium-devtools-v122-4.18.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\seleniumhq\selenium\selenium-devtools-v85\4.18.1\selenium-devtools-v85-4.18.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\seleniumhq\selenium\selenium-edge-driver\4.18.1\selenium-edge-driver-4.18.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\seleniumhq\selenium\selenium-firefox-driver\4.18.1\selenium-firefox-driver-4.18.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\seleniumhq\selenium\selenium-http\4.18.1\selenium-http-4.18.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\dev\failsafe\failsafe\3.3.2\failsafe-3.3.2.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\seleniumhq\selenium\selenium-ie-driver\4.18.1\selenium-ie-driver-4.18.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\seleniumhq\selenium\selenium-remote-driver\4.18.1\selenium-remote-driver-4.18.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\io\opentelemetry\semconv\opentelemetry-semconv\1.23.1-alpha\opentelemetry-semconv-1.23.1-alpha.jar;C:\Users\nikhil.chaudhari\.m2\repository\io\opentelemetry\opentelemetry-api\1.35.0\opentelemetry-api-1.35.0.jar;C:\Users\nikhil.chaudhari\.m2\repository\io\opentelemetry\opentelemetry-context\1.35.0\opentelemetry-context-1.35.0.jar;C:\Users\nikhil.chaudhari\.m2\repository\io\opentelemetry\opentelemetry-exporter-logging\1.35.0\opentelemetry-exporter-logging-1.35.0.jar;C:\Users\nikhil.chaudhari\.m2\repository\io\opentelemetry\opentelemetry-sdk-common\1.35.0\opentelemetry-sdk-common-1.35.0.jar;C:\Users\nikhil.chaudhari\.m2\repository\io\opentelemetry\opentelemetry-sdk-extension-autoconfigure-spi\1.35.0\opentelemetry-sdk-extension-autoconfigure-spi-1.35.0.jar;C:\Users\nikhil.chaudhari\.m2\repository\io\opentelemetry\opentelemetry-sdk-extension-autoconfigure\1.35.0\opentelemetry-sdk-extension-autoconfigure-1.35.0.jar;C:\Users\nikhil.chaudhari\.m2\repository\io\opentelemetry\opentelemetry-api-events\1.35.0-alpha\opentelemetry-api-events-1.35.0-alpha.jar;C:\Users\nikhil.chaudhari\.m2\repository\io\opentelemetry\opentelemetry-sdk-trace\1.35.0\opentelemetry-sdk-trace-1.35.0.jar;C:\Users\nikhil.chaudhari\.m2\repository\io\opentelemetry\opentelemetry-extension-incubator\1.35.0-alpha\opentelemetry-extension-incubator-1.35.0-alpha.jar;C:\Users\nikhil.chaudhari\.m2\repository\io\opentelemetry\opentelemetry-sdk\1.35.0\opentelemetry-sdk-1.35.0.jar;C:\Users\nikhil.chaudhari\.m2\repository\io\opentelemetry\opentelemetry-sdk-metrics\1.35.0\opentelemetry-sdk-metrics-1.35.0.jar;C:\Users\nikhil.chaudhari\.m2\repository\io\opentelemetry\opentelemetry-sdk-logs\1.35.0\opentelemetry-sdk-logs-1.35.0.jar;C:\Users\nikhil.chaudhari\.m2\repository\net\bytebuddy\byte-buddy\1.14.12\byte-buddy-1.14.12.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\seleniumhq\selenium\selenium-os\4.18.1\selenium-os-4.18.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\apache\commons\commons-exec\1.3\commons-exec-1.3.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\seleniumhq\selenium\selenium-safari-driver\4.18.1\selenium-safari-driver-4.18.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\seleniumhq\selenium\selenium-support\4.18.1\selenium-support-4.18.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\io\github\bonigarcia\webdrivermanager\5.7.0\webdrivermanager-5.7.0.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\slf4j\slf4j-api\2.0.12\slf4j-api-2.0.12.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\google\code\gson\gson\2.10.1\gson-2.10.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\github\docker-java\docker-java\3.3.5\docker-java-3.3.5.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\github\docker-java\docker-java-core\3.3.5\docker-java-core-3.3.5.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\github\docker-java\docker-java-api\3.3.5\docker-java-api-3.3.5.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\bouncycastle\bcpkix-jdk18on\1.76\bcpkix-jdk18on-1.76.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\bouncycastle\bcprov-jdk18on\1.76\bcprov-jdk18on-1.76.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\bouncycastle\bcutil-jdk18on\1.76\bcutil-jdk18on-1.76.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\slf4j\jcl-over-slf4j\1.7.30\jcl-over-slf4j-1.7.30.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\github\docker-java\docker-java-transport-httpclient5\3.3.5\docker-java-transport-httpclient5-3.3.5.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\github\docker-java\docker-java-transport\3.3.5\docker-java-transport-3.3.5.jar;C:\Users\nikhil.chaudhari\.m2\repository\net\java\dev\jna\jna\5.13.0\jna-5.13.0.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\brotli\dec\0.1.2\dec-0.1.2.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\apache\commons\commons-lang3\3.14.0\commons-lang3-3.14.0.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\apache\commons\commons-compress\1.26.0\commons-compress-1.26.0.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\testng\testng\7.9.0\testng-7.9.0.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\beust\jcommander\1.82\jcommander-1.82.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\webjars\jquery\3.7.1\jquery-3.7.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\aventstack\extentreports\5.1.1\extentreports-5.1.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\io\reactivex\rxjava3\rxjava\3.1.6\rxjava-3.1.6.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\reactivestreams\reactive-streams\1.0.4\reactive-streams-1.0.4.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\freemarker\freemarker\2.3.32\freemarker-2.3.32.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\projectlombok\lombok\1.18.26\lombok-1.18.26.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\apache\poi\poi\5.2.5\poi-5.2.5.jar;C:\Users\nikhil.chaudhari\.m2\repository\commons-codec\commons-codec\1.16.0\commons-codec-1.16.0.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\apache\commons\commons-collections4\4.4\commons-collections4-4.4.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\apache\commons\commons-math3\3.6.1\commons-math3-3.6.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\commons-io\commons-io\2.15.0\commons-io-2.15.0.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\zaxxer\SparseBitSet\1.3\SparseBitSet-1.3.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\apache\poi\poi-ooxml\5.2.5\poi-ooxml-5.2.5.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\apache\poi\poi-ooxml-lite\5.2.5\poi-ooxml-lite-5.2.5.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\apache\xmlbeans\xmlbeans\5.2.0\xmlbeans-5.2.0.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\github\virtuald\curvesapi\1.08\curvesapi-1.08.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\google\apis\google-api-services-sheets\v4-rev20220927-2.0.0\google-api-services-sheets-v4-rev20220927-2.0.0.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\google\api-client\google-api-client\2.2.0\google-api-client-2.2.0.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\google\oauth-client\google-oauth-client\1.34.1\google-oauth-client-1.34.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\google\http-client\google-http-client-gson\1.42.3\google-http-client-gson-1.42.3.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\google\guava\guava\31.1-jre\guava-31.1-jre.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\google\guava\failureaccess\1.0.1\failureaccess-1.0.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\google\guava\listenablefuture\9999.0-empty-to-avoid-conflict-with-guava\listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\checkerframework\checker-qual\3.12.0\checker-qual-3.12.0.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\google\errorprone\error_prone_annotations\2.11.0\error_prone_annotations-2.11.0.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\google\j2objc\j2objc-annotations\1.3\j2objc-annotations-1.3.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\google\http-client\google-http-client-apache-v2\1.42.3\google-http-client-apache-v2-1.42.3.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\apache\httpcomponents\httpcore\4.4.16\httpcore-4.4.16.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\apache\httpcomponents\httpclient\4.5.14\httpclient-4.5.14.jar;C:\Users\nikhil.chaudhari\.m2\repository\commons-logging\commons-logging\1.2\commons-logging-1.2.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\google\http-client\google-http-client\1.42.3\google-http-client-1.42.3.jar;C:\Users\nikhil.chaudhari\.m2\repository\io\opencensus\opencensus-api\0.31.1\opencensus-api-0.31.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\io\grpc\grpc-context\1.27.2\grpc-context-1.27.2.jar;C:\Users\nikhil.chaudhari\.m2\repository\io\opencensus\opencensus-contrib-http-util\0.31.1\opencensus-contrib-http-util-0.31.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\google\auth\google-auth-library-oauth2-http\1.20.0\google-auth-library-oauth2-http-1.20.0.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\google\auto\value\auto-value-annotations\1.10.4\auto-value-annotations-1.10.4.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\google\code\findbugs\jsr305\3.0.2\jsr305-3.0.2.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\google\auth\google-auth-library-credentials\1.20.0\google-auth-library-credentials-1.20.0.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\fasterxml\jackson\core\jackson-databind\2.16.1\jackson-databind-2.16.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\fasterxml\jackson\core\jackson-annotations\2.16.1\jackson-annotations-2.16.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\com\fasterxml\jackson\core\jackson-core\2.16.1\jackson-core-2.16.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\apache\logging\log4j\log4j-api\2.22.1\log4j-api-2.22.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\apache\logging\log4j\log4j-core\2.22.1\log4j-core-2.22.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\apache\logging\log4j\log4j-slf4j2-impl\2.22.1\log4j-slf4j2-impl-2.22.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\apache\httpcomponents\client5\httpclient5\5.3.1\httpclient5-5.3.1.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\apache\httpcomponents\core5\httpcore5\5.2.4\httpcore5-5.2.4.jar;C:\Users\nikhil.chaudhari\.m2\repository\org\apache\httpcomponents\core5\httpcore5-h2\5.2.4\httpcore5-h2-5.2.4.jar;"/>
+    <property name="sun.cpu.endian" value="little"/>
+    <property name="user.home" value="C:\Users\nikhil.chaudhari"/>
+    <property name="user.language" value="en"/>
+    <property name="java.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.version.date" value="2026-01-20"/>
+    <property name="java.home" value="C:\Program Files\Eclipse Adoptium\jdk-25.0.2.10-hotspot"/>
+    <property name="file.separator" value="\"/>
+    <property name="basedir" value="C:\Users\nikhil.chaudhari\OneDrive - Eduspark International Pvt. Ltd\Helpdesk\helpdesk\automation"/>
+    <property name="java.vm.compressedOopsMode" value="Zero based"/>
+    <property name="line.separator" value="&#10;"/>
+    <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.specification.name" value="Java Platform API Specification"/>
+    <property name="surefire.real.class.path" value="C:\Users\nikhil.chaudhari\AppData\Local\Temp\surefire8948374730131872375\surefirebooter-20260609182429489_3.jar"/>
+    <property name="user.script" value=""/>
+    <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
+    <property name="java.runtime.version" value="25.0.2+10-LTS"/>
+    <property name="user.name" value="nikhil.chaudhari"/>
+    <property name="stdout.encoding" value="Cp1252"/>
+    <property name="path.separator" value=";"/>
+    <property name="os.version" value="10.0"/>
+    <property name="java.runtime.name" value="OpenJDK Runtime Environment"/>
+    <property name="file.encoding" value="UTF-8"/>
+    <property name="java.vm.name" value="OpenJDK 64-Bit Server VM"/>
+    <property name="java.vendor.version" value="Temurin-25.0.2+10"/>
+    <property name="localRepository" value="C:\Users\nikhil.chaudhari\.m2\repository"/>
+    <property name="java.vendor.url.bug" value="https://github.com/adoptium/adoptium-support/issues"/>
+    <property name="java.io.tmpdir" value="C:\Users\NIKHIL~1.CHA\AppData\Local\Temp\"/>
+    <property name="java.version" value="25.0.2"/>
+    <property name="user.dir" value="C:\Users\nikhil.chaudhari\OneDrive - Eduspark International Pvt. Ltd\Helpdesk\helpdesk\automation"/>
+    <property name="os.arch" value="amd64"/>
+    <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
+    <property name="sun.os.patch.level" value=""/>
+    <property name="native.encoding" value="Cp1252"/>
+    <property name="java.library.path" value="C:\Program Files\Eclipse Adoptium\jdk-25.0.2.10-hotspot\bin;C:\WINDOWS\Sun\Java\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\Program Files\Eclipse Adoptium\jdk-25.0.2.10-hotspot\bin;C:\Program Files\Common Files\Oracle\Java\javapath;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\nodejs\;C:\Users\nikhil.chaudhari\AppData\Local\Microsoft\WindowsApps;C:\Users\nikhil.chaudhari\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\nikhil.chaudhari\AppData\Local\Programs\Git\cmd;C:\tools\apache-maven-3.9.6\bin;C:\Users\nikhil.chaudhari\AppData\Roaming\npm;C:\Users\nikhil.chaudhari\AppData\Local\Programs\Antigravity\bin;C:\Users\nikhil.chaudhari\AppData\Local\GitHubDesktop\bin;."/>
+    <property name="java.vm.info" value="mixed mode, sharing"/>
+    <property name="stderr.encoding" value="Cp1252"/>
+    <property name="java.vendor" value="Eclipse Adoptium"/>
+    <property name="java.vm.version" value="25.0.2+10-LTS"/>
+    <property name="stdin.encoding" value="Cp1252"/>
+    <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
+    <property name="java.class.version" value="69.0"/>
+  </properties>
+  <testcase name="TC_QC_01" classname="com.hubblehox.automation.tests.TicketConfigTest" time="11.298">
+    <system-err><![CDATA[Jun 09, 2026 6:24:40 PM org.openqa.selenium.devtools.CdpVersionFinder findNearestMatch
+WARNING: Unable to find CDP implementation matching 148
+Jun 09, 2026 6:24:41 PM org.openqa.selenium.chromium.ChromiumDriver lambda$new$5
+WARNING: Unable to find version of CDP to use for 148.0.7778.217. You may need to include a dependency on a specific version of the CDP using something similar to `org.seleniumhq.selenium:selenium-devtools-v86:4.18.1` where the version ("v86") matches the version of the chromium-based browser you're using and the version number of the artifact is the same as Selenium's.
+]]></system-err>
+  </testcase>
+  <testcase name="TC_QC_02" classname="com.hubblehox.automation.tests.TicketConfigTest" time="0.815"/>
+  <testcase name="TC_QC_03" classname="com.hubblehox.automation.tests.TicketConfigTest" time="10.775"/>
+  <testcase name="TC_QC_04" classname="com.hubblehox.automation.tests.TicketConfigTest" time="22.737">
+    <system-out><![CDATA[Search input not found, proceeding to look for project card directly.
+]]></system-out>
+  </testcase>
+  <testcase name="TC_QC_05" classname="com.hubblehox.automation.tests.TicketConfigTest" time="0.181"/>
+  <testcase name="TC_QC_06" classname="com.hubblehox.automation.tests.TicketConfigTest" time="0.078"/>
+  <testcase name="TC_QC_07" classname="com.hubblehox.automation.tests.TicketConfigTest" time="0.46"/>
+  <testcase name="TC_QC_08" classname="com.hubblehox.automation.tests.TicketConfigTest" time="1.495">
+    <failure message="QC_08 FAILED: Preview updates to show the starting number expected [true] but found [false]" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: QC_08 FAILED: Preview updates to show the starting number expected [true] but found [false]
+	at org.testng.Assert.fail(Assert.java:111)
+	at org.testng.Assert.failNotEquals(Assert.java:1578)
+	at org.testng.Assert.assertTrue(Assert.java:57)
+	at com.hubblehox.automation.tests.TicketConfigTest.writeResult(TicketConfigTest.java:60)
+	at com.hubblehox.automation.tests.TicketConfigTest.TC_QC_08(TicketConfigTest.java:146)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at org.testng.internal.invokers.MethodInvocationHelper.invokeMethod(MethodInvocationHelper.java:139)
+	at org.testng.internal.invokers.TestInvoker.invokeMethod(TestInvoker.java:664)
+	at org.testng.internal.invokers.TestInvoker.invokeTestMethod(TestInvoker.java:228)
+	at org.testng.internal.invokers.MethodRunner.runInSequence(MethodRunner.java:63)
+	at org.testng.internal.invokers.TestInvoker$MethodInvocationAgent.invoke(TestInvoker.java:961)
+	at org.testng.internal.invokers.TestInvoker.invokeTestMethods(TestInvoker.java:201)
+	at org.testng.internal.invokers.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:148)
+	at org.testng.internal.invokers.TestMethodWorker.run(TestMethodWorker.java:128)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+	at org.testng.TestRunner.privateRun(TestRunner.java:819)
+	at org.testng.TestRunner.run(TestRunner.java:619)
+	at org.testng.SuiteRunner.runTest(SuiteRunner.java:443)
+	at org.testng.SuiteRunner.runSequentially(SuiteRunner.java:437)
+	at org.testng.SuiteRunner.privateRun(SuiteRunner.java:397)
+	at org.testng.SuiteRunner.run(SuiteRunner.java:336)
+	at org.testng.SuiteRunnerWorker.runSuite(SuiteRunnerWorker.java:52)
+	at org.testng.SuiteRunnerWorker.run(SuiteRunnerWorker.java:95)
+	at org.testng.TestNG.runSuitesSequentially(TestNG.java:1301)
+	at org.testng.TestNG.runSuitesLocally(TestNG.java:1228)
+	at org.testng.TestNG.runSuites(TestNG.java:1134)
+	at org.testng.TestNG.run(TestNG.java:1101)
+	at org.apache.maven.surefire.testng.TestNGExecutor.run(TestNGExecutor.java:155)
+	at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.executeSingleClass(TestNGDirectoryTestSuite.java:102)
+	at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.execute(TestNGDirectoryTestSuite.java:91)
+	at org.apache.maven.surefire.testng.TestNGProvider.invoke(TestNGProvider.java:137)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+]]></failure>
+    <system-out><![CDATA[DEBUG PREVIEW TEXT: 'A12/2025/11/0001'
+]]></system-out>
+  </testcase>
+  <testcase name="TC_QC_09" classname="com.hubblehox.automation.tests.TicketConfigTest" time="0.345"/>
+  <testcase name="TC_QC_10" classname="com.hubblehox.automation.tests.TicketConfigTest" time="0.181"/>
+  <testcase name="TC_QC_11" classname="com.hubblehox.automation.tests.TicketConfigTest" time="0.096"/>
+  <testcase name="TC_QC_12" classname="com.hubblehox.automation.tests.TicketConfigTest" time="0.237"/>
+  <testcase name="TC_QC_13" classname="com.hubblehox.automation.tests.TicketConfigTest" time="1.391"/>
+  <testcase name="TC_QC_14" classname="com.hubblehox.automation.tests.TicketConfigTest" time="2.511"/>
+  <testcase name="TC_QC_15" classname="com.hubblehox.automation.tests.TicketConfigTest" time="1.257"/>
+  <testcase name="TC_QC_16" classname="com.hubblehox.automation.tests.TicketConfigTest" time="0.215"/>
+  <testcase name="TC_QC_17" classname="com.hubblehox.automation.tests.TicketConfigTest" time="21.554">
+    <failure message="QC_17 FAILED: Code auto-filled:  expected [true] but found [false]" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: QC_17 FAILED: Code auto-filled:  expected [true] but found [false]
+	at org.testng.Assert.fail(Assert.java:111)
+	at org.testng.Assert.failNotEquals(Assert.java:1578)
+	at org.testng.Assert.assertTrue(Assert.java:57)
+	at com.hubblehox.automation.tests.TicketConfigTest.writeResult(TicketConfigTest.java:60)
+	at com.hubblehox.automation.tests.TicketConfigTest.TC_QC_17(TicketConfigTest.java:224)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at org.testng.internal.invokers.MethodInvocationHelper.invokeMethod(MethodInvocationHelper.java:139)
+	at org.testng.internal.invokers.TestInvoker.invokeMethod(TestInvoker.java:664)
+	at org.testng.internal.invokers.TestInvoker.invokeTestMethod(TestInvoker.java:228)
+	at org.testng.internal.invokers.MethodRunner.runInSequence(MethodRunner.java:63)
+	at org.testng.internal.invokers.TestInvoker$MethodInvocationAgent.invoke(TestInvoker.java:961)
+	at org.testng.internal.invokers.TestInvoker.invokeTestMethods(TestInvoker.java:201)
+	at org.testng.internal.invokers.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:148)
+	at org.testng.internal.invokers.TestMethodWorker.run(TestMethodWorker.java:128)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+	at org.testng.TestRunner.privateRun(TestRunner.java:819)
+	at org.testng.TestRunner.run(TestRunner.java:619)
+	at org.testng.SuiteRunner.runTest(SuiteRunner.java:443)
+	at org.testng.SuiteRunner.runSequentially(SuiteRunner.java:437)
+	at org.testng.SuiteRunner.privateRun(SuiteRunner.java:397)
+	at org.testng.SuiteRunner.run(SuiteRunner.java:336)
+	at org.testng.SuiteRunnerWorker.runSuite(SuiteRunnerWorker.java:52)
+	at org.testng.SuiteRunnerWorker.run(SuiteRunnerWorker.java:95)
+	at org.testng.TestNG.runSuitesSequentially(TestNG.java:1301)
+	at org.testng.TestNG.runSuitesLocally(TestNG.java:1228)
+	at org.testng.TestNG.runSuites(TestNG.java:1134)
+	at org.testng.TestNG.run(TestNG.java:1101)
+	at org.apache.maven.surefire.testng.TestNGExecutor.run(TestNGExecutor.java:155)
+	at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.executeSingleClass(TestNGDirectoryTestSuite.java:102)
+	at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.execute(TestNGDirectoryTestSuite.java:91)
+	at org.apache.maven.surefire.testng.TestNGProvider.invoke(TestNGProvider.java:137)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+]]></failure>
+  </testcase>
+  <testcase name="TC_QC_18" classname="com.hubblehox.automation.tests.TicketConfigTest" time="0.15"/>
+  <testcase name="TC_QC_19" classname="com.hubblehox.automation.tests.TicketConfigTest" time="0.23"/>
+  <testcase name="TC_QC_20" classname="com.hubblehox.automation.tests.TicketConfigTest" time="20.666"/>
+  <testcase name="TC_QC_21" classname="com.hubblehox.automation.tests.TicketConfigTest" time="1.259"/>
+  <testcase name="TC_QC_22" classname="com.hubblehox.automation.tests.TicketConfigTest" time="0.031"/>
+  <testcase name="TC_QC_23" classname="com.hubblehox.automation.tests.TicketConfigTest" time="0.064"/>
+  <testcase name="TC_QC_24" classname="com.hubblehox.automation.tests.TicketConfigTest" time="0.048"/>
+  <testcase name="TC_QC_25" classname="com.hubblehox.automation.tests.TicketConfigTest" time="0.044"/>
+  <testcase name="TC_QC_26" classname="com.hubblehox.automation.tests.TicketConfigTest" time="20.616">
+    <failure message="Expected condition failed: waiting for element to be clickable: By.xpath: //button[normalize-space()=&apos;Ticket Categories&apos;] (tried for 20 second(s) with 500 milliseconds interval)&#10;Build info: version: &apos;4.18.1&apos;, revision: &apos;b1d3319b48&apos;&#10;System info: os.name: &apos;Windows 11&apos;, os.arch: &apos;amd64&apos;, os.version: &apos;10.0&apos;, java.version: &apos;25.0.2&apos;&#10;Driver info: org.openqa.selenium.chrome.ChromeDriver&#10;Capabilities {acceptInsecureCerts: false, browserName: chrome, browserVersion: 148.0.7778.217, chrome: {chromedriverVersion: 148.0.7778.178 (d096af1c9e9..., userDataDir: C:\Users\NIKHIL~1.CHA\AppDa...}, fedcm:accounts: true, goog:chromeOptions: {debuggerAddress: localhost:59604}, goog:processID: 30220, networkConnectionEnabled: false, pageLoadStrategy: normal, platformName: windows, proxy: Proxy(), se:cdp: ws://localhost:59604/devtoo..., se:cdpVersion: 148.0.7778.217, setWindowRect: true, strictFileInteractability: false, timeouts: {implicit: 0, pageLoad: 300000, script: 30000}, unhandledPromptBehavior: dismiss and notify, webauthn:extension:credBlob: true, webauthn:extension:largeBlob: true, webauthn:extension:minPinLength: true, webauthn:extension:prf: true, webauthn:virtualAuthenticators: true}&#10;Session ID: afcc90e78edff6c1fd855097548ff004" type="org.openqa.selenium.TimeoutException"><![CDATA[org.openqa.selenium.TimeoutException: 
+Expected condition failed: waiting for element to be clickable: By.xpath: //button[normalize-space()='Ticket Categories'] (tried for 20 second(s) with 500 milliseconds interval)
+Build info: version: '4.18.1', revision: 'b1d3319b48'
+System info: os.name: 'Windows 11', os.arch: 'amd64', os.version: '10.0', java.version: '25.0.2'
+Driver info: org.openqa.selenium.chrome.ChromeDriver
+Capabilities {acceptInsecureCerts: false, browserName: chrome, browserVersion: 148.0.7778.217, chrome: {chromedriverVersion: 148.0.7778.178 (d096af1c9e9..., userDataDir: C:\Users\NIKHIL~1.CHA\AppDa...}, fedcm:accounts: true, goog:chromeOptions: {debuggerAddress: localhost:59604}, goog:processID: 30220, networkConnectionEnabled: false, pageLoadStrategy: normal, platformName: windows, proxy: Proxy(), se:cdp: ws://localhost:59604/devtoo..., se:cdpVersion: 148.0.7778.217, setWindowRect: true, strictFileInteractability: false, timeouts: {implicit: 0, pageLoad: 300000, script: 30000}, unhandledPromptBehavior: dismiss and notify, webauthn:extension:credBlob: true, webauthn:extension:largeBlob: true, webauthn:extension:minPinLength: true, webauthn:extension:prf: true, webauthn:virtualAuthenticators: true}
+Session ID: afcc90e78edff6c1fd855097548ff004
+	at org.openqa.selenium.support.ui.WebDriverWait.timeoutException(WebDriverWait.java:84)
+	at org.openqa.selenium.support.ui.FluentWait.until(FluentWait.java:228)
+	at com.hubblehox.automation.pages.TicketConfigPage.clickTab(TicketConfigPage.java:130)
+	at com.hubblehox.automation.tests.TicketConfigTest.TC_QC_26(TicketConfigTest.java:288)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at org.testng.internal.invokers.MethodInvocationHelper.invokeMethod(MethodInvocationHelper.java:139)
+	at org.testng.internal.invokers.TestInvoker.invokeMethod(TestInvoker.java:664)
+	at org.testng.internal.invokers.TestInvoker.invokeTestMethod(TestInvoker.java:228)
+	at org.testng.internal.invokers.MethodRunner.runInSequence(MethodRunner.java:63)
+	at org.testng.internal.invokers.TestInvoker$MethodInvocationAgent.invoke(TestInvoker.java:961)
+	at org.testng.internal.invokers.TestInvoker.invokeTestMethods(TestInvoker.java:201)
+	at org.testng.internal.invokers.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:148)
+	at org.testng.internal.invokers.TestMethodWorker.run(TestMethodWorker.java:128)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+	at org.testng.TestRunner.privateRun(TestRunner.java:819)
+	at org.testng.TestRunner.run(TestRunner.java:619)
+	at org.testng.SuiteRunner.runTest(SuiteRunner.java:443)
+	at org.testng.SuiteRunner.runSequentially(SuiteRunner.java:437)
+	at org.testng.SuiteRunner.privateRun(SuiteRunner.java:397)
+	at org.testng.SuiteRunner.run(SuiteRunner.java:336)
+	at org.testng.SuiteRunnerWorker.runSuite(SuiteRunnerWorker.java:52)
+	at org.testng.SuiteRunnerWorker.run(SuiteRunnerWorker.java:95)
+	at org.testng.TestNG.runSuitesSequentially(TestNG.java:1301)
+	at org.testng.TestNG.runSuitesLocally(TestNG.java:1228)
+	at org.testng.TestNG.runSuites(TestNG.java:1134)
+	at org.testng.TestNG.run(TestNG.java:1101)
+	at org.apache.maven.surefire.testng.TestNGExecutor.run(TestNGExecutor.java:155)
+	at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.executeSingleClass(TestNGDirectoryTestSuite.java:102)
+	at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.execute(TestNGDirectoryTestSuite.java:91)
+	at org.apache.maven.surefire.testng.TestNGProvider.invoke(TestNGProvider.java:137)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+]]></failure>
+  </testcase>
+  <testcase name="TC_QC_27" classname="com.hubblehox.automation.tests.TicketConfigTest" time="20.573">
+    <failure message="Expected condition failed: waiting for element to be clickable: By.xpath: //button[contains(normalize-space(),&apos;Add Category&apos;)] (tried for 20 second(s) with 500 milliseconds interval)&#10;Build info: version: &apos;4.18.1&apos;, revision: &apos;b1d3319b48&apos;&#10;System info: os.name: &apos;Windows 11&apos;, os.arch: &apos;amd64&apos;, os.version: &apos;10.0&apos;, java.version: &apos;25.0.2&apos;&#10;Driver info: org.openqa.selenium.chrome.ChromeDriver&#10;Capabilities {acceptInsecureCerts: false, browserName: chrome, browserVersion: 148.0.7778.217, chrome: {chromedriverVersion: 148.0.7778.178 (d096af1c9e9..., userDataDir: C:\Users\NIKHIL~1.CHA\AppDa...}, fedcm:accounts: true, goog:chromeOptions: {debuggerAddress: localhost:59604}, goog:processID: 30220, networkConnectionEnabled: false, pageLoadStrategy: normal, platformName: windows, proxy: Proxy(), se:cdp: ws://localhost:59604/devtoo..., se:cdpVersion: 148.0.7778.217, setWindowRect: true, strictFileInteractability: false, timeouts: {implicit: 0, pageLoad: 300000, script: 30000}, unhandledPromptBehavior: dismiss and notify, webauthn:extension:credBlob: true, webauthn:extension:largeBlob: true, webauthn:extension:minPinLength: true, webauthn:extension:prf: true, webauthn:virtualAuthenticators: true}&#10;Session ID: afcc90e78edff6c1fd855097548ff004" type="org.openqa.selenium.TimeoutException"><![CDATA[org.openqa.selenium.TimeoutException: 
+Expected condition failed: waiting for element to be clickable: By.xpath: //button[contains(normalize-space(),'Add Category')] (tried for 20 second(s) with 500 milliseconds interval)
+Build info: version: '4.18.1', revision: 'b1d3319b48'
+System info: os.name: 'Windows 11', os.arch: 'amd64', os.version: '10.0', java.version: '25.0.2'
+Driver info: org.openqa.selenium.chrome.ChromeDriver
+Capabilities {acceptInsecureCerts: false, browserName: chrome, browserVersion: 148.0.7778.217, chrome: {chromedriverVersion: 148.0.7778.178 (d096af1c9e9..., userDataDir: C:\Users\NIKHIL~1.CHA\AppDa...}, fedcm:accounts: true, goog:chromeOptions: {debuggerAddress: localhost:59604}, goog:processID: 30220, networkConnectionEnabled: false, pageLoadStrategy: normal, platformName: windows, proxy: Proxy(), se:cdp: ws://localhost:59604/devtoo..., se:cdpVersion: 148.0.7778.217, setWindowRect: true, strictFileInteractability: false, timeouts: {implicit: 0, pageLoad: 300000, script: 30000}, unhandledPromptBehavior: dismiss and notify, webauthn:extension:credBlob: true, webauthn:extension:largeBlob: true, webauthn:extension:minPinLength: true, webauthn:extension:prf: true, webauthn:virtualAuthenticators: true}
+Session ID: afcc90e78edff6c1fd855097548ff004
+	at org.openqa.selenium.support.ui.WebDriverWait.timeoutException(WebDriverWait.java:84)
+	at org.openqa.selenium.support.ui.FluentWait.until(FluentWait.java:228)
+	at com.hubblehox.automation.pages.TicketConfigPage.clickAddCategory(TicketConfigPage.java:233)
+	at com.hubblehox.automation.tests.TicketConfigTest.TC_QC_27(TicketConfigTest.java:295)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at org.testng.internal.invokers.MethodInvocationHelper.invokeMethod(MethodInvocationHelper.java:139)
+	at org.testng.internal.invokers.TestInvoker.invokeMethod(TestInvoker.java:664)
+	at org.testng.internal.invokers.TestInvoker.invokeTestMethod(TestInvoker.java:228)
+	at org.testng.internal.invokers.MethodRunner.runInSequence(MethodRunner.java:63)
+	at org.testng.internal.invokers.TestInvoker$MethodInvocationAgent.invoke(TestInvoker.java:961)
+	at org.testng.internal.invokers.TestInvoker.invokeTestMethods(TestInvoker.java:201)
+	at org.testng.internal.invokers.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:148)
+	at org.testng.internal.invokers.TestMethodWorker.run(TestMethodWorker.java:128)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+	at org.testng.TestRunner.privateRun(TestRunner.java:819)
+	at org.testng.TestRunner.run(TestRunner.java:619)
+	at org.testng.SuiteRunner.runTest(SuiteRunner.java:443)
+	at org.testng.SuiteRunner.runSequentially(SuiteRunner.java:437)
+	at org.testng.SuiteRunner.privateRun(SuiteRunner.java:397)
+	at org.testng.SuiteRunner.run(SuiteRunner.java:336)
+	at org.testng.SuiteRunnerWorker.runSuite(SuiteRunnerWorker.java:52)
+	at org.testng.SuiteRunnerWorker.run(SuiteRunnerWorker.java:95)
+	at org.testng.TestNG.runSuitesSequentially(TestNG.java:1301)
+	at org.testng.TestNG.runSuitesLocally(TestNG.java:1228)
+	at org.testng.TestNG.runSuites(TestNG.java:1134)
+	at org.testng.TestNG.run(TestNG.java:1101)
+	at org.apache.maven.surefire.testng.TestNGExecutor.run(TestNGExecutor.java:155)
+	at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.executeSingleClass(TestNGDirectoryTestSuite.java:102)
+	at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.execute(TestNGDirectoryTestSuite.java:91)
+	at org.apache.maven.surefire.testng.TestNGProvider.invoke(TestNGProvider.java:137)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+]]></failure>
+  </testcase>
+  <testcase name="TC_QC_28" classname="com.hubblehox.automation.tests.TicketConfigTest" time="20.572">
+    <failure message="Expected condition failed: waiting for visibility of element located by By.xpath: //label[contains(normalize-space(),&apos;Name *&apos;)]/following::input[1] (tried for 20 second(s) with 500 milliseconds interval)&#10;Build info: version: &apos;4.18.1&apos;, revision: &apos;b1d3319b48&apos;&#10;System info: os.name: &apos;Windows 11&apos;, os.arch: &apos;amd64&apos;, os.version: &apos;10.0&apos;, java.version: &apos;25.0.2&apos;&#10;Driver info: org.openqa.selenium.chrome.ChromeDriver&#10;Capabilities {acceptInsecureCerts: false, browserName: chrome, browserVersion: 148.0.7778.217, chrome: {chromedriverVersion: 148.0.7778.178 (d096af1c9e9..., userDataDir: C:\Users\NIKHIL~1.CHA\AppDa...}, fedcm:accounts: true, goog:chromeOptions: {debuggerAddress: localhost:59604}, goog:processID: 30220, networkConnectionEnabled: false, pageLoadStrategy: normal, platformName: windows, proxy: Proxy(), se:cdp: ws://localhost:59604/devtoo..., se:cdpVersion: 148.0.7778.217, setWindowRect: true, strictFileInteractability: false, timeouts: {implicit: 0, pageLoad: 300000, script: 30000}, unhandledPromptBehavior: dismiss and notify, webauthn:extension:credBlob: true, webauthn:extension:largeBlob: true, webauthn:extension:minPinLength: true, webauthn:extension:prf: true, webauthn:virtualAuthenticators: true}&#10;Session ID: afcc90e78edff6c1fd855097548ff004" type="org.openqa.selenium.TimeoutException"><![CDATA[org.openqa.selenium.TimeoutException: 
+Expected condition failed: waiting for visibility of element located by By.xpath: //label[contains(normalize-space(),'Name *')]/following::input[1] (tried for 20 second(s) with 500 milliseconds interval)
+Build info: version: '4.18.1', revision: 'b1d3319b48'
+System info: os.name: 'Windows 11', os.arch: 'amd64', os.version: '10.0', java.version: '25.0.2'
+Driver info: org.openqa.selenium.chrome.ChromeDriver
+Capabilities {acceptInsecureCerts: false, browserName: chrome, browserVersion: 148.0.7778.217, chrome: {chromedriverVersion: 148.0.7778.178 (d096af1c9e9..., userDataDir: C:\Users\NIKHIL~1.CHA\AppDa...}, fedcm:accounts: true, goog:chromeOptions: {debuggerAddress: localhost:59604}, goog:processID: 30220, networkConnectionEnabled: false, pageLoadStrategy: normal, platformName: windows, proxy: Proxy(), se:cdp: ws://localhost:59604/devtoo..., se:cdpVersion: 148.0.7778.217, setWindowRect: true, strictFileInteractability: false, timeouts: {implicit: 0, pageLoad: 300000, script: 30000}, unhandledPromptBehavior: dismiss and notify, webauthn:extension:credBlob: true, webauthn:extension:largeBlob: true, webauthn:extension:minPinLength: true, webauthn:extension:prf: true, webauthn:virtualAuthenticators: true}
+Session ID: afcc90e78edff6c1fd855097548ff004
+	at org.openqa.selenium.support.ui.WebDriverWait.timeoutException(WebDriverWait.java:84)
+	at org.openqa.selenium.support.ui.FluentWait.until(FluentWait.java:228)
+	at com.hubblehox.automation.pages.TicketConfigPage.enterCategoryName(TicketConfigPage.java:240)
+	at com.hubblehox.automation.tests.TicketConfigTest.TC_QC_28(TicketConfigTest.java:302)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at org.testng.internal.invokers.MethodInvocationHelper.invokeMethod(MethodInvocationHelper.java:139)
+	at org.testng.internal.invokers.TestInvoker.invokeMethod(TestInvoker.java:664)
+	at org.testng.internal.invokers.TestInvoker.invokeTestMethod(TestInvoker.java:228)
+	at org.testng.internal.invokers.MethodRunner.runInSequence(MethodRunner.java:63)
+	at org.testng.internal.invokers.TestInvoker$MethodInvocationAgent.invoke(TestInvoker.java:961)
+	at org.testng.internal.invokers.TestInvoker.invokeTestMethods(TestInvoker.java:201)
+	at org.testng.internal.invokers.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:148)
+	at org.testng.internal.invokers.TestMethodWorker.run(TestMethodWorker.java:128)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+	at org.testng.TestRunner.privateRun(TestRunner.java:819)
+	at org.testng.TestRunner.run(TestRunner.java:619)
+	at org.testng.SuiteRunner.runTest(SuiteRunner.java:443)
+	at org.testng.SuiteRunner.runSequentially(SuiteRunner.java:437)
+	at org.testng.SuiteRunner.privateRun(SuiteRunner.java:397)
+	at org.testng.SuiteRunner.run(SuiteRunner.java:336)
+	at org.testng.SuiteRunnerWorker.runSuite(SuiteRunnerWorker.java:52)
+	at org.testng.SuiteRunnerWorker.run(SuiteRunnerWorker.java:95)
+	at org.testng.TestNG.runSuitesSequentially(TestNG.java:1301)
+	at org.testng.TestNG.runSuitesLocally(TestNG.java:1228)
+	at org.testng.TestNG.runSuites(TestNG.java:1134)
+	at org.testng.TestNG.run(TestNG.java:1101)
+	at org.apache.maven.surefire.testng.TestNGExecutor.run(TestNGExecutor.java:155)
+	at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.executeSingleClass(TestNGDirectoryTestSuite.java:102)
+	at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.execute(TestNGDirectoryTestSuite.java:91)
+	at org.apache.maven.surefire.testng.TestNGProvider.invoke(TestNGProvider.java:137)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+]]></failure>
+  </testcase>
+  <testcase name="TC_QC_29" classname="com.hubblehox.automation.tests.TicketConfigTest" time="20.569">
+    <failure message="Expected condition failed: waiting for visibility of element located by By.xpath: //label[contains(normalize-space(),&apos;Description&apos;)]/following::textarea[1] (tried for 20 second(s) with 500 milliseconds interval)&#10;Build info: version: &apos;4.18.1&apos;, revision: &apos;b1d3319b48&apos;&#10;System info: os.name: &apos;Windows 11&apos;, os.arch: &apos;amd64&apos;, os.version: &apos;10.0&apos;, java.version: &apos;25.0.2&apos;&#10;Driver info: org.openqa.selenium.chrome.ChromeDriver&#10;Capabilities {acceptInsecureCerts: false, browserName: chrome, browserVersion: 148.0.7778.217, chrome: {chromedriverVersion: 148.0.7778.178 (d096af1c9e9..., userDataDir: C:\Users\NIKHIL~1.CHA\AppDa...}, fedcm:accounts: true, goog:chromeOptions: {debuggerAddress: localhost:59604}, goog:processID: 30220, networkConnectionEnabled: false, pageLoadStrategy: normal, platformName: windows, proxy: Proxy(), se:cdp: ws://localhost:59604/devtoo..., se:cdpVersion: 148.0.7778.217, setWindowRect: true, strictFileInteractability: false, timeouts: {implicit: 0, pageLoad: 300000, script: 30000}, unhandledPromptBehavior: dismiss and notify, webauthn:extension:credBlob: true, webauthn:extension:largeBlob: true, webauthn:extension:minPinLength: true, webauthn:extension:prf: true, webauthn:virtualAuthenticators: true}&#10;Session ID: afcc90e78edff6c1fd855097548ff004" type="org.openqa.selenium.TimeoutException"><![CDATA[org.openqa.selenium.TimeoutException: 
+Expected condition failed: waiting for visibility of element located by By.xpath: //label[contains(normalize-space(),'Description')]/following::textarea[1] (tried for 20 second(s) with 500 milliseconds interval)
+Build info: version: '4.18.1', revision: 'b1d3319b48'
+System info: os.name: 'Windows 11', os.arch: 'amd64', os.version: '10.0', java.version: '25.0.2'
+Driver info: org.openqa.selenium.chrome.ChromeDriver
+Capabilities {acceptInsecureCerts: false, browserName: chrome, browserVersion: 148.0.7778.217, chrome: {chromedriverVersion: 148.0.7778.178 (d096af1c9e9..., userDataDir: C:\Users\NIKHIL~1.CHA\AppDa...}, fedcm:accounts: true, goog:chromeOptions: {debuggerAddress: localhost:59604}, goog:processID: 30220, networkConnectionEnabled: false, pageLoadStrategy: normal, platformName: windows, proxy: Proxy(), se:cdp: ws://localhost:59604/devtoo..., se:cdpVersion: 148.0.7778.217, setWindowRect: true, strictFileInteractability: false, timeouts: {implicit: 0, pageLoad: 300000, script: 30000}, unhandledPromptBehavior: dismiss and notify, webauthn:extension:credBlob: true, webauthn:extension:largeBlob: true, webauthn:extension:minPinLength: true, webauthn:extension:prf: true, webauthn:virtualAuthenticators: true}
+Session ID: afcc90e78edff6c1fd855097548ff004
+	at org.openqa.selenium.support.ui.WebDriverWait.timeoutException(WebDriverWait.java:84)
+	at org.openqa.selenium.support.ui.FluentWait.until(FluentWait.java:228)
+	at com.hubblehox.automation.pages.TicketConfigPage.enterCategoryDescription(TicketConfigPage.java:250)
+	at com.hubblehox.automation.tests.TicketConfigTest.TC_QC_29(TicketConfigTest.java:310)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at org.testng.internal.invokers.MethodInvocationHelper.invokeMethod(MethodInvocationHelper.java:139)
+	at org.testng.internal.invokers.TestInvoker.invokeMethod(TestInvoker.java:664)
+	at org.testng.internal.invokers.TestInvoker.invokeTestMethod(TestInvoker.java:228)
+	at org.testng.internal.invokers.MethodRunner.runInSequence(MethodRunner.java:63)
+	at org.testng.internal.invokers.TestInvoker$MethodInvocationAgent.invoke(TestInvoker.java:961)
+	at org.testng.internal.invokers.TestInvoker.invokeTestMethods(TestInvoker.java:201)
+	at org.testng.internal.invokers.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:148)
+	at org.testng.internal.invokers.TestMethodWorker.run(TestMethodWorker.java:128)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+	at org.testng.TestRunner.privateRun(TestRunner.java:819)
+	at org.testng.TestRunner.run(TestRunner.java:619)
+	at org.testng.SuiteRunner.runTest(SuiteRunner.java:443)
+	at org.testng.SuiteRunner.runSequentially(SuiteRunner.java:437)
+	at org.testng.SuiteRunner.privateRun(SuiteRunner.java:397)
+	at org.testng.SuiteRunner.run(SuiteRunner.java:336)
+	at org.testng.SuiteRunnerWorker.runSuite(SuiteRunnerWorker.java:52)
+	at org.testng.SuiteRunnerWorker.run(SuiteRunnerWorker.java:95)
+	at org.testng.TestNG.runSuitesSequentially(TestNG.java:1301)
+	at org.testng.TestNG.runSuitesLocally(TestNG.java:1228)
+	at org.testng.TestNG.runSuites(TestNG.java:1134)
+	at org.testng.TestNG.run(TestNG.java:1101)
+	at org.apache.maven.surefire.testng.TestNGExecutor.run(TestNGExecutor.java:155)
+	at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.executeSingleClass(TestNGDirectoryTestSuite.java:102)
+	at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.execute(TestNGDirectoryTestSuite.java:91)
+	at org.apache.maven.surefire.testng.TestNGProvider.invoke(TestNGProvider.java:137)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+]]></failure>
+  </testcase>
+  <testcase name="TC_QC_30" classname="com.hubblehox.automation.tests.TicketConfigTest" time="20.661"/>
+  <testcase name="TC_QC_31" classname="com.hubblehox.automation.tests.TicketConfigTest" time="41.222">
+    <failure message="Expected condition failed: waiting for element to be clickable: By.xpath: //button[normalize-space()=&apos;Save&apos;] (tried for 20 second(s) with 500 milliseconds interval)&#10;Build info: version: &apos;4.18.1&apos;, revision: &apos;b1d3319b48&apos;&#10;System info: os.name: &apos;Windows 11&apos;, os.arch: &apos;amd64&apos;, os.version: &apos;10.0&apos;, java.version: &apos;25.0.2&apos;&#10;Driver info: org.openqa.selenium.chrome.ChromeDriver&#10;Capabilities {acceptInsecureCerts: false, browserName: chrome, browserVersion: 148.0.7778.217, chrome: {chromedriverVersion: 148.0.7778.178 (d096af1c9e9..., userDataDir: C:\Users\NIKHIL~1.CHA\AppDa...}, fedcm:accounts: true, goog:chromeOptions: {debuggerAddress: localhost:59604}, goog:processID: 30220, networkConnectionEnabled: false, pageLoadStrategy: normal, platformName: windows, proxy: Proxy(), se:cdp: ws://localhost:59604/devtoo..., se:cdpVersion: 148.0.7778.217, setWindowRect: true, strictFileInteractability: false, timeouts: {implicit: 0, pageLoad: 300000, script: 30000}, unhandledPromptBehavior: dismiss and notify, webauthn:extension:credBlob: true, webauthn:extension:largeBlob: true, webauthn:extension:minPinLength: true, webauthn:extension:prf: true, webauthn:virtualAuthenticators: true}&#10;Session ID: afcc90e78edff6c1fd855097548ff004" type="org.openqa.selenium.TimeoutException"><![CDATA[org.openqa.selenium.TimeoutException: 
+Expected condition failed: waiting for element to be clickable: By.xpath: //button[normalize-space()='Save'] (tried for 20 second(s) with 500 milliseconds interval)
+Build info: version: '4.18.1', revision: 'b1d3319b48'
+System info: os.name: 'Windows 11', os.arch: 'amd64', os.version: '10.0', java.version: '25.0.2'
+Driver info: org.openqa.selenium.chrome.ChromeDriver
+Capabilities {acceptInsecureCerts: false, browserName: chrome, browserVersion: 148.0.7778.217, chrome: {chromedriverVersion: 148.0.7778.178 (d096af1c9e9..., userDataDir: C:\Users\NIKHIL~1.CHA\AppDa...}, fedcm:accounts: true, goog:chromeOptions: {debuggerAddress: localhost:59604}, goog:processID: 30220, networkConnectionEnabled: false, pageLoadStrategy: normal, platformName: windows, proxy: Proxy(), se:cdp: ws://localhost:59604/devtoo..., se:cdpVersion: 148.0.7778.217, setWindowRect: true, strictFileInteractability: false, timeouts: {implicit: 0, pageLoad: 300000, script: 30000}, unhandledPromptBehavior: dismiss and notify, webauthn:extension:credBlob: true, webauthn:extension:largeBlob: true, webauthn:extension:minPinLength: true, webauthn:extension:prf: true, webauthn:virtualAuthenticators: true}
+Session ID: afcc90e78edff6c1fd855097548ff004
+	at org.openqa.selenium.support.ui.WebDriverWait.timeoutException(WebDriverWait.java:84)
+	at org.openqa.selenium.support.ui.FluentWait.until(FluentWait.java:228)
+	at com.hubblehox.automation.pages.TicketConfigPage.clickModalSave(TicketConfigPage.java:225)
+	at com.hubblehox.automation.tests.TicketConfigTest.TC_QC_31(TicketConfigTest.java:325)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at org.testng.internal.invokers.MethodInvocationHelper.invokeMethod(MethodInvocationHelper.java:139)
+	at org.testng.internal.invokers.TestInvoker.invokeMethod(TestInvoker.java:664)
+	at org.testng.internal.invokers.TestInvoker.invokeTestMethod(TestInvoker.java:228)
+	at org.testng.internal.invokers.MethodRunner.runInSequence(MethodRunner.java:63)
+	at org.testng.internal.invokers.TestInvoker$MethodInvocationAgent.invoke(TestInvoker.java:961)
+	at org.testng.internal.invokers.TestInvoker.invokeTestMethods(TestInvoker.java:201)
+	at org.testng.internal.invokers.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:148)
+	at org.testng.internal.invokers.TestMethodWorker.run(TestMethodWorker.java:128)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+	at org.testng.TestRunner.privateRun(TestRunner.java:819)
+	at org.testng.TestRunner.run(TestRunner.java:619)
+	at org.testng.SuiteRunner.runTest(SuiteRunner.java:443)
+	at org.testng.SuiteRunner.runSequentially(SuiteRunner.java:437)
+	at org.testng.SuiteRunner.privateRun(SuiteRunner.java:397)
+	at org.testng.SuiteRunner.run(SuiteRunner.java:336)
+	at org.testng.SuiteRunnerWorker.runSuite(SuiteRunnerWorker.java:52)
+	at org.testng.SuiteRunnerWorker.run(SuiteRunnerWorker.java:95)
+	at org.testng.TestNG.runSuitesSequentially(TestNG.java:1301)
+	at org.testng.TestNG.runSuitesLocally(TestNG.java:1228)
+	at org.testng.TestNG.runSuites(TestNG.java:1134)
+	at org.testng.TestNG.run(TestNG.java:1101)
+	at org.apache.maven.surefire.testng.TestNGExecutor.run(TestNGExecutor.java:155)
+	at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.executeSingleClass(TestNGDirectoryTestSuite.java:102)
+	at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.execute(TestNGDirectoryTestSuite.java:91)
+	at org.apache.maven.surefire.testng.TestNGProvider.invoke(TestNGProvider.java:137)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+]]></failure>
+  </testcase>
+  <testcase name="TC_QC_32" classname="com.hubblehox.automation.tests.TicketConfigTest" time="0.093"/>
+  <testcase name="TC_QC_33" classname="com.hubblehox.automation.tests.TicketConfigTest" time="0.112"/>
+  <testcase name="TC_QC_34" classname="com.hubblehox.automation.tests.TicketConfigTest" time="0.086"/>
+  <testcase name="TC_QC_35" classname="com.hubblehox.automation.tests.TicketConfigTest" time="0.07"/>
+  <testcase name="TC_QC_36" classname="com.hubblehox.automation.tests.TicketConfigTest" time="1.217"/>
+  <testcase name="TC_QC_37" classname="com.hubblehox.automation.tests.TicketConfigTest" time="20.68">
+    <failure message="Expected condition failed: waiting for element to be clickable: By.xpath: //button[contains(normalize-space(),&apos;+ Add Field&apos;)] (tried for 20 second(s) with 500 milliseconds interval)&#10;Build info: version: &apos;4.18.1&apos;, revision: &apos;b1d3319b48&apos;&#10;System info: os.name: &apos;Windows 11&apos;, os.arch: &apos;amd64&apos;, os.version: &apos;10.0&apos;, java.version: &apos;25.0.2&apos;&#10;Driver info: org.openqa.selenium.chrome.ChromeDriver&#10;Capabilities {acceptInsecureCerts: false, browserName: chrome, browserVersion: 148.0.7778.217, chrome: {chromedriverVersion: 148.0.7778.178 (d096af1c9e9..., userDataDir: C:\Users\NIKHIL~1.CHA\AppDa...}, fedcm:accounts: true, goog:chromeOptions: {debuggerAddress: localhost:59604}, goog:processID: 30220, networkConnectionEnabled: false, pageLoadStrategy: normal, platformName: windows, proxy: Proxy(), se:cdp: ws://localhost:59604/devtoo..., se:cdpVersion: 148.0.7778.217, setWindowRect: true, strictFileInteractability: false, timeouts: {implicit: 0, pageLoad: 300000, script: 30000}, unhandledPromptBehavior: dismiss and notify, webauthn:extension:credBlob: true, webauthn:extension:largeBlob: true, webauthn:extension:minPinLength: true, webauthn:extension:prf: true, webauthn:virtualAuthenticators: true}&#10;Session ID: afcc90e78edff6c1fd855097548ff004" type="org.openqa.selenium.TimeoutException"><![CDATA[org.openqa.selenium.TimeoutException: 
+Expected condition failed: waiting for element to be clickable: By.xpath: //button[contains(normalize-space(),'+ Add Field')] (tried for 20 second(s) with 500 milliseconds interval)
+Build info: version: '4.18.1', revision: 'b1d3319b48'
+System info: os.name: 'Windows 11', os.arch: 'amd64', os.version: '10.0', java.version: '25.0.2'
+Driver info: org.openqa.selenium.chrome.ChromeDriver
+Capabilities {acceptInsecureCerts: false, browserName: chrome, browserVersion: 148.0.7778.217, chrome: {chromedriverVersion: 148.0.7778.178 (d096af1c9e9..., userDataDir: C:\Users\NIKHIL~1.CHA\AppDa...}, fedcm:accounts: true, goog:chromeOptions: {debuggerAddress: localhost:59604}, goog:processID: 30220, networkConnectionEnabled: false, pageLoadStrategy: normal, platformName: windows, proxy: Proxy(), se:cdp: ws://localhost:59604/devtoo..., se:cdpVersion: 148.0.7778.217, setWindowRect: true, strictFileInteractability: false, timeouts: {implicit: 0, pageLoad: 300000, script: 30000}, unhandledPromptBehavior: dismiss and notify, webauthn:extension:credBlob: true, webauthn:extension:largeBlob: true, webauthn:extension:minPinLength: true, webauthn:extension:prf: true, webauthn:virtualAuthenticators: true}
+Session ID: afcc90e78edff6c1fd855097548ff004
+	at org.openqa.selenium.support.ui.WebDriverWait.timeoutException(WebDriverWait.java:84)
+	at org.openqa.selenium.support.ui.FluentWait.until(FluentWait.java:228)
+	at com.hubblehox.automation.pages.TicketConfigPage.clickAddField(TicketConfigPage.java:261)
+	at com.hubblehox.automation.tests.TicketConfigTest.TC_QC_37(TicketConfigTest.java:367)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at org.testng.internal.invokers.MethodInvocationHelper.invokeMethod(MethodInvocationHelper.java:139)
+	at org.testng.internal.invokers.TestInvoker.invokeMethod(TestInvoker.java:664)
+	at org.testng.internal.invokers.TestInvoker.invokeTestMethod(TestInvoker.java:228)
+	at org.testng.internal.invokers.MethodRunner.runInSequence(MethodRunner.java:63)
+	at org.testng.internal.invokers.TestInvoker$MethodInvocationAgent.invoke(TestInvoker.java:961)
+	at org.testng.internal.invokers.TestInvoker.invokeTestMethods(TestInvoker.java:201)
+	at org.testng.internal.invokers.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:148)
+	at org.testng.internal.invokers.TestMethodWorker.run(TestMethodWorker.java:128)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+	at org.testng.TestRunner.privateRun(TestRunner.java:819)
+	at org.testng.TestRunner.run(TestRunner.java:619)
+	at org.testng.SuiteRunner.runTest(SuiteRunner.java:443)
+	at org.testng.SuiteRunner.runSequentially(SuiteRunner.java:437)
+	at org.testng.SuiteRunner.privateRun(SuiteRunner.java:397)
+	at org.testng.SuiteRunner.run(SuiteRunner.java:336)
+	at org.testng.SuiteRunnerWorker.runSuite(SuiteRunnerWorker.java:52)
+	at org.testng.SuiteRunnerWorker.run(SuiteRunnerWorker.java:95)
+	at org.testng.TestNG.runSuitesSequentially(TestNG.java:1301)
+	at org.testng.TestNG.runSuitesLocally(TestNG.java:1228)
+	at org.testng.TestNG.runSuites(TestNG.java:1134)
+	at org.testng.TestNG.run(TestNG.java:1101)
+	at org.apache.maven.surefire.testng.TestNGExecutor.run(TestNGExecutor.java:155)
+	at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.executeSingleClass(TestNGDirectoryTestSuite.java:102)
+	at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.execute(TestNGDirectoryTestSuite.java:91)
+	at org.apache.maven.surefire.testng.TestNGProvider.invoke(TestNGProvider.java:137)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+]]></failure>
+  </testcase>
+  <testcase name="TC_QC_38" classname="com.hubblehox.automation.tests.TicketConfigTest" time="10.124"/>
+  <testcase name="TC_QC_39" classname="com.hubblehox.automation.tests.TicketConfigTest" time="10.129"/>
+  <testcase name="TC_QC_40" classname="com.hubblehox.automation.tests.TicketConfigTest" time="10.09"/>
+  <testcase name="TC_QC_41" classname="com.hubblehox.automation.tests.TicketConfigTest" time="10.109"/>
+  <testcase name="TC_QC_42" classname="com.hubblehox.automation.tests.TicketConfigTest" time="10.106"/>
+  <testcase name="TC_QC_43" classname="com.hubblehox.automation.tests.TicketConfigTest" time="10.134"/>
+  <testcase name="TC_QC_44" classname="com.hubblehox.automation.tests.TicketConfigTest" time="0.06"/>
+  <testcase name="TC_QC_45" classname="com.hubblehox.automation.tests.TicketConfigTest" time="0.068"/>
+  <testcase name="TC_QC_46" classname="com.hubblehox.automation.tests.TicketConfigTest" time="0.086"/>
+  <testcase name="TC_QC_47" classname="com.hubblehox.automation.tests.TicketConfigTest" time="1.539"/>
+  <testcase name="TC_QC_48" classname="com.hubblehox.automation.tests.TicketConfigTest" time="0.05"/>
+  <testcase name="TC_QC_49" classname="com.hubblehox.automation.tests.TicketConfigTest" time="1.332"/>
+  <testcase name="TC_QC_50" classname="com.hubblehox.automation.tests.TicketConfigTest" time="10.096">
+    <system-err><![CDATA[Column not found or cannot be toggled: Priority
+]]></system-err>
+  </testcase>
+  <testcase name="TC_QC_51" classname="com.hubblehox.automation.tests.TicketConfigTest" time="10.159">
+    <system-err><![CDATA[Column not found or cannot be toggled: Tags
+]]></system-err>
+  </testcase>
+  <testcase name="TC_QC_52" classname="com.hubblehox.automation.tests.TicketConfigTest" time="20.721"/>
+  <testcase name="TC_QC_53" classname="com.hubblehox.automation.tests.TicketConfigTest" time="20.626"/>
+  <testcase name="TC_QC_54" classname="com.hubblehox.automation.tests.TicketConfigTest" time="0.129"/>
+  <testcase name="TC_QC_55" classname="com.hubblehox.automation.tests.TicketConfigTest" time="1.501"/>
+  <testcase name="TC_QC_56" classname="com.hubblehox.automation.tests.TicketConfigTest" time="0.051"/>
+  <testcase name="TC_QC_57" classname="com.hubblehox.automation.tests.TicketConfigTest" time="0.084"/>
+  <testcase name="TC_QC_58" classname="com.hubblehox.automation.tests.TicketConfigTest" time="0.065"/>
+  <testcase name="TC_QC_59" classname="com.hubblehox.automation.tests.TicketConfigTest" time="0.047"/>
+  <testcase name="TC_QC_60" classname="com.hubblehox.automation.tests.TicketConfigTest" time="0.056"/>
+  <testcase name="TC_QC_61" classname="com.hubblehox.automation.tests.TicketConfigTest" time="0.057"/>
+  <testcase name="TC_QC_62" classname="com.hubblehox.automation.tests.TicketConfigTest" time="0.13"/>
+  <testcase name="TC_QC_63" classname="com.hubblehox.automation.tests.TicketConfigTest" time="0.08"/>
+  <testcase name="TC_QC_64" classname="com.hubblehox.automation.tests.TicketConfigTest" time="0.046"/>
+  <testcase name="TC_QC_65" classname="com.hubblehox.automation.tests.TicketConfigTest" time="0.088"/>
+  <testcase name="TC_QC_66" classname="com.hubblehox.automation.tests.TicketConfigTest" time="0.064"/>
+  <testcase name="TC_QC_67" classname="com.hubblehox.automation.tests.TicketConfigTest" time="0.064"/>
+  <testcase name="TC_QC_68" classname="com.hubblehox.automation.tests.TicketConfigTest" time="0.044"/>
+  <testcase name="TC_QC_69" classname="com.hubblehox.automation.tests.TicketConfigTest" time="0.059"/>
+  <testcase name="TC_QC_70" classname="com.hubblehox.automation.tests.TicketConfigTest" time="0.058"/>
+  <testcase name="TC_QC_71" classname="com.hubblehox.automation.tests.TicketConfigTest" time="0.086"/>
+  <testcase name="TC_QC_72" classname="com.hubblehox.automation.tests.TicketConfigTest" time="0.057"/>
+  <testcase name="TC_QC_73" classname="com.hubblehox.automation.tests.TicketConfigTest" time="0.06"/>
+  <testcase name="TC_QC_74" classname="com.hubblehox.automation.tests.TicketConfigTest" time="0.064"/>
+  <testcase name="TC_QC_75" classname="com.hubblehox.automation.tests.TicketConfigTest" time="0.238"/>
+  <testcase name="TC_QC_76" classname="com.hubblehox.automation.tests.TicketConfigTest" time="0.053"/>
+  <testcase name="TC_QC_77" classname="com.hubblehox.automation.tests.TicketConfigTest" time="0.065"/>
+  <testcase name="TC_QC_78" classname="com.hubblehox.automation.tests.TicketConfigTest" time="0.089"/>
+  <testcase name="TC_QC_79" classname="com.hubblehox.automation.tests.TicketConfigTest" time="0.069"/>
+  <testcase name="TC_QC_80" classname="com.hubblehox.automation.tests.TicketConfigTest" time="0.245"/>
+</testsuite>

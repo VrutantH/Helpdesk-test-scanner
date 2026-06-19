@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+
+<!-- Run with: mvn test -Dmodule=login -->
+<suite name="Login Suite" verbose="1" thread-count="1" parallel="none">
+
+    <test name="Login Tests">
+        <classes>
+            <class name="com.hubblehox.automation.tests.LoginTest"/>
+        </classes>
+    </test>
+
+</suite>
