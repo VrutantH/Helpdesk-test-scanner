@@ -93,7 +93,7 @@ public class TestDataGenerator {
                             "Verify Login page loads correctly",
                             """
                                     1. Launch browser (Chrome / Firefox / Edge based on config)
-                                    2. Navigate to URL: https://helpdesk-uat.hubblehox.ai/login
+                                    2. Navigate to URL: http://helpdesksupport365.com/login
                                     3. Wait for the page to fully load
                                     4. Check that the Email Address field is visible
                                     5. Check that the Password field is visible
@@ -115,7 +115,7 @@ public class TestDataGenerator {
                             "Verify page title on Login page",
                             """
                                     1. Launch browser
-                                    2. Navigate to URL: https://helpdesk-uat.hubblehox.ai/login
+                                    2. Navigate to URL: http://helpdesksupport365.com/login
                                     3. Wait for the page to fully load
                                     4. Read the browser tab title using driver.getTitle()""",
                             "Browser tab title should display 'SAC Helpdesk Portal'",
@@ -131,7 +131,7 @@ public class TestDataGenerator {
                             "Verify Email field accepts text input",
                             """
                                     1. Launch browser
-                                    2. Navigate to URL: https://helpdesk-uat.hubblehox.ai/login
+                                    2. Navigate to URL: http://helpdesksupport365.com/login
                                     3. Wait for the Email Address field to be visible
                                     4. Click on the Email Address field
                                     5. Type the value: 'test@gmail.com'
@@ -151,7 +151,7 @@ public class TestDataGenerator {
                             "Verify Password field masks the entered text",
                             """
                                     1. Launch browser
-                                    2. Navigate to URL: https://helpdesk-uat.hubblehox.ai/login
+                                    2. Navigate to URL: http://helpdesksupport365.com/login
                                     3. Wait for the Password field to be visible
                                     4. Click on the Password field
                                     5. Type the value: 'TestPass@123'
@@ -172,7 +172,7 @@ public class TestDataGenerator {
                             "Verify Forgot Password link is visible on Login page",
                             """
                                     1. Launch browser
-                                    2. Navigate to URL: https://helpdesk-uat.hubblehox.ai/login
+                                    2. Navigate to URL: http://helpdesksupport365.com/login
                                     3. Wait for the page to fully load
                                     4. Locate the 'Forgot your password?' link on the page
                                     5. Check if the link is displayed""",
@@ -189,7 +189,7 @@ public class TestDataGenerator {
                             "Valid Super Admin login with correct credentials",
                             """
                                     1. Launch browser
-                                    2. Navigate to URL: https://helpdesk-uat.hubblehox.ai/login
+                                    2. Navigate to URL: http://helpdesksupport365.com/login
                                     3. Wait for the Email field to be visible
                                     4. Click on the Email field and enter valid Super Admin email (from config)
                                     5. Click on the Password field and enter valid Super Admin password (from config)
@@ -212,7 +212,7 @@ public class TestDataGenerator {
                             "Login attempt with correct email but wrong password",
                             """
                                     1. Launch browser
-                                    2. Navigate to URL: https://helpdesk-uat.hubblehox.ai/login
+                                    2. Navigate to URL: http://helpdesksupport365.com/login
                                     3. Wait for the Email field to be visible
                                     4. Click on the Email field and enter valid Super Admin email (from config)
                                     5. Click on the Password field and enter wrong password: 'WrongPass@123'
@@ -235,7 +235,7 @@ public class TestDataGenerator {
                             "Login attempt with wrong email but correct password",
                             """
                                     1. Launch browser
-                                    2. Navigate to URL: https://helpdesk-uat.hubblehox.ai/login
+                                    2. Navigate to URL: http://helpdesksupport365.com/login
                                     3. Wait for the Email field to be visible
                                     4. Click on the Email field and enter invalid email: 'wrong@test.com'
                                     5. Click on the Password field and enter valid Super Admin password (from config)
@@ -258,7 +258,7 @@ public class TestDataGenerator {
                             "Login attempt with Email field left empty",
                             """
                                     1. Launch browser
-                                    2. Navigate to URL: https://helpdesk-uat.hubblehox.ai/login
+                                    2. Navigate to URL: http://helpdesksupport365.com/login
                                     3. Wait for the page to fully load
                                     4. Leave the Email field blank (do not click or type anything)
                                     5. Click on the Password field and enter valid Super Admin password (from config)
@@ -279,7 +279,7 @@ public class TestDataGenerator {
                             "Login attempt with Password field left empty",
                             """
                                     1. Launch browser
-                                    2. Navigate to URL: https://helpdesk-uat.hubblehox.ai/login
+                                    2. Navigate to URL: http://helpdesksupport365.com/login
                                     3. Wait for the Email field to be visible
                                     4. Click on the Email field and enter valid Super Admin email (from config)
                                     5. Leave the Password field blank (do not click or type anything)
@@ -300,7 +300,7 @@ public class TestDataGenerator {
                             "Login attempt with both Email and Password fields empty",
                             """
                                     1. Launch browser
-                                    2. Navigate to URL: https://helpdesk-uat.hubblehox.ai/login
+                                    2. Navigate to URL: http://helpdesksupport365.com/login
                                     3. Wait for the page to fully load
                                     4. Leave both Email and Password fields completely blank
                                     5. Click the Login button
@@ -320,7 +320,7 @@ public class TestDataGenerator {
                             "Login attempt with invalid email format (no @ symbol)",
                             """
                                     1. Launch browser
-                                    2. Navigate to URL: https://helpdesk-uat.hubblehox.ai/login
+                                    2. Navigate to URL: http://helpdesksupport365.com/login
                                     3. Wait for the Email field to be visible
                                     4. Click on the Email field and type: 'admingmail.com'  (no @ symbol)
                                     5. Click on the Password field and enter any password
@@ -341,7 +341,7 @@ public class TestDataGenerator {
                             "Verify Login button is visible and clickable",
                             """
                                     1. Launch browser
-                                    2. Navigate to URL: https://helpdesk-uat.hubblehox.ai/login
+                                    2. Navigate to URL: http://helpdesksupport365.com/login
                                     3. Wait for the page to fully load
                                     4. Locate the Login button on the page
                                     5. Check that the Login button is displayed (visible)
@@ -362,7 +362,7 @@ public class TestDataGenerator {
                             "Verify Forgot Password link navigates to Forgot Password screen",
                             """
                                     1. Launch browser
-                                    2. Navigate to URL: https://helpdesk-uat.hubblehox.ai/login
+                                    2. Navigate to URL: http://helpdesksupport365.com/login
                                     3. Wait for the page to fully load
                                     4. Locate the 'Forgot your password?' link
                                     5. Click on the 'Forgot your password?' link
@@ -385,7 +385,7 @@ public class TestDataGenerator {
                             "Verify language selector is visible on Login page",
                             """
                                     1. Launch browser
-                                    2. Navigate to URL: https://helpdesk-uat.hubblehox.ai/login
+                                    2. Navigate to URL: http://helpdesksupport365.com/login
                                     3. Wait for the page to fully load
                                     4. Look for the language selector dropdown or button on the page
                                     5. Check if the language selector is displayed""",
@@ -453,7 +453,7 @@ public class TestDataGenerator {
                             "Verify Super Admin can login and is redirected away from login page",
                             """
                                     1. Launch browser (Chrome)
-                                    2. Navigate to: https://helpdesk-uat.hubblehox.ai
+                                    2. Navigate to: http://helpdesksupport365.com/
                                     3. Wait for Login page to load
                                     4. Enter Super Admin email in the Email field (from config)
                                     5. Enter Super Admin password in the Password field (from config)
@@ -499,7 +499,7 @@ public class TestDataGenerator {
                                     4. Wait for the page to load
                                     5. Verify the current URL contains /projects""",
                             """
-                                    URL should change to: https://helpdesk-uat.hubblehox.ai/projects
+                                    URL should change to: http://helpdesksupport365.com/projects
                                     The Projects list page should be displayed.""",
                             "",
                             ""
@@ -778,7 +778,7 @@ public class TestDataGenerator {
                                     2. Locate the 'Custom Portal URL Path' label and input field
                                     3. Verify the field is visible (required field, marked with *)
                                     4. Verify the placeholder text reads: 'studentassistcenter'
-                                    5. Verify the domain prefix (https://helpdesk-uat.hubblehox.ai/) is shown
+                                    5. Verify the domain prefix (http://helpdesksupport365.com/) is shown
                                     6. Click on the URL path input field
                                     7. Clear any existing value
                                     8. Type the test value: 'automationtestportal'
@@ -788,7 +788,7 @@ public class TestDataGenerator {
                                     Custom Portal URL Path field must be visible and editable.
                                     After typing, field should show: 'automationtestportal'.
                                     Full URL displayed should be:
-                                    https://helpdesk-uat.hubblehox.ai/automationtestportal
+                                    http://helpdesksupport365.com/automationtestportal
                                     [Test Data — Custom Portal URL Path]: automationtestportal""",
                             "",
                             ""
@@ -1984,7 +1984,7 @@ public class TestDataGenerator {
                             "Verify Super Admin can login and is redirected away from login page",
                             """
                                     1. Launch browser (Chrome)
-                                    2. Navigate to: https://helpdesk-uat.hubblehox.ai
+                                    2. Navigate to: http://helpdesksupport365.com/
                                     3. Wait for Login page to load
                                     4. Enter Super Admin email: niraj.mishra@hubblehox.com
                                     5. Enter Super Admin password: admin@12345

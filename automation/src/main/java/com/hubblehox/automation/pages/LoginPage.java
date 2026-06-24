@@ -10,7 +10,7 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
  * Page Object for the Login Page.
  *
  * All locators verified against the actual Login.tsx source code.
- * URL: https://helpdesk-uat.hubblehox.ai/login
+ * URL: http://helpdesksupport365.com/login
  *
  * Page structure (from Login.tsx):
  * - Email input → id="email"

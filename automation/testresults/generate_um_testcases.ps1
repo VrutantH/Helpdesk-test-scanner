@@ -37,13 +37,13 @@ $hdr.HorizontalAlignment = -4108
 
 # Data - flat array [id, module, name, type, priority, pre, steps, data, expected, status]
 $M = "User Management"
-$PNAV  = "Super Admin logged in to UAT (https://helpdesk-uat.hubblehox.ai)"
+$PNAV  = "Super Admin logged in to UAT (http://helpdesksupport365.com/)"
 $PPAGE = "Super Admin logged in; User Management page is open"
 $PMOD  = "Super Admin logged in; User Management page open; Create User modal is open"
 $PCREATED = "Super Admin logged in; User Management page open; New user created in TC_UM_52-54"
 
 $cases = @(
-@("TC_UM_01",$M,"Login as Super Admin","Positive","High",$PNAV,"1. Open https://helpdesk-uat.hubblehox.ai`n2. Enter email`n3. Enter password`n4. Click Login","Email: niraj.mishra@hubblehox.com | Password: admin@12345","Login successful; dashboard is displayed","Pending"),
+@("TC_UM_01",$M,"Login as Super Admin","Positive","High",$PNAV,"1. Open http://helpdesksupport365.com/`n2. Enter email`n3. Enter password`n4. Click Login","Email: niraj.mishra@hubblehox.com | Password: admin@12345","Login successful; dashboard is displayed","Pending"),
 @("TC_UM_02",$M,"Navigate to User Management via sidebar","Positive","High",$PNAV,"1. Click 'User Management' in left sidebar","N/A","Browser navigates to /users; User Management page loads","Pending"),
 @("TC_UM_03",$M,"Verify page header text 'User Management'","Positive","High",$PPAGE,"1. Observe the page heading","N/A","Page heading shows 'User Management'","Pending"),
 @("TC_UM_04",$M,"Verify subtitle 'Manage system users and their access'","Positive","Medium",$PPAGE,"1. Observe subtitle below heading","N/A","Subtitle reads 'Manage system users and their access'","Pending"),

@@ -22,7 +22,7 @@ import org.openqa.selenium.support.ui.Select;
  * - frontend/src/components/ProjectManagement.tsx
  * - frontend/src/components/AddProjectForm.tsx
  *
- * URL: https://helpdesk-uat.hubblehox.ai/projects
+ * URL: http://helpdesksupport365.com/projects
  */
 public class ProjectManagementPage extends ActionKeywords {
 

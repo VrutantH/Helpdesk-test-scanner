@@ -622,7 +622,7 @@ public class LoginTest extends BaseTest {
 
         // ======================================================================
         // TC_LOGIN_16 — Valid login redirects to Dashboard
-        // (https://helpdesk-uat.hubblehox.ai/dashboard)
+        // (http://helpdesksupport365.com/dashboard)
         // Steps:
         // 1. Browser launched and navigated to base URL (done by @BeforeMethod)
         // 2. Wait for Email field to be visible
@@ -631,11 +631,11 @@ public class LoginTest extends BaseTest {
         // 5. Click the Login button
         // 6. Wait for the page to redirect after login
         // 7. Verify the current URL is exactly:
-        // https://helpdesk-uat.hubblehox.ai/dashboard
+        // http://helpdesksupport365.com/dashboard
         // 8. Verify the login page elements (email/password fields) are no longer
         // visible
         // Expected: User is redirected to Dashboard. URL =
-        // https://helpdesk-uat.hubblehox.ai/dashboard
+        // http://helpdesksupport365.com/dashboard
         // ======================================================================
         @Test
         public void TC_LOGIN_16() {
@@ -663,14 +663,14 @@ public class LoginTest extends BaseTest {
                 boolean redirectedToDashboard = loginPage.waitForUrlToContain("/dashboard");
 
                 getExtentTest().log(Status.INFO,
-                                "Step 7: Verifying the current URL is: https://helpdesk-uat.hubblehox.ai/dashboard");
+                                "Step 7: Verifying the current URL is: http://helpdesksupport365.com/dashboard");
                 String currentUrl = loginPage.getCurrentUrl();
                 getExtentTest().log(Status.INFO, "Current URL after login: " + currentUrl);
 
                 Assert.assertTrue(redirectedToDashboard,
                                 "TC_LOGIN_16 FAILED — Page did NOT redirect to Dashboard. Current URL: " + currentUrl);
 
-                Assert.assertTrue(currentUrl.contains("helpdesk-uat.hubblehox.ai/dashboard"),
+                Assert.assertTrue(currentUrl.contains("helpdesksupport365.com/dashboard"),
                                 "TC_LOGIN_16 FAILED — URL is not the Dashboard URL. Got: " + currentUrl);
 
                 getExtentTest().log(Status.INFO,
